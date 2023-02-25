@@ -106,10 +106,6 @@ public class Server {
 
     private static Server instance = null;
 
-    private Config operators;
-
-    private Config whitelist;
-
     private AtomicBoolean isRunning = new AtomicBoolean(true);
 
     private boolean hasStopped = false;
@@ -398,9 +394,6 @@ public class Server {
         this.playerMetadata = new PlayerMetadataStore();
         this.levelMetadata = new LevelMetadataStore();
 
-        this.operators = new Config(this.dataPath + "ops.txt", Config.ENUM);
-        this.whitelist = new Config(this.dataPath + "white-list.txt", Config.ENUM);
-
         this.maxPlayers = this.getPropertyInt("max-players", 20);
         this.setAutoSave(this.getPropertyBoolean("auto-save", true));
 
@@ -683,9 +676,6 @@ public class Server {
         if (this.getPropertyBoolean("hardcore", false) && this.getDifficulty() < 3) {
             this.setPropertyInt("difficulty", difficulty = 3);
         }
-
-        this.reloadWhitelist();
-        this.operators.reload();
 
         this.pluginManager.registerInterface(JavaPluginLoader.class);
         this.pluginManager.loadPlugins(this.pluginPath);
@@ -2001,48 +1991,6 @@ public class Server {
     public void setPropertyBoolean(String variable, boolean value) {
         this.properties.set(variable, value ? "1" : "0");
         this.properties.save();
-    }
-
-    public void addOp(String name) {
-        this.operators.set(name.toLowerCase(), true);
-        Player player = this.getPlayerExact(name);
-        this.operators.save(true);
-    }
-
-    public void removeOp(String name) {
-        this.operators.remove(name.toLowerCase());
-        Player player = this.getPlayerExact(name);
-        this.operators.save();
-    }
-
-    public void addWhitelist(String name) {
-        this.whitelist.set(name.toLowerCase(), true);
-        this.whitelist.save(true);
-    }
-
-    public void removeWhitelist(String name) {
-        this.whitelist.remove(name.toLowerCase());
-        this.whitelist.save(true);
-    }
-
-    public boolean isWhitelisted(String name) {
-        return !this.hasWhitelist() || this.operators.exists(name, true) || this.whitelist.exists(name, true);
-    }
-
-    public boolean isOp(String name) {
-        return name != null && this.operators.exists(name, true);
-    }
-
-    public Config getWhitelist() {
-        return whitelist;
-    }
-
-    public Config getOps() {
-        return operators;
-    }
-
-    public void reloadWhitelist() {
-        this.whitelist.reload();
     }
 
     public ServiceManager getServiceManager() {

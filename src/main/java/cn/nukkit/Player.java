@@ -1646,12 +1646,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     protected void processLogin() {
-        if (!this.server.isWhitelisted((this.getName()).toLowerCase())) {
-            this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed");
-
-            return;
-        }
-
         Player oldPlayer = null;
         for (Player p : new ArrayList<>(this.server.getOnlinePlayers().values())) {
             if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
