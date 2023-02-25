@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntitySkull;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemSkull;
 import cn.nukkit.item.ItemTool;
@@ -57,44 +56,6 @@ public class BlockSkull extends BlockTransparentMeta implements Faceable {
         }
 
         return ItemSkull.getItemSkullName(itemMeta);
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        switch (face) {
-            case NORTH:
-            case SOUTH:
-            case EAST:
-            case WEST:
-            case UP:
-                this.setDamage(face.getIndex());
-                break;
-            case DOWN:
-            default:
-                return false;
-        }
-        this.getLevel().setBlock(block, this, true, true);
-
-        CompoundTag nbt = new CompoundTag()
-                .putString("id", BlockEntity.SKULL)
-                .putByte("SkullType", item.getDamage())
-                .putInt("x", block.getFloorX())
-                .putInt("y", block.getFloorY())
-                .putInt("z", block.getFloorZ())
-                .putByte("Rot", (int) Math.floor((player.yaw * 16 / 360) + 0.5) & 0x0f);
-        if (item.hasCustomBlockData()) {
-            for (Tag aTag : item.getCustomBlockData().getAllTags()) {
-                nbt.put(aTag.getName(), aTag);
-            }
-        }
-        BlockEntitySkull skull = (BlockEntitySkull) BlockEntity.createBlockEntity(BlockEntity.SKULL, getLevel().getChunk((int) block.x >> 4, (int) block.z >> 4), nbt);
-        if (skull == null) {
-            return false;
-        }
-
-        // TODO: 2016/2/3 SPAWN WITHER
-
-        return true;
     }
 
     @Override

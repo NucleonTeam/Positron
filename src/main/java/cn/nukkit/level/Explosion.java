@@ -4,7 +4,6 @@ import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockTNT;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityShulkerBox;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityExplosive;
 import cn.nukkit.entity.item.EntityItem;
@@ -27,10 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class Explosion {
 
     private final int rays = 16; //Rays
@@ -188,15 +183,10 @@ public class Explosion {
             if (block.getId() == Block.TNT) {
                 ((BlockTNT) block).prime(new NukkitRandom().nextRange(10, 30), this.what instanceof Entity ? (Entity) this.what : null);
             } else if ((container = block.getLevel().getBlockEntity(block)) instanceof InventoryHolder) {
-                if (container instanceof BlockEntityShulkerBox) {
-                    this.level.dropItem(block.add(0.5, 0.5, 0.5), block.toItem());
-                    ((InventoryHolder) container).getInventory().clearAll();
-                } else {
-                    for (Item drop : ((InventoryHolder) container).getInventory().getContents().values()) {
-                        this.level.dropItem(block.add(0.5, 0.5, 0.5), drop);
-                    }
-                    ((InventoryHolder) container).getInventory().clearAll();
+                for (Item drop : ((InventoryHolder) container).getInventory().getContents().values()) {
+                    this.level.dropItem(block.add(0.5, 0.5, 0.5), drop);
                 }
+                ((InventoryHolder) container).getInventory().clearAll();
             } else if (Math.random() * 100 < yield) {
                 for (Item drop : block.getDrops(air)) {
                     this.level.dropItem(block.add(0.5, 0.5, 0.5), drop);

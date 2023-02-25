@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityPistonArm;
 import cn.nukkit.event.block.BlockPistonChangeEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
@@ -42,37 +41,6 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Faceable
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (Math.abs(player.x - this.x) < 2 && Math.abs(player.z - this.z) < 2) {
-            double y = player.y + player.getEyeHeight();
-
-            if (y - this.y > 2) {
-                this.setDamage(BlockFace.UP.getIndex());
-            } else if (this.y - y > 0) {
-                this.setDamage(BlockFace.DOWN.getIndex());
-            } else {
-                this.setDamage(player.getHorizontalFacing().getIndex());
-            }
-        } else {
-            this.setDamage(player.getHorizontalFacing().getIndex());
-        }
-        this.level.setBlock(block, this, true, false);
-
-        CompoundTag nbt = new CompoundTag("")
-                .putString("id", BlockEntity.PISTON_ARM)
-                .putInt("x", (int) this.x)
-                .putInt("y", (int) this.y)
-                .putInt("z", (int) this.z)
-                .putBoolean("Sticky", this.sticky);
-
-        BlockEntityPistonArm be = (BlockEntityPistonArm) BlockEntity.createBlockEntity(BlockEntity.PISTON_ARM, this.level.getChunk((int) this.x >> 4, (int) this.z >> 4), nbt);
-
-        if (be == null) return false;
-        //this.checkState();
-        return true;
-    }
-
-    @Override
     public boolean onBreak(Item item) {
         this.level.setBlock(this, Block.get(BlockID.AIR), true, true);
 
@@ -88,28 +56,6 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Faceable
         BlockFace face = getFacing();
         Block block = getSide(face);
         return block instanceof BlockPistonHead && ((BlockPistonHead) block).getFacing() == face;
-    }
-
-    @Override
-    public int onUpdate(int type) {
-        if (type != 6 && type != 1) {
-            return 0;
-        } else {
-            BlockEntity blockEntity = this.level.getBlockEntity(this);
-            if (blockEntity instanceof BlockEntityPistonArm) {
-                BlockEntityPistonArm arm = (BlockEntityPistonArm) blockEntity;
-                boolean powered = this.isPowered();
-                if (arm.powered != powered) {
-                    this.level.getServer().getPluginManager().callEvent(new BlockPistonChangeEvent(this, powered ? 0 : 15, powered ? 15 : 0));
-                    arm.powered = !arm.powered;
-                    if (arm.chunk != null) {
-                        arm.chunk.setChanged();
-                    }
-                }
-            }
-
-            return type;
-        }
     }
 
     private void checkState() {

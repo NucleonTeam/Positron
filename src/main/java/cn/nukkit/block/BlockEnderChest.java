@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityEnderChest;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.ItemTool;
@@ -91,65 +90,11 @@ public class BlockEnderChest extends BlockTransparentMeta implements Faceable {
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        int[] faces = {2, 5, 3, 4};
-        this.setDamage(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
-
-        this.getLevel().setBlock(block, this, true, true);
-        CompoundTag nbt = new CompoundTag("")
-                .putString("id", BlockEntity.ENDER_CHEST)
-                .putInt("x", (int) this.x)
-                .putInt("y", (int) this.y)
-                .putInt("z", (int) this.z);
-
-        if (item.hasCustomName()) {
-            nbt.putString("CustomName", item.getCustomName());
-        }
-
-        if (item.hasCustomBlockData()) {
-            Map<String, Tag> customData = item.getCustomBlockData().getTags();
-            for (Map.Entry<String, Tag> tag : customData.entrySet()) {
-                nbt.put(tag.getKey(), tag.getValue());
-            }
-        }
-
-        BlockEntityEnderChest ender = (BlockEntityEnderChest) BlockEntity.createBlockEntity(BlockEntity.ENDER_CHEST, this.getLevel().getChunk((int) this.x >> 4, (int) this.z >> 4), nbt);
-        return ender != null;
+        return false;
     }
 
     @Override
     public boolean onActivate(Item item, Player player) {
-        if (player != null) {
-            Block top = this.up();
-            if (!top.isTransparent()) {
-                return true;
-            }
-
-            BlockEntity t = this.getLevel().getBlockEntity(this);
-            BlockEntityEnderChest chest;
-            if (t instanceof BlockEntityEnderChest) {
-                chest = (BlockEntityEnderChest) t;
-            } else {
-                CompoundTag nbt = new CompoundTag("")
-                        .putString("id", BlockEntity.ENDER_CHEST)
-                        .putInt("x", (int) this.x)
-                        .putInt("y", (int) this.y)
-                        .putInt("z", (int) this.z);
-                chest = (BlockEntityEnderChest) BlockEntity.createBlockEntity(BlockEntity.ENDER_CHEST, this.getLevel().getChunk((int) this.x >> 4, (int) this.z >> 4), nbt);
-                if (chest == null) {
-                    return false;
-                }
-            }
-
-            if (chest.namedTag.contains("Lock") && chest.namedTag.get("Lock") instanceof StringTag) {
-                if (!chest.namedTag.getString("Lock").equals(item.getCustomName())) {
-                    return true;
-                }
-            }
-
-            player.setViewingEnderChest(this);
-            player.addWindow(player.getEnderChestInventory());
-        }
-
         return true;
     }
 

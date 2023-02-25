@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityJukebox;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.ItemRecord;
@@ -11,9 +10,6 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.utils.BlockColor;
 
-/**
- * Created by CreeperFace on 7.8.2017.
- */
 public class BlockJukebox extends BlockSolid {
 
     public BlockJukebox() {
@@ -41,20 +37,6 @@ public class BlockJukebox extends BlockSolid {
 
     @Override
     public boolean onActivate(Item item, Player player) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this);
-        if (!(blockEntity instanceof BlockEntityJukebox)) {
-            blockEntity = this.createBlockEntity();
-        }
-
-        BlockEntityJukebox jukebox = (BlockEntityJukebox) blockEntity;
-        if (jukebox.getRecordItem().getId() != 0) {
-            jukebox.dropItem();
-        } else if (item instanceof ItemRecord) {
-            jukebox.setRecordItem(item);
-            jukebox.play();
-            player.getInventory().decreaseCount(player.getInventory().getHeldItemIndex());
-        }
-
         return false;
     }
 

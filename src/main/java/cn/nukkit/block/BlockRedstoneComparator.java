@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityComparator;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemRedstoneComparator;
 import cn.nukkit.level.Level;
@@ -47,33 +46,6 @@ public abstract class BlockRedstoneComparator extends BlockRedstoneDiode {
     @Override
     protected BlockRedstoneComparator getPowered() {
         return (BlockRedstoneComparator) Block.get(BlockID.POWERED_COMPARATOR, this.getDamage());
-    }
-
-    @Override
-    protected int getRedstoneSignal() {
-        BlockEntity blockEntity = this.level.getBlockEntity(this);
-
-        return blockEntity instanceof BlockEntityComparator ? ((BlockEntityComparator) blockEntity).getOutputSignal() : 0;
-    }
-
-    @Override
-    public void updateState() {
-        if (!this.level.isBlockTickPending(this, this)) {
-            int output = this.calculateOutput();
-            BlockEntity blockEntity = this.level.getBlockEntity(this);
-            int power = blockEntity instanceof BlockEntityComparator ? ((BlockEntityComparator) blockEntity).getOutputSignal() : 0;
-
-            if (output != power || this.isPowered() != this.shouldBePowered()) {
-                /*if(isFacingTowardsRepeater()) {
-                    this.level.scheduleUpdate(this, this, 2, -1);
-                } else {
-                    this.level.scheduleUpdate(this, this, 2, 0);
-                }*/
-
-                //System.out.println("schedule update 0");
-                this.level.scheduleUpdate(this, this, 2);
-            }
-        }
     }
 
     protected int calculateInputStrength() {
@@ -123,63 +95,16 @@ public abstract class BlockRedstoneComparator extends BlockRedstoneDiode {
         this.level.setBlock(this, this, true, false);
         //bug?
 
-        this.onChange();
         return true;
     }
 
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
-            this.onChange();
             return type;
         }
 
         return super.onUpdate(type);
-    }
-
-    private void onChange() {
-        int output = this.calculateOutput();
-        BlockEntity blockEntity = this.level.getBlockEntity(this);
-        int currentOutput = 0;
-
-        if (blockEntity instanceof BlockEntityComparator) {
-            BlockEntityComparator blockEntityComparator = (BlockEntityComparator) blockEntity;
-            currentOutput = blockEntityComparator.getOutputSignal();
-            blockEntityComparator.setOutputSignal(output);
-        }
-
-        if (currentOutput != output || getMode() == Mode.COMPARE) {
-            boolean shouldBePowered = this.shouldBePowered();
-            boolean isPowered = this.isPowered();
-
-            if (isPowered && !shouldBePowered) {
-                this.level.setBlock(this, getUnpowered(), true, false);
-            } else if (!isPowered && shouldBePowered) {
-                this.level.setBlock(this, getPowered(), true, false);
-            }
-
-            this.level.updateAroundRedstone(this, null);
-        }
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (super.place(item, block, target, face, fx, fy, fz, player)) {
-            CompoundTag nbt = new CompoundTag()
-                    .putList(new ListTag<>("Items"))
-                    .putString("id", BlockEntity.COMPARATOR)
-                    .putInt("x", (int) this.x)
-                    .putInt("y", (int) this.y)
-                    .putInt("z", (int) this.z);
-            BlockEntityComparator comparator = (BlockEntityComparator) BlockEntity.createBlockEntity(BlockEntity.COMPARATOR, this.level.getChunk((int) this.x >> 4, (int) this.z >> 4), nbt);
-            if (comparator == null) {
-                return false;
-            }
-            onUpdate(Level.BLOCK_UPDATE_REDSTONE);
-            return true;
-        }
-
-        return false;
     }
 
     @Override

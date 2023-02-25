@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemItemFrame;
 import cn.nukkit.level.Level;
@@ -60,47 +59,11 @@ public class BlockItemFrame extends BlockTransparentMeta implements Faceable {
 
     @Override
     public boolean onActivate(Item item, Player player) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this);
-        BlockEntityItemFrame itemFrame = (BlockEntityItemFrame) blockEntity;
-        if (itemFrame.getItem().getId() == Item.AIR) {
-            Item itemOnFrame = item.clone();
-            if (player != null && player.isSurvival()) {
-                itemOnFrame.setCount(itemOnFrame.getCount() - 1);
-                player.getInventory().setItemInHand(itemOnFrame);
-            }
-            itemOnFrame.setCount(1);
-            itemFrame.setItem(itemOnFrame);
-            this.getLevel().addLevelEvent(this, LevelEventPacket.EVENT_SOUND_ITEM_FRAME_ITEM_ADDED);
-        } else {
-            itemFrame.setItemRotation((itemFrame.getItemRotation() + 1) % 8);
-            this.getLevel().addLevelEvent(this, LevelEventPacket.EVENT_SOUND_ITEM_FRAME_ITEM_ROTATED);
-        }
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (face.getIndex() > 1 && target.isSolid() && (!block.isSolid() || block.canBeReplaced())) {
-            this.setDamage(FACING[face.getIndex()]);
-            this.getLevel().setBlock(block, this, true, true);
-            CompoundTag nbt = new CompoundTag()
-                    .putString("id", BlockEntity.ITEM_FRAME)
-                    .putInt("x", (int) block.x)
-                    .putInt("y", (int) block.y)
-                    .putInt("z", (int) block.z)
-                    .putByte("ItemRotation", 0)
-                    .putFloat("ItemDropChance", 1.0f);
-            if (item.hasCustomBlockData()) {
-                for (Tag aTag : item.getCustomBlockData().getAllTags()) {
-                    nbt.put(aTag.getName(), aTag);
-                }
-            }
-            BlockEntityItemFrame frame = (BlockEntityItemFrame) BlockEntity.createBlockEntity(BlockEntity.ITEM_FRAME, this.getLevel().getChunk((int) this.x >> 4, (int) this.z >> 4), nbt);
-            if (frame == null) {
-                return false;
-            }
-            return true;
-        }
         return false;
     }
 
@@ -113,17 +76,9 @@ public class BlockItemFrame extends BlockTransparentMeta implements Faceable {
 
     @Override
     public Item[] getDrops(Item item) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this);
-        BlockEntityItemFrame itemFrame = (BlockEntityItemFrame) blockEntity;
-        if (itemFrame != null && ThreadLocalRandom.current().nextFloat() <= itemFrame.getItemDropChance()) {
-            return new Item[]{
-                    toItem(), itemFrame.getItem().clone()
-            };
-        } else {
-            return new Item[]{
-                    toItem()
-            };
-        }
+        return new Item[]{
+                toItem()
+        };
     }
 
     @Override
@@ -139,17 +94,6 @@ public class BlockItemFrame extends BlockTransparentMeta implements Faceable {
     @Override
     public boolean hasComparatorInputOverride() {
         return true;
-    }
-
-    @Override
-    public int getComparatorInputOverride() {
-        BlockEntity blockEntity = this.level.getBlockEntity(this);
-
-        if (blockEntity instanceof BlockEntityItemFrame) {
-            return ((BlockEntityItemFrame) blockEntity).getAnalogOutput();
-        }
-
-        return super.getComparatorInputOverride();
     }
 
     public BlockFace getFacing() {

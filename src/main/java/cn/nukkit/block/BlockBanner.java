@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityBanner;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.level.Level;
@@ -87,9 +86,7 @@ public class BlockBanner extends BlockTransparentMeta implements Faceable {
             if (patterns instanceof ListTag) {
                 nbt.put("Patterns", patterns);
             }
-
-            BlockEntityBanner banner = (BlockEntityBanner) BlockEntity.createBlockEntity(BlockEntity.BANNER, this.getChunk(), nbt);
-            return banner != null;
+            return false;
         }
         return false;
     }
@@ -110,22 +107,7 @@ public class BlockBanner extends BlockTransparentMeta implements Faceable {
     @Override
     public Item toItem() {
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this);
-        Item item = Item.get(Item.BANNER);
-        if (blockEntity instanceof BlockEntityBanner) {
-            BlockEntityBanner banner = (BlockEntityBanner) blockEntity;
-            item.setDamage(banner.getBaseColor() & 0xf);
-            int type = banner.namedTag.getInt("Type");
-            if (type > 0) {
-                item.setNamedTag((item.hasCompoundTag() ? item.getNamedTag() : new CompoundTag())
-                        .putInt("Type", type));
-            }
-            ListTag<CompoundTag> patterns = banner.namedTag.getList("Patterns", CompoundTag.class);
-            if (patterns.size() > 0) {
-                item.setNamedTag((item.hasCompoundTag() ? item.getNamedTag() : new CompoundTag())
-                        .putList(patterns));
-            }
-        }
-        return item;
+        return Item.get(Item.BANNER);
     }
 
     @Override
@@ -139,14 +121,6 @@ public class BlockBanner extends BlockTransparentMeta implements Faceable {
     }
 
     public DyeColor getDyeColor() {
-        if (this.level != null) {
-            BlockEntity blockEntity = this.level.getBlockEntity(this);
-
-            if (blockEntity instanceof BlockEntityBanner) {
-                return ((BlockEntityBanner) blockEntity).getDyeColor();
-            }
-        }
-
         return DyeColor.WHITE;
     }
 

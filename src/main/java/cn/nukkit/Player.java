@@ -3,7 +3,6 @@ package cn.nukkit;
 import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.block.*;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.*;
 import cn.nukkit.entity.data.*;
@@ -13,9 +12,7 @@ import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageModifier;
-import cn.nukkit.event.entity.ProjectileLaunchEvent;
 import cn.nukkit.entity.mob.inventory.InventoryCloseEvent;
-import cn.nukkit.entity.mob.inventory.InventoryPickupItemEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.event.player.PlayerAsyncPreLoginEvent.LoginResult;
 import cn.nukkit.event.player.PlayerInteractEvent.Action;
@@ -2743,9 +2740,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 Vector3 vector3 = this.temporalVector.setComponents(itemFrameDropItemPacket.x, itemFrameDropItemPacket.y, itemFrameDropItemPacket.z);
                 if (vector3.distanceSquared(this) < 1000) {
                     BlockEntity itemFrame = this.level.getBlockEntity(vector3);
-                    if (itemFrame instanceof BlockEntityItemFrame) {
-                        ((BlockEntityItemFrame) itemFrame).dropItem(this);
-                    }
                 }
                 break;
             case ProtocolInfo.MAP_INFO_REQUEST_PACKET:
@@ -2762,19 +2756,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     for (Item item1 : this.inventory.getContents().values()) {
                         if (item1 instanceof ItemMap && ((ItemMap) item1).getMapId() == pk.mapId) {
                             mapItem = item1;
-                        }
-                    }
-                }
-
-                if (mapItem == null) {
-                    for (BlockEntity be : this.level.getBlockEntities().values()) {
-                        if (be instanceof BlockEntityItemFrame) {
-                            BlockEntityItemFrame itemFrame1 = (BlockEntityItemFrame) be;
-
-                            if (itemFrame1.getItem() instanceof ItemMap && ((ItemMap) itemFrame1.getItem()).getMapId() == pk.mapId) {
-                                ((ItemMap) itemFrame1.getItem()).sendImage(this);
-                                break;
-                            }
                         }
                     }
                 }
@@ -3342,18 +3323,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
 
         switch (target.getId()) {
-            case Block.NOTEBLOCK:
-                ((BlockNoteblock) target).emitSound();
-                return;
             case Block.DRAGON_EGG:
                 if (!this.isCreative()) {
                     ((BlockDragonEgg) target).teleport();
-                    return;
-                }
-                break;
-            case Block.ITEM_FRAME_BLOCK:
-                BlockEntity itemFrame = this.level.getBlockEntity(pos);
-                if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
                     return;
                 }
                 break;

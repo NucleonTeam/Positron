@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityHopper;
 import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemHopper;
@@ -48,41 +47,11 @@ public class BlockHopper extends BlockTransparentMeta implements Faceable {
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        BlockFace facing = face.getOpposite();
-
-        if (facing == BlockFace.UP) {
-            facing = BlockFace.DOWN;
-        }
-
-        this.setDamage(facing.getIndex());
-
-        boolean powered = this.level.isBlockPowered(this.getLocation());
-
-        if (powered == this.isEnabled()) {
-            this.setEnabled(!powered);
-        }
-
-        this.level.setBlock(this, this);
-
-        CompoundTag nbt = new CompoundTag()
-                .putList(new ListTag<>("Items"))
-                .putString("id", BlockEntity.HOPPER)
-                .putInt("x", (int) this.x)
-                .putInt("y", (int) this.y)
-                .putInt("z", (int) this.z);
-
-        BlockEntityHopper hopper = (BlockEntityHopper) BlockEntity.createBlockEntity(BlockEntity.HOPPER, this.level.getChunk(this.getFloorX() >> 4, this.getFloorZ() >> 4), nbt);
-        return hopper != null;
+        return false;
     }
 
     @Override
     public boolean onActivate(Item item, Player player) {
-        BlockEntity blockEntity = this.level.getBlockEntity(this);
-
-        if (blockEntity instanceof BlockEntityHopper) {
-            return player.addWindow(((BlockEntityHopper) blockEntity).getInventory()) != -1;
-        }
-
         return false;
     }
 
@@ -97,12 +66,6 @@ public class BlockHopper extends BlockTransparentMeta implements Faceable {
 
     @Override
     public int getComparatorInputOverride() {
-        BlockEntity blockEntity = this.level.getBlockEntity(this);
-
-        if (blockEntity instanceof BlockEntityHopper) {
-            return ContainerInventory.calculateRedstone(((BlockEntityHopper) blockEntity).getInventory());
-        }
-
         return super.getComparatorInputOverride();
     }
 

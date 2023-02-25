@@ -2,7 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityBed;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBed;
 import cn.nukkit.lang.TranslationContainer;
@@ -187,14 +186,6 @@ public class BlockBed extends BlockTransparentMeta implements Faceable {
     }
 
     public DyeColor getDyeColor() {
-        if (this.level != null) {
-            BlockEntity blockEntity = this.level.getBlockEntity(this);
-
-            if (blockEntity instanceof BlockEntityBed) {
-                return ((BlockEntityBed) blockEntity).getDyeColor();
-            }
-        }
-
         return DyeColor.WHITE;
     }
 

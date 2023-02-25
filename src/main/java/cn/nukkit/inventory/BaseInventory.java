@@ -67,10 +67,6 @@ public abstract class BaseInventory implements Inventory {
         }
 
         this.name = this.type.getDefaultTitle();
-
-        if (!(this instanceof DoubleChestInventory)) {
-            this.setContents(items);
-        }
     }
 
     @Override
