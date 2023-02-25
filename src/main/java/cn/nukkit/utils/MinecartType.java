@@ -1,17 +1,9 @@
 package cn.nukkit.utils;
 
-import cn.nukkit.api.API;
-
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Helper class of Minecart variants
- * <p>
- * By Adam Matthew
- * Creation time: 2017/7/17 19:55.
- */
-@API(usage = API.Usage.STABLE, definition = API.Definition.INTERNAL)
+
 public enum MinecartType {
     /**
      * Represents an empty vehicle.
