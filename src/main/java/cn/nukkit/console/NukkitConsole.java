@@ -1,7 +1,6 @@
 package cn.nukkit.console;
 
 import cn.nukkit.Server;
-import co.aikar.timings.Timings;
 import lombok.RequiredArgsConstructor;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import org.jline.reader.LineReader;
