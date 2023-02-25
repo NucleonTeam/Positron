@@ -1,7 +1,7 @@
 package cn.nukkit.inventory.transaction;
 
 import cn.nukkit.Player;
-import cn.nukkit.event.inventory.CraftItemEvent;
+import cn.nukkit.entity.mob.inventory.CraftItemEvent;
 import cn.nukkit.inventory.BigCraftingGrid;
 import cn.nukkit.inventory.CraftingRecipe;
 import cn.nukkit.inventory.InventoryType;

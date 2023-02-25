@@ -1,8 +1,8 @@
 package cn.nukkit.inventory;
 
 import cn.nukkit.Player;
-import cn.nukkit.event.inventory.InventoryCloseEvent;
-import cn.nukkit.event.inventory.InventoryOpenEvent;
+import cn.nukkit.entity.mob.inventory.InventoryCloseEvent;
+import cn.nukkit.entity.mob.inventory.InventoryOpenEvent;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.ContainerClosePacket;

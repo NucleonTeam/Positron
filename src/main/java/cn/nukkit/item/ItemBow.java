@@ -3,7 +3,6 @@ package cn.nukkit.item;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.projectile.EntityArrow;
 import cn.nukkit.entity.projectile.EntityProjectile;
 import cn.nukkit.event.entity.EntityShootBowEvent;
 import cn.nukkit.event.entity.ProjectileLaunchEvent;
@@ -90,58 +89,6 @@ public class ItemBow extends ItemTool {
 
         double p = (double) ticksUsed / 20;
         double f = Math.min((p * p + p * 2) / 3, 1) * 2;
-
-        EntityArrow arrow = (EntityArrow) Entity.createEntity("Arrow", player.chunk, nbt, player, f == 2);
-
-        if (arrow == null) {
-            return false;
-        }
-
-        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent(player, this, arrow, f);
-
-        if (f < 0.1 || ticksUsed < 3) {
-            entityShootBowEvent.setCancelled();
-        }
-
-        Server.getInstance().getPluginManager().callEvent(entityShootBowEvent);
-        if (entityShootBowEvent.isCancelled()) {
-            entityShootBowEvent.getProjectile().kill();
-            player.getInventory().sendContents(player);
-            player.getOffhandInventory().sendContents(player);
-        } else {
-            entityShootBowEvent.getProjectile().setMotion(entityShootBowEvent.getProjectile().getMotion().multiply(entityShootBowEvent.getForce()));
-            Enchantment infinityEnchant = this.getEnchantment(Enchantment.ID_BOW_INFINITY);
-            boolean infinity = infinityEnchant != null && infinityEnchant.getLevel() > 0;
-            EntityProjectile projectile;
-            if (infinity && (projectile = entityShootBowEvent.getProjectile()) instanceof EntityArrow) {
-                ((EntityArrow) projectile).setPickupMode(EntityArrow.PICKUP_CREATIVE);
-            }
-            if (player.isAdventure() || player.isSurvival()) {
-                if (!infinity) {
-                    inventory.removeItem(itemArrow);
-                }
-                if (!this.isUnbreakable()) {
-                    Enchantment durability = this.getEnchantment(Enchantment.ID_DURABILITY);
-                    if (!(durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))) {
-                        this.setDamage(this.getDamage() + 1);
-                        if (this.getDamage() >= getMaxDurability()) {
-                            this.count--;
-                        }
-                        player.getInventory().setItemInHand(this);
-                    }
-                }
-            }
-            if (entityShootBowEvent.getProjectile() != null) {
-                ProjectileLaunchEvent projectev = new ProjectileLaunchEvent(entityShootBowEvent.getProjectile());
-                Server.getInstance().getPluginManager().callEvent(projectev);
-                if (projectev.isCancelled()) {
-                    entityShootBowEvent.getProjectile().kill();
-                } else {
-                    entityShootBowEvent.getProjectile().spawnToAll();
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_BOW);
-                }
-            }
-        }
 
         return true;
     }

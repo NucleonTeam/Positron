@@ -8,8 +8,6 @@ import cn.nukkit.block.BlockRedstoneDiode;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
-import cn.nukkit.entity.item.EntityXPOrb;
-import cn.nukkit.entity.projectile.EntityArrow;
 import cn.nukkit.entity.weather.EntityLightning;
 import cn.nukkit.event.block.BlockBreakEvent;
 import cn.nukkit.event.block.BlockPlaceEvent;
@@ -2023,21 +2021,6 @@ public class Level implements ChunkManager, Metadatable {
 
     public void dropExpOrb(Vector3 source, int exp, Vector3 motion, int delay) {
         Random rand = ThreadLocalRandom.current();
-        for (int split : EntityXPOrb.splitIntoOrbSizes(exp)) {
-            CompoundTag nbt = Entity.getDefaultNBT(source, motion == null ? new Vector3(
-                    (rand.nextDouble() * 0.2 - 0.1) * 2,
-                    rand.nextDouble() * 0.4,
-                    (rand.nextDouble() * 0.2 - 0.1) * 2) : motion,
-                    rand.nextFloat() * 360f, 0);
-
-            nbt.putShort("Value", split);
-            nbt.putShort("PickupDelay", delay);
-
-            Entity entity = Entity.createEntity("XpOrb", this.getChunk(source.getChunkX(), source.getChunkZ()), nbt);
-            if (entity != null) {
-                entity.spawnToAll();
-            }
-        }
     }
 
     public Item useItemOn(Vector3 vector, Item item, BlockFace face, float fx, float fy, float fz) {
@@ -2130,9 +2113,6 @@ public class Level implements ChunkManager, Metadatable {
             Entity[] entities = this.getCollidingEntities(hand.getBoundingBox());
             int realCount = 0;
             for (Entity e : entities) {
-                if (e instanceof EntityArrow || e instanceof EntityItem || (e instanceof Player && ((Player) e).isSpectator())) {
-                    continue;
-                }
                 ++realCount;
             }
 

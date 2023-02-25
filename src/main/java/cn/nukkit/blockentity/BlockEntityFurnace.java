@@ -2,8 +2,8 @@ package cn.nukkit.blockentity;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.*;
-import cn.nukkit.event.inventory.FurnaceBurnEvent;
-import cn.nukkit.event.inventory.FurnaceSmeltEvent;
+import cn.nukkit.entity.mob.inventory.FurnaceBurnEvent;
+import cn.nukkit.entity.mob.inventory.FurnaceSmeltEvent;
 import cn.nukkit.inventory.FurnaceInventory;
 import cn.nukkit.inventory.FurnaceRecipe;
 import cn.nukkit.inventory.InventoryHolder;

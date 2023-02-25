@@ -4,7 +4,7 @@ import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.event.block.AnvilDamageEvent;
 import cn.nukkit.event.block.AnvilDamageEvent.DamageCause;
-import cn.nukkit.event.inventory.RepairItemEvent;
+import cn.nukkit.entity.mob.inventory.RepairItemEvent;
 import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.FakeBlockMenu;
 import cn.nukkit.inventory.Inventory;

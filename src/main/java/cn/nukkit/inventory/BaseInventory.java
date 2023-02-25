@@ -7,7 +7,7 @@ import cn.nukkit.block.BlockID;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityInventoryChangeEvent;
-import cn.nukkit.event.inventory.InventoryOpenEvent;
+import cn.nukkit.entity.mob.inventory.InventoryOpenEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.network.protocol.InventoryContentPacket;

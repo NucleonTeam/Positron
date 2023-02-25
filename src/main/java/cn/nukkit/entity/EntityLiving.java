@@ -5,7 +5,6 @@ import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockMagma;
 import cn.nukkit.entity.data.ShortEntityData;
-import cn.nukkit.entity.passive.EntityWaterAnimal;
 import cn.nukkit.event.entity.EntityDamageByChildEntityEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
@@ -234,7 +233,7 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
             }
 
             if (!this.hasEffect(Effect.WATER_BREATHING) && this.isInsideOfWater()) {
-                if (this instanceof EntityWaterAnimal || (this instanceof Player && (((Player) this).isCreative() || ((Player) this).isSpectator()))) {
+                if ((this instanceof Player && (((Player) this).isCreative() || ((Player) this).isSpectator()))) {
                     this.setAirTicks(400);
                 } else {
                     if (turtleTicks == 0 || turtleTicks == 200) {
@@ -250,22 +249,10 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
                     }
                 }
             } else {
-                if (this instanceof EntityWaterAnimal) {
-                    hasUpdate = true;
-                    int airTicks = getAirTicks() - tickDiff;
+                int airTicks = getAirTicks();
 
-                    if (airTicks <= -20) {
-                        airTicks = 0;
-                        this.attack(new EntityDamageEvent(this, DamageCause.SUFFOCATION, 2));
-                    }
-
-                    setAirTicks(airTicks);
-                } else {
-                    int airTicks = getAirTicks();
-
-                    if (airTicks < 400) {
-                        setAirTicks(Math.min(400, airTicks + tickDiff * 5));
-                    }
+                if (airTicks < 400) {
+                    setAirTicks(Math.min(400, airTicks + tickDiff * 5));
                 }
             }
         }

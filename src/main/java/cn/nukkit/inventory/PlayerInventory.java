@@ -68,12 +68,6 @@ public class PlayerInventory extends BaseInventory {
                 this.sendContents(this.getViewers());
                 return false;
             }
-
-            if (player.fishing != null) {
-                if (!(this.getItem(slot).equals(player.fishing.rod))) {
-                    player.stopFishing(false);
-                }
-            }
         }
 
         this.setHeldItemIndex(slot, false);

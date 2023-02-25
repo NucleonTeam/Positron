@@ -1,7 +1,7 @@
 package cn.nukkit.inventory.transaction;
 
 import cn.nukkit.Player;
-import cn.nukkit.event.inventory.EnchantItemEvent;
+import cn.nukkit.entity.mob.inventory.EnchantItemEvent;
 import cn.nukkit.inventory.EnchantInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.action.EnchantingAction;

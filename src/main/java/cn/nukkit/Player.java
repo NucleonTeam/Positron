@@ -8,18 +8,14 @@ import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.*;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.entity.item.*;
-import cn.nukkit.entity.projectile.EntityArrow;
-import cn.nukkit.entity.projectile.EntityThrownTrident;
 import cn.nukkit.event.entity.EntityDamageByBlockEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageModifier;
 import cn.nukkit.event.entity.ProjectileLaunchEvent;
-import cn.nukkit.event.inventory.InventoryCloseEvent;
-import cn.nukkit.event.inventory.InventoryPickupArrowEvent;
-import cn.nukkit.event.inventory.InventoryPickupItemEvent;
-import cn.nukkit.event.inventory.InventoryPickupTridentEvent;
+import cn.nukkit.entity.mob.inventory.InventoryCloseEvent;
+import cn.nukkit.entity.mob.inventory.InventoryPickupItemEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.event.player.PlayerAsyncPreLoginEvent.LoginResult;
 import cn.nukkit.event.player.PlayerInteractEvent.Action;
@@ -243,8 +239,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     private AsyncTask preLoginEventTask = null;
     protected boolean shouldLogin = false;
-
-    public EntityFishingHook fishing = null;
 
     public long lastSkinChange;
 
@@ -1461,12 +1455,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         this.lastUpdate = currentTick;
 
-        if (this.fishing != null && this.server.getTick() % 20 == 0) {
-            if (this.distance(fishing) > 33) {
-                this.stopFishing(false);
-            }
-        }
-
         if (!this.isAlive() && this.spawned) {
             ++this.deadTicks;
             if (this.deadTicks >= 10) {
@@ -2351,11 +2339,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 if (this.riding == null || this.riding.getId() != moveEntityAbsolutePacket.eid || !this.riding.isControlling(this)) {
                     break;
                 }
-                if (this.riding instanceof EntityBoat) {
-                    if (this.temporalVector.setComponents(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z).distanceSquared(this.riding) < 1000) {
-                        ((EntityBoat) this.riding).onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.headYaw);
-                    }
-                }
                 break;
             case ProtocolInfo.REQUEST_ABILITY_PACKET:
                 RequestAbilityPacket abilityPacket = (RequestAbilityPacket) packet;
@@ -2489,7 +2472,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     break;
                 }
 
-                if (targetEntity instanceof EntityItem || targetEntity instanceof EntityArrow || targetEntity instanceof EntityXPOrb) {
+                if (targetEntity instanceof EntityItem) {
                     this.kick(PlayerKickEvent.Reason.INVALID_PVE, "Attempting to interact with an invalid entity");
                     this.server.getLogger().warning(this.getServer().getLanguage().translateString("nukkit.player.invalidEntity", this.getName()));
                     break;
@@ -2628,9 +2611,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 switch (animation) {
                     case ROW_RIGHT:
                     case ROW_LEFT:
-                        if (this.riding instanceof EntityBoat) {
-                            ((EntityBoat) this.riding).onPaddle(animation, ((AnimatePacket) packet).rowingTime);
-                        }
                         break;
                 }
 
@@ -3744,9 +3724,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 if (this.loggedIn && ev.getAutoSave()) {
                     this.save();
                 }
-                if (this.fishing != null) {
-                    this.stopFishing(false);
-                }
             }
 
             for (Player player : new ArrayList<>(this.server.getOnlinePlayers().values())) {
@@ -3996,9 +3973,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.server.getPluginManager().callEvent(ev);
 
         if (!ev.isCancelled()) {
-            if (this.fishing != null) {
-                this.stopFishing(false);
-            }
 
             this.health = 0;
             this.extinguish();
@@ -4960,135 +4934,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return false;
         }
 
-        if (near) {
-            if (entity instanceof EntityArrow && ((EntityArrow) entity).hadCollision) {
-                ItemArrow item = new ItemArrow();
-                if (!this.isCreative() && !this.inventory.canAddItem(item)) {
-                    return false;
-                }
-
-                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.inventory, (EntityArrow) entity);
-
-                int pickupMode = ((EntityArrow) entity).getPickupMode();
-                if (pickupMode == EntityArrow.PICKUP_NONE || (pickupMode == EntityArrow.PICKUP_CREATIVE && !this.isCreative())) {
-                    ev.setCancelled();
-                }
-
-                this.server.getPluginManager().callEvent(ev);
-                if (ev.isCancelled()) {
-                    return false;
-                }
-
-                TakeItemEntityPacket pk = new TakeItemEntityPacket();
-                pk.entityId = this.getId();
-                pk.target = entity.getId();
-                Server.broadcastPacket(entity.getViewers().values(), pk);
-                this.dataPacket(pk);
-
-                if (!this.isCreative()) {
-                    this.inventory.addItem(item.clone());
-                }
-                entity.close();
-                return true;
-            } else if (entity instanceof EntityThrownTrident && ((EntityThrownTrident) entity).hadCollision) {
-                Item item = ((EntityThrownTrident) entity).getItem();
-                if (!this.isCreative() && !this.inventory.canAddItem(item)) {
-                    return false;
-                }
-
-                InventoryPickupTridentEvent ev = new InventoryPickupTridentEvent(this.inventory, (EntityThrownTrident) entity);
-
-                int pickupMode = ((EntityThrownTrident) entity).getPickupMode();
-                if (pickupMode == EntityThrownTrident.PICKUP_NONE || (pickupMode == EntityThrownTrident.PICKUP_CREATIVE && !this.isCreative())) {
-                    ev.setCancelled();
-                }
-
-                this.server.getPluginManager().callEvent(ev);
-                if (ev.isCancelled()) {
-                    return false;
-                }
-
-                TakeItemEntityPacket pk = new TakeItemEntityPacket();
-                pk.entityId = this.getId();
-                pk.target = entity.getId();
-                Server.broadcastPacket(entity.getViewers().values(), pk);
-                this.dataPacket(pk);
-
-                if (!this.isCreative()) {
-                    this.inventory.addItem(item.clone());
-                }
-                entity.close();
-                return true;
-            } else if (entity instanceof EntityItem) {
-                if (((EntityItem) entity).getPickupDelay() <= 0) {
-                    Item item = ((EntityItem) entity).getItem();
-
-                    if (item != null) {
-                        if (!this.isCreative() && !this.inventory.canAddItem(item)) {
-                            return false;
-                        }
-
-                        InventoryPickupItemEvent ev;
-                        this.server.getPluginManager().callEvent(ev = new InventoryPickupItemEvent(this.inventory, (EntityItem) entity));
-                        if (ev.isCancelled()) {
-                            return false;
-                        }
-
-                        TakeItemEntityPacket pk = new TakeItemEntityPacket();
-                        pk.entityId = this.getId();
-                        pk.target = entity.getId();
-                        Server.broadcastPacket(entity.getViewers().values(), pk);
-                        this.dataPacket(pk);
-
-                        this.inventory.addItem(item.clone());
-                        entity.close();
-                        return true;
-                    }
-                }
-            }
-        }
-
         int tick = this.getServer().getTick();
-        if (pickedXPOrb < tick && entity instanceof EntityXPOrb && this.boundingBox.isVectorInside(entity)) {
-            EntityXPOrb xpOrb = (EntityXPOrb) entity;
-            if (xpOrb.getPickupDelay() <= 0) {
-                int exp = xpOrb.getExp();
-                entity.kill();
-                this.getLevel().addLevelEvent(this, LevelEventPacket.EVENT_SOUND_EXPERIENCE_ORB);
-                pickedXPOrb = tick;
-
-                //Mending
-                ArrayList<Integer> itemsWithMending = new ArrayList<>();
-                for (int i = 0; i < 4; i++) {
-                    if (inventory.getArmorItem(i).getEnchantment((short)Enchantment.ID_MENDING) != null) {
-                        itemsWithMending.add(inventory.getSize() + i);
-                    }
-                }
-                if (inventory.getItemInHand().getEnchantment((short)Enchantment.ID_MENDING) != null) {
-                    itemsWithMending.add(inventory.getHeldItemIndex());
-                }
-                if (itemsWithMending.size() > 0) {
-                    Random rand = new Random();
-                    Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
-                    Item toRepair = inventory.getItem(itemToRepair);
-                    if (toRepair instanceof ItemTool || toRepair instanceof ItemArmor) {
-                        if (toRepair.getDamage() > 0) {
-                            int dmg = toRepair.getDamage() - 2;
-                            if (dmg < 0) {
-                                dmg = 0;
-                            }
-                            toRepair.setDamage(dmg);
-                            inventory.setItem(itemToRepair, toRepair);
-                            return true;
-                        }
-                    }
-                }
-
-                this.addExperience(exp);
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -5142,19 +4988,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                         .add(new FloatTag("", (float) yaw))
                         .add(new FloatTag("", (float) pitch)));
         double f = 1.1;
-        EntityFishingHook fishingHook = new EntityFishingHook(chunk, nbt, this);
-        fishingHook.setMotion(new Vector3(-Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * f * f, -Math.sin(Math.toRadians(pitch)) * f * f,
-                Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * f * f));
-        ProjectileLaunchEvent ev = new ProjectileLaunchEvent(fishingHook);
-        this.getServer().getPluginManager().callEvent(ev);
-        if (ev.isCancelled()) {
-            fishingHook.close();
-        } else {
-            this.fishing = fishingHook;
-            fishingHook.rod = fishingRod;
-            fishingHook.checkLure();
-            fishingHook.spawnToAll();
-        }
     }
 
     /**
@@ -5162,13 +4995,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
      * @param click clicked or forced
      */
     public void stopFishing(boolean click) {
-        if (this.fishing != null && click) {
-            fishing.reelLine();
-        } else if (this.fishing != null) {
-            this.fishing.close();
-        }
 
-        this.fishing = null;
     }
 
     @Override

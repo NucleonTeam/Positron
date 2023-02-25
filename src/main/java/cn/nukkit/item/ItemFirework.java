@@ -3,7 +3,6 @@ package cn.nukkit.item;
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.item.EntityFirework;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
@@ -145,11 +144,6 @@ public class ItemFirework extends Item {
                         .add(new FloatTag("", 0))
                         .add(new FloatTag("", 0)))
                 .putCompound("FireworkItem", NBTIO.putItemHelper(this));
-
-        EntityFirework entity = (EntityFirework) Entity.createEntity("Firework", level.getChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4), nbt);
-        if (entity != null) {
-            entity.spawnToAll();
-        }
     }
 
     public static class FireworkExplosion {

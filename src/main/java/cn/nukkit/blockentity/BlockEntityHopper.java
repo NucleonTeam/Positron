@@ -5,7 +5,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
-import cn.nukkit.event.inventory.InventoryMoveItemEvent;
+import cn.nukkit.entity.mob.inventory.InventoryMoveItemEvent;
 import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
