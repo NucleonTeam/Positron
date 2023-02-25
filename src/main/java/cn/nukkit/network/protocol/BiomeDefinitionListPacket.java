@@ -1,6 +1,6 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.Nukkit;
+import cn.nukkit.Server;
 import com.google.common.io.ByteStreams;
 import lombok.ToString;
 
@@ -14,7 +14,7 @@ public class BiomeDefinitionListPacket extends DataPacket {
 
     static {
         try {
-            InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("biome_definitions.dat");
+            InputStream inputStream = Server.class.getClassLoader().getResourceAsStream("biome_definitions.dat");
             if (inputStream == null) {
                 throw new AssertionError("Could not find biome_definitions.dat");
             }

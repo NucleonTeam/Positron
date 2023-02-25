@@ -1,15 +1,12 @@
 package cn.nukkit;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.blockentity.*;
 import cn.nukkit.console.NukkitConsole;
 import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.entity.item.*;
-import cn.nukkit.entity.mob.*;
-import cn.nukkit.entity.projectile.*;
 import cn.nukkit.entity.weather.EntityLightning;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.event.level.LevelInitEvent;
@@ -25,7 +22,6 @@ import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.lang.BaseLang;
 import cn.nukkit.lang.TextContainer;
-import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.EnumLevel;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.Level;
@@ -72,6 +68,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
@@ -89,15 +89,13 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-/**
- * @author MagicDroidX
- * @author Box
- */
 @Log4j2
 public class Server {
 
     public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "nukkit.broadcast.admin";
     public static final String BROADCAST_CHANNEL_USERS = "nukkit.broadcast.user";
+    private static final long START_TIME = System.currentTimeMillis();
+    public static int DEBUG_LEVEL = 1;
 
     private static Server instance = null;
 
@@ -222,7 +220,15 @@ public class Server {
 
     private final Set<String> ignoredPackets = new HashSet<>();
 
-    Server(final String filePath, String dataPath, String pluginPath, String predefinedLanguage) {
+    public static Server init() {
+        var path = System.getProperty("user.dir") + "/";
+        var dataPath = System.getProperty("user.dir") + "/";
+        var pluginPath = dataPath + "plugins";
+
+        return new Server(path, dataPath, pluginPath, null);
+    }
+
+    private Server(final String filePath, String dataPath, String pluginPath, String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
         instance = this;
@@ -304,13 +310,13 @@ public class Server {
         log.info("Loading {} ...", TextFormat.GREEN + "nukkit.yml" + TextFormat.WHITE);
         this.config = new Config(this.dataPath + "nukkit.yml", Config.YAML);
 
-        Nukkit.DEBUG = NukkitMath.clamp(this.getConfig("debug.level", 1), 1, 3);
+        DEBUG_LEVEL = NukkitMath.clamp(this.getConfig("debug.level", 1), 1, 3);
 
-        int logLevel = (Nukkit.DEBUG + 3) * 100;
-        org.apache.logging.log4j.Level currentLevel = Nukkit.getLogLevel();
+        int logLevel = (DEBUG_LEVEL + 3) * 100;
+        org.apache.logging.log4j.Level currentLevel = Server.getLogLevel();
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
             if (level.intLevel() == logLevel && level.intLevel() > currentLevel.intLevel()) {
-                Nukkit.setLogLevel(level);
+                Server.setLogLevel(level);
                 break;
             }
         }
@@ -440,7 +446,7 @@ public class Server {
         convertLegacyPlayerData();
 
         this.craftingManager = new CraftingManager();
-        this.resourcePackManager = new ResourcePackManager(new File(Nukkit.DATA_PATH, "resource_packs"));
+        this.resourcePackManager = new ResourcePackManager(new File(this.dataPath, "resource_packs"));
 
         this.pluginManager.registerInterface(JavaPluginLoader.class);
 
@@ -524,7 +530,7 @@ public class Server {
 
         this.enablePlugins(PluginLoadOrder.POSTWORLD);
 
-        if (Nukkit.DEBUG < 2) {
+        if (DEBUG_LEVEL < 2) {
             this.watchdog = new Watchdog(this, 60000);
             this.watchdog.start();
         }
@@ -742,7 +748,7 @@ public class Server {
 
         log.info(this.getLanguage().translateString("nukkit.server.defaultGameMode", getGamemodeString(this.getGamemode())));
 
-        log.info(this.getLanguage().translateString("nukkit.server.startFinished", String.valueOf((double) (System.currentTimeMillis() - Nukkit.START_TIME) / 1000)));
+        log.info(this.getLanguage().translateString("nukkit.server.startFinished", String.valueOf((double) (System.currentTimeMillis() - START_TIME) / 1000)));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -2028,5 +2034,21 @@ public class Server {
         public void run() {
             console.start();
         }
+    }
+
+    public static void setLogLevel(org.apache.logging.log4j.Level level) {
+        Preconditions.checkNotNull(level, "level");
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration log4jConfig = ctx.getConfiguration();
+        LoggerConfig loggerConfig = log4jConfig.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME);
+        loggerConfig.setLevel(level);
+        ctx.updateLoggers();
+    }
+
+    public static org.apache.logging.log4j.Level getLogLevel() {
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration log4jConfig = ctx.getConfiguration();
+        LoggerConfig loggerConfig = log4jConfig.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME);
+        return loggerConfig.getLevel();
     }
 }

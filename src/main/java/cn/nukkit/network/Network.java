@@ -1,6 +1,5 @@
 package cn.nukkit.network;
 
-import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.nbt.stream.FastByteArrayOutputStream;
@@ -164,7 +163,7 @@ public class Network {
             try {
                 interfaz.process();
             } catch (Exception e) {
-                if (Nukkit.DEBUG > 1) {
+                if (Server.DEBUG_LEVEL > 1) {
                     this.server.getLogger().logException(e);
                 }
 

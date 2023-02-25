@@ -1,6 +1,6 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.Nukkit;
+import cn.nukkit.Server;
 import com.google.common.io.ByteStreams;
 import lombok.ToString;
 
@@ -14,7 +14,7 @@ public class AvailableEntityIdentifiersPacket extends DataPacket {
 
     static {
         try {
-            InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("entity_identifiers.dat");
+            InputStream inputStream = Server.class.getClassLoader().getResourceAsStream("entity_identifiers.dat");
             if (inputStream == null) {
                 throw new AssertionError("Could not find entity_identifiers.dat");
             }
