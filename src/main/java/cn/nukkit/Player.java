@@ -43,6 +43,7 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
 import cn.nukkit.metadata.MetadataValue;
+import cn.nukkit.metadata.Metadatable;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.*;
 import cn.nukkit.network.CompressionProvider;
@@ -85,7 +86,7 @@ import java.util.function.Consumer;
  * Nukkit Project
  */
 @Log4j2
-public class Player extends EntityHuman implements InventoryHolder, ChunkLoader, IPlayer {
+public class Player extends EntityHuman implements InventoryHolder, ChunkLoader, Metadatable {
 
     public static final int SURVIVAL = 0;
     public static final int CREATIVE = 1;
@@ -306,22 +307,18 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return randomClientId;
     }
 
-    @Override
     public Player getPlayer() {
         return this;
     }
 
-    @Override
     public Long getFirstPlayed() {
         return this.namedTag != null ? this.namedTag.getLong("firstPlayed") : null;
     }
 
-    @Override
     public Long getLastPlayed() {
         return this.namedTag != null ? this.namedTag.getLong("lastPlayed") : null;
     }
 
-    @Override
     public boolean hasPlayedBefore() {
         return this.playedBefore;
     }
@@ -440,7 +437,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.highestPosition = this.y;
     }
 
-    @Override
     public boolean isOnline() {
         return this.connected && this.loggedIn;
     }

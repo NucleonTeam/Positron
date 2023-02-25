@@ -1,6 +1,6 @@
 package cn.nukkit.metadata;
 
-import cn.nukkit.IPlayer;
+import cn.nukkit.Player;
 
 /**
  * author: MagicDroidX
@@ -10,9 +10,9 @@ public class PlayerMetadataStore extends MetadataStore {
 
     @Override
     protected String disambiguate(Metadatable player, String metadataKey) {
-        if (!(player instanceof IPlayer)) {
+        if (!(player instanceof Player)) {
             throw new IllegalArgumentException("Argument must be an IPlayer instance");
         }
-        return (((IPlayer) player).getName() + ":" + metadataKey).toLowerCase();
+        return (((Player) player).getName() + ":" + metadataKey).toLowerCase();
     }
 }
