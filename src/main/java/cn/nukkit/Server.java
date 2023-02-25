@@ -68,7 +68,6 @@ import cn.nukkit.resourcepacks.ResourcePackManager;
 import cn.nukkit.scheduler.ServerScheduler;
 import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
-import cn.nukkit.utils.bugreport.ExceptionHandler;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
@@ -403,9 +402,6 @@ public class Server {
             this.getProperties().remove("bug-report");
         } else {
             bugReport = this.getPropertyBoolean("bug-report", true); //backwards compat
-        }
-        if (bugReport) {
-            ExceptionHandler.registerExceptionHandler();
         }
 
         log.info(this.getLanguage().translateString("nukkit.server.networkStart", new String[]{this.getIp().equals("") ? "*" : this.getIp(), String.valueOf(this.getPort())}));
