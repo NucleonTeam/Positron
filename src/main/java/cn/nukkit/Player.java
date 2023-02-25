@@ -5,9 +5,6 @@ import cn.nukkit.block.*;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
-import cn.nukkit.command.Command;
-import cn.nukkit.command.CommandSender;
-import cn.nukkit.command.data.CommandDataVersions;
 import cn.nukkit.entity.*;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.entity.item.*;
@@ -58,10 +55,6 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.*;
 import cn.nukkit.network.session.NetworkPlayerSession;
-import cn.nukkit.permission.PermissibleBase;
-import cn.nukkit.permission.Permission;
-import cn.nukkit.permission.PermissionAttachment;
-import cn.nukkit.permission.PermissionAttachmentInfo;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.resourcepacks.ResourcePack;
@@ -98,7 +91,7 @@ import java.util.function.Consumer;
  * Nukkit Project
  */
 @Log4j2
-public class Player extends EntityHuman implements CommandSender, InventoryHolder, ChunkLoader, IPlayer {
+public class Player extends EntityHuman implements InventoryHolder, ChunkLoader, IPlayer {
 
     public static final int SURVIVAL = 0;
     public static final int CREATIVE = 1;
@@ -217,8 +210,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
     protected boolean checkMovement = true;
 
-    private PermissibleBase perm = null;
-
     private int exp = 0;
     private int expLevel = 0;
 
@@ -321,35 +312,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     @Deprecated
     public Long getClientId() {
         return randomClientId;
-    }
-
-    @Override
-    public boolean isBanned() {
-        return this.server.getNameBans().isBanned(this.getName());
-    }
-
-    @Override
-    public void setBanned(boolean value) {
-        if (value) {
-            this.server.getNameBans().addBan(this.getName(), null, null, null);
-            this.kick(PlayerKickEvent.Reason.NAME_BANNED, "Banned by admin");
-        } else {
-            this.server.getNameBans().remove(this.getName());
-        }
-    }
-
-    @Override
-    public boolean isWhitelisted() {
-        return this.server.isWhitelisted(this.getName().toLowerCase());
-    }
-
-    @Override
-    public void setWhitelisted(boolean value) {
-        if (value) {
-            this.server.addWhitelist(this.getName().toLowerCase());
-        } else {
-            this.server.removeWhitelist(this.getName().toLowerCase());
-        }
     }
 
     @Override
@@ -491,90 +453,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         return this.connected && this.loggedIn;
     }
 
-    @Override
-    public boolean isOp() {
-        return this.server.isOp(this.getName());
-    }
-
-    @Override
-    public void setOp(boolean value) {
-        if (value == this.isOp()) {
-            return;
-        }
-
-        if (value) {
-            this.server.addOp(this.getName());
-        } else {
-            this.server.removeOp(this.getName());
-        }
-
-        this.recalculatePermissions();
-        this.getAdventureSettings().update();
-        this.sendCommandData();
-    }
-
-    @Override
-    public boolean isPermissionSet(String name) {
-        return this.perm.isPermissionSet(name);
-    }
-
-    @Override
-    public boolean isPermissionSet(Permission permission) {
-        return this.perm.isPermissionSet(permission);
-    }
-
-    @Override
-    public boolean hasPermission(String name) {
-        return this.perm != null && this.perm.hasPermission(name);
-    }
-
-    @Override
-    public boolean hasPermission(Permission permission) {
-        return this.perm.hasPermission(permission);
-    }
-
-    @Override
-    public PermissionAttachment addAttachment(Plugin plugin) {
-        return this.addAttachment(plugin, null);
-    }
-
-    @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name) {
-        return this.addAttachment(plugin, name, null);
-    }
-
-    @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name, Boolean value) {
-        return this.perm.addAttachment(plugin, name, value);
-    }
-
-    @Override
-    public void removeAttachment(PermissionAttachment attachment) {
-        this.perm.removeAttachment(attachment);
-    }
-
-    @Override
-    public void recalculatePermissions() {
-        this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
-        this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
-
-        if (this.perm == null) {
-            return;
-        }
-
-        this.perm.recalculatePermissions();
-
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
-        }
-
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
-        }
-
-        if (this.isEnableClientCommand() && spawned) this.sendCommandData();
-    }
-
     public boolean isEnableClientCommand() {
         return this.enableClientCommand;
     }
@@ -584,41 +462,12 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         SetCommandsEnabledPacket pk = new SetCommandsEnabledPacket();
         pk.enabled = enable;
         this.dataPacket(pk);
-        if (enable) this.sendCommandData();
-    }
-
-    public void sendCommandData() {
-        if (!spawned) {
-            return;
-        }
-        AvailableCommandsPacket pk = new AvailableCommandsPacket();
-        Map<String, CommandDataVersions> data = new HashMap<>();
-        int count = 0;
-        for (Command command : this.server.getCommandMap().getCommands().values()) {
-            if (!command.testPermissionSilent(this) || !command.isRegistered()) {
-                continue;
-            }
-            ++count;
-            CommandDataVersions data0 = command.generateCustomCommandData(this);
-            data.put(command.getName(), data0);
-        }
-        if (count > 0) {
-            //TODO: structure checking
-            pk.commands = data;
-            this.dataPacket(pk);
-        }
-    }
-
-    @Override
-    public Map<String, PermissionAttachmentInfo> getEffectivePermissions() {
-        return this.perm.getEffectivePermissions();
     }
 
     public Player(SourceInterface interfaz, Long clientID, InetSocketAddress socketAddress) {
         super(null, new CompoundTag());
         this.interfaz = interfaz;
         this.networkSession = interfaz.getSession(socketAddress);
-        this.perm = new PermissibleBase(this);
         this.server = Server.getInstance();
         this.lastBreak = -1;
         this.socketAddress = socketAddress;
@@ -882,10 +731,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         );
 
         this.server.getPluginManager().callEvent(playerJoinEvent);
-
-        if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
-            this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
-        }
 
         this.noDamageTicks = 60;
 
@@ -1835,21 +1680,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed");
 
             return;
-        } else if (this.isBanned()) {
-            String reason = this.server.getNameBans().getEntires().get(this.getName().toLowerCase()).getReason();
-            this.kick(PlayerKickEvent.Reason.NAME_BANNED, !reason.isEmpty() ? "You are banned. Reason: " + reason : "You are banned");
-            return;
-        } else if (this.server.getIPBans().isBanned(this.getAddress())) {
-            String reason = this.server.getIPBans().getEntires().get(this.getAddress()).getReason();
-            this.kick(PlayerKickEvent.Reason.IP_BANNED, !reason.isEmpty() ? "You are banned. Reason: " + reason : "You are banned");
-            return;
-        }
-
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
-        }
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         Player oldPlayer = null;
@@ -2058,10 +1888,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                 String.valueOf(NukkitMath.round(this.x, 4)),
                 String.valueOf(NukkitMath.round(this.y, 4)),
                 String.valueOf(NukkitMath.round(this.z, 4))));
-
-        if (this.isOp() || this.hasPermission("nukkit.textcolor")) {
-            this.setRemoveFormat(false);
-        }
 
         this.server.addOnlinePlayer(this);
         this.server.onPlayerCompleteLoginSequence(this);
@@ -2879,7 +2705,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     }
 
                     Timings.playerCommandTimer.startTiming();
-                    this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
                     Timings.playerCommandTimer.stopTiming();
                     break;
                 case ProtocolInfo.TEXT_PACKET:
@@ -2962,15 +2787,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                 case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
                     SetPlayerGameTypePacket setPlayerGameTypePacket = (SetPlayerGameTypePacket) packet;
                     if (setPlayerGameTypePacket.gamemode != this.gamemode) {
-                        if (!this.hasPermission("nukkit.command.gamemode")) {
-                            SetPlayerGameTypePacket setPlayerGameTypePacket1 = new SetPlayerGameTypePacket();
-                            setPlayerGameTypePacket1.gamemode = this.gamemode & 0x01;
-                            this.dataPacket(setPlayerGameTypePacket1);
-                            this.getAdventureSettings().update();
-                            break;
-                        }
                         this.setGamemode(setPlayerGameTypePacket.gamemode, true);
-                        Command.broadcastCommandMessage(this, new TranslationContainer("commands.gamemode.success.self", Server.getGamemodeString(this.gamemode)));
                     }
                     break;
                 case ProtocolInfo.ITEM_FRAME_DROP_ITEM_PACKET:
@@ -3538,14 +3355,13 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     this.dataPacket(textResponsePacket);
                     break;
                 case ProtocolInfo.SET_DIFFICULTY_PACKET:
-                    if (!this.spawned || !this.hasPermission("nukkit.command.difficulty")) {
+                    if (!this.spawned) {
                         return;
                     }
                     server.setDifficulty(((SetDifficultyPacket) packet).difficulty);
                     SetDifficultyPacket difficultyPacket = new SetDifficultyPacket();
                     difficultyPacket.difficulty = server.getDifficulty();
                     Server.broadcastPacket(server.getOnlinePlayers().values(), difficultyPacket);
-                    Command.broadcastCommandMessage(this, new TranslationContainer("commands.difficulty.success", String.valueOf(server.getDifficulty())));
                     break;
                 default:
                     break;
@@ -3737,11 +3553,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         if (!ev.isCancelled()) {
             String message;
             if (isAdmin) {
-                if (!this.isBanned()) {
-                    message = "Kicked by admin." + (!reasonString.isEmpty() ? " Reason: " + reasonString : "");
-                } else {
-                    message = reasonString;
-                }
+                message = reasonString;
             } else {
                 if (reasonString.isEmpty()) {
                     message = "disconnectionScreen.noReason";
@@ -3771,7 +3583,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         return this.chunkRadius;
     }
 
-    @Override
     public void sendMessage(String message) {
         TextPacket pk = new TextPacket();
         pk.type = TextPacket.TYPE_RAW;
@@ -3779,7 +3590,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         this.dataPacket(pk);
     }
 
-    @Override
     public void sendMessage(TextContainer message) {
         if (message instanceof TranslationContainer) {
             this.sendTranslation(message.getText(), ((TranslationContainer) message).getParameters());
@@ -3994,11 +3804,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
             this.loggedIn = false;
 
-            if (ev != null && !Objects.equals(this.username, "") && this.spawned && !Objects.equals(ev.getQuitMessage().toString(), "")) {
-                this.server.broadcastMessage(ev.getQuitMessage());
-            }
-
-            this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
             this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
@@ -4016,11 +3821,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             }
 
             this.riding = null;
-        }
-
-        if (this.perm != null) {
-            this.perm.clearPermissions();
-            this.perm = null;
         }
 
         if (this.inventory != null) {
@@ -4252,10 +4052,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
             this.timeSinceRest = 0;
 
-            if (showMessages && !ev.getDeathMessage().toString().isEmpty()) {
-                this.server.broadcast(ev.getDeathMessage(), Server.BROADCAST_CHANNEL_USERS);
-            }
-
             RespawnPacket pk = new RespawnPacket();
             Position pos = this.getSpawn();
             pk.x = (float) pos.x;
@@ -4268,11 +4064,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     }
 
     protected void respawn() {
-        if (this.server.isHardcore()) {
-            this.setBanned(true);
-            return;
-        }
-
         this.craftingType = CRAFTING_SMALL;
         this.resetCraftingGridType();
 

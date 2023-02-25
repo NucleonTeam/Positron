@@ -2,7 +2,6 @@ package cn.nukkit;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.blockentity.*;
-import cn.nukkit.command.*;
 import cn.nukkit.console.NukkitConsole;
 import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.Entity;
@@ -61,11 +60,6 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerListPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.query.QueryHandler;
-import cn.nukkit.network.rcon.RCON;
-import cn.nukkit.permission.BanEntry;
-import cn.nukkit.permission.BanList;
-import cn.nukkit.permission.DefaultPermissions;
-import cn.nukkit.permission.Permissible;
 import cn.nukkit.plugin.JavaPluginLoader;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.plugin.PluginLoadOrder;
@@ -115,10 +109,6 @@ public class Server {
 
     private static Server instance = null;
 
-    private BanList banByName;
-
-    private BanList banByIP;
-
     private Config operators;
 
     private Config whitelist;
@@ -152,19 +142,13 @@ public class Server {
     private final NukkitConsole console;
     private final ConsoleThread consoleThread;
 
-    private SimpleCommandMap commandMap;
-
     private CraftingManager craftingManager;
 
     private ResourcePackManager resourcePackManager;
 
-    private ConsoleCommandSender consoleSender;
-
     private int maxPlayers;
 
     private boolean autoSave = true;
-
-    private RCON rcon;
 
     private EntityMetadataStore entityMetadata;
 
@@ -413,24 +397,12 @@ public class Server {
 
         this.scheduler = new ServerScheduler();
 
-        if (this.getPropertyBoolean("enable-rcon", false)) {
-            try {
-                this.rcon = new RCON(this, this.getPropertyString("rcon.password", ""), (!this.getIp().equals("")) ? this.getIp() : "0.0.0.0", this.getPropertyInt("rcon.port", this.getPort()));
-            } catch (IllegalArgumentException e) {
-                log.error(getLanguage().translateString(e.getMessage(), e.getCause().getMessage()));
-            }
-        }
-
         this.entityMetadata = new EntityMetadataStore();
         this.playerMetadata = new PlayerMetadataStore();
         this.levelMetadata = new LevelMetadataStore();
 
         this.operators = new Config(this.dataPath + "ops.txt", Config.ENUM);
         this.whitelist = new Config(this.dataPath + "white-list.txt", Config.ENUM);
-        this.banByName = new BanList(this.dataPath + "banned-players.json");
-        this.banByName.load();
-        this.banByIP = new BanList(this.dataPath + "banned-ips.json");
-        this.banByIP.load();
 
         this.maxPlayers = this.getPropertyInt("max-players", 20);
         this.setAutoSave(this.getPropertyBoolean("auto-save", true));
@@ -460,14 +432,12 @@ public class Server {
         log.info(this.getLanguage().translateString("nukkit.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + this.getCodename() + TextFormat.WHITE, this.getApiVersion()));
         log.info(this.getLanguage().translateString("nukkit.server.license", this.getName()));
 
-        this.consoleSender = new ConsoleCommandSender();
-        this.commandMap = new SimpleCommandMap(this);
-
         // Initialize metrics
         new NukkitMetrics(this);
 
         this.registerEntities();
         this.registerBlockEntities();
+        pluginManager = new PluginManager(this);
 
         Block.init();
         Enchantment.init();
@@ -492,9 +462,6 @@ public class Server {
 
         this.craftingManager = new CraftingManager();
         this.resourcePackManager = new ResourcePackManager(new File(Nukkit.DATA_PATH, "resource_packs"));
-
-        this.pluginManager = new PluginManager(this, this.commandMap);
-        this.pluginManager.subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
 
         this.pluginManager.registerInterface(JavaPluginLoader.class);
 
@@ -589,68 +556,24 @@ public class Server {
         this.start();
     }
 
-    public int broadcastMessage(String message) {
-        return this.broadcast(message, BROADCAST_CHANNEL_USERS);
-    }
-
-    public int broadcastMessage(TextContainer message) {
-        return this.broadcast(message, BROADCAST_CHANNEL_USERS);
-    }
-
-    public int broadcastMessage(String message, CommandSender[] recipients) {
-        for (CommandSender recipient : recipients) {
+    public int broadcastMessage(String message, Player[] recipients) {
+        for (Player recipient : recipients) {
             recipient.sendMessage(message);
         }
 
         return recipients.length;
     }
 
-    public int broadcastMessage(String message, Collection<? extends CommandSender> recipients) {
-        for (CommandSender recipient : recipients) {
+    public int broadcastMessage(String message, Collection<? extends Player> recipients) {
+        for (Player recipient : recipients) {
             recipient.sendMessage(message);
         }
 
         return recipients.size();
     }
 
-    public int broadcastMessage(TextContainer message, Collection<? extends CommandSender> recipients) {
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-
-        return recipients.size();
-    }
-
-    public int broadcast(String message, String permissions) {
-        Set<CommandSender> recipients = new HashSet<>();
-
-        for (String permission : permissions.split(";")) {
-            for (Permissible permissible : this.pluginManager.getPermissionSubscriptions(permission)) {
-                if (permissible instanceof CommandSender && permissible.hasPermission(permission)) {
-                    recipients.add((CommandSender) permissible);
-                }
-            }
-        }
-
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-
-        return recipients.size();
-    }
-
-    public int broadcast(TextContainer message, String permissions) {
-        Set<CommandSender> recipients = new HashSet<>();
-
-        for (String permission : permissions.split(";")) {
-            for (Permissible permissible : this.pluginManager.getPermissionSubscriptions(permission)) {
-                if (permissible instanceof CommandSender && permissible.hasPermission(permission)) {
-                    recipients.add((CommandSender) permissible);
-                }
-            }
-        }
-
-        for (CommandSender recipient : recipients) {
+    public int broadcastMessage(TextContainer message, Collection<? extends Player> recipients) {
+        for (Player recipient : recipients) {
             recipient.sendMessage(message);
         }
 
@@ -739,11 +662,6 @@ public class Server {
                 this.enablePlugin(plugin);
             }
         }
-
-        if (type == PluginLoadOrder.POSTWORLD) {
-            this.commandMap.registerServerAliases();
-            DefaultPermissions.registerCorePermissions();
-        }
     }
 
     public void enablePlugin(Plugin plugin) {
@@ -752,31 +670,6 @@ public class Server {
 
     public void disablePlugins() {
         this.pluginManager.disablePlugins();
-    }
-
-    public boolean dispatchCommand(CommandSender sender, String commandLine) throws ServerException {
-        // First we need to check if this command is on the main thread or not, if not, warn the user
-        if (!this.isPrimaryThread()) {
-            getLogger().warning("Command Dispatched Async: " + commandLine);
-            getLogger().warning("Please notify author of plugin causing this execution to fix this bug!", new Throwable());
-            // TODO: We should sync the command to the main thread too!
-        }
-        if (sender == null) {
-            throw new ServerException("CommandSender is not valid");
-        }
-
-        if (this.commandMap.dispatch(sender, commandLine)) {
-            return true;
-        }
-
-        sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.unknown", commandLine));
-
-        return false;
-    }
-
-    //todo: use ticker to check console
-    public ConsoleCommandSender getConsoleSender() {
-        return consoleSender;
     }
 
     public void reload() {
@@ -790,7 +683,6 @@ public class Server {
 
         this.pluginManager.disablePlugins();
         this.pluginManager.clearPlugins();
-        this.commandMap.clearCommands();
 
         log.info("Reloading properties...");
         this.properties.reload();
@@ -800,18 +692,8 @@ public class Server {
             this.setPropertyInt("difficulty", difficulty = 3);
         }
 
-        this.banByIP.load();
-        this.banByName.load();
         this.reloadWhitelist();
         this.operators.reload();
-
-        for (BanEntry entry : this.getIPBans().getEntires().values()) {
-            try {
-                this.getNetwork().blockAddress(InetAddress.getByName(entry.getName()), -1);
-            } catch (UnknownHostException e) {
-                // ignore
-            }
-        }
 
         this.pluginManager.registerInterface(JavaPluginLoader.class);
         this.pluginManager.loadPlugins(this.pluginPath);
@@ -836,10 +718,6 @@ public class Server {
 
             ServerStopEvent serverStopEvent = new ServerStopEvent();
             getPluginManager().callEvent(serverStopEvent);
-
-            if (this.rcon != null) {
-                this.rcon.close();
-            }
 
             for (Player player : new ArrayList<>(this.players.values())) {
                 player.close(player.getLeaveMessage(), this.getConfig("settings.shutdown-message", "Server closed"));
@@ -888,14 +766,6 @@ public class Server {
     public void start() {
         if (this.getPropertyBoolean("enable-query", true)) {
             this.queryHandler = new QueryHandler();
-        }
-
-        for (BanEntry entry : this.getIPBans().getEntires().values()) {
-            try {
-                this.network.blockAddress(InetAddress.getByName(entry.getName()), -1);
-            } catch (UnknownHostException e) {
-                // ignore
-            }
         }
 
         //todo send usage setting
@@ -1163,9 +1033,6 @@ public class Server {
         Timings.connectionTimer.startTiming();
         this.network.processInterfaces();
 
-        if (this.rcon != null) {
-            this.rcon.check();
-        }
         Timings.connectionTimer.stopTiming();
 
         Timings.schedulerTimer.startTiming();
@@ -1556,10 +1423,6 @@ public class Server {
             sum += aUseAverage;
         }
         return ((float) Math.round(sum / count * 100)) / 100;
-    }
-
-    public SimpleCommandMap getCommandMap() {
-        return commandMap;
     }
 
     public Map<UUID, Player> getOnlinePlayers() {
@@ -2160,38 +2023,15 @@ public class Server {
         this.properties.save();
     }
 
-    public PluginIdentifiableCommand getPluginCommand(String name) {
-        Command command = this.commandMap.getCommand(name);
-        if (command instanceof PluginIdentifiableCommand) {
-            return (PluginIdentifiableCommand) command;
-        } else {
-            return null;
-        }
-    }
-
-    public BanList getNameBans() {
-        return this.banByName;
-    }
-
-    public BanList getIPBans() {
-        return this.banByIP;
-    }
-
     public void addOp(String name) {
         this.operators.set(name.toLowerCase(), true);
         Player player = this.getPlayerExact(name);
-        if (player != null) {
-            player.recalculatePermissions();
-        }
         this.operators.save(true);
     }
 
     public void removeOp(String name) {
         this.operators.remove(name.toLowerCase());
         Player player = this.getPlayerExact(name);
-        if (player != null) {
-            player.recalculatePermissions();
-        }
         this.operators.save();
     }
 

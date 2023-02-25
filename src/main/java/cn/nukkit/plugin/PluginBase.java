@@ -1,9 +1,6 @@
 package cn.nukkit.plugin;
 
 import cn.nukkit.Server;
-import cn.nukkit.command.Command;
-import cn.nukkit.command.CommandSender;
-import cn.nukkit.command.PluginIdentifiableCommand;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.Utils;
 import com.google.common.base.Preconditions;
@@ -150,27 +147,6 @@ abstract public class PluginBase implements Plugin {
      */
     public final boolean isInitialized() {
         return initialized;
-    }
-
-    /**
-     * TODO: FINISH JAVADOC
-     */
-    public PluginIdentifiableCommand getCommand(String name) {
-        PluginIdentifiableCommand command = this.getServer().getPluginCommand(name);
-        if (command == null || !command.getPlugin().equals(this)) {
-            command = this.getServer().getPluginCommand(this.description.getName().toLowerCase() + ":" + name);
-        }
-
-        if (command != null && command.getPlugin().equals(this)) {
-            return command;
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return false;
     }
 
     @Override

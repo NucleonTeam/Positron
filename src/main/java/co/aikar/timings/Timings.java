@@ -25,7 +25,6 @@ package co.aikar.timings;
 
 import cn.nukkit.Server;
 import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.command.Command;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.Event;
 import cn.nukkit.event.Listener;
@@ -200,11 +199,6 @@ public final class Timings {
 
     public static void reset() {
         TimingsManager.reset();
-    }
-
-
-    public static Timing getCommandTiming(Command command) {
-        return TimingsManager.getTiming(DEFAULT_GROUP.name, "Command: " + command.getLabel(), commandTimer);
     }
 
     public static Timing getTaskTiming(TaskHandler handler, long period) {

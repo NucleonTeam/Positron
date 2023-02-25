@@ -23,10 +23,8 @@
  */
 package co.aikar.timings;
 
+import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.command.CommandSender;
-import cn.nukkit.command.ConsoleCommandSender;
-import cn.nukkit.command.RemoteConsoleCommandSender;
 import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.nbt.stream.PGZIPOutputStream;
 import cn.nukkit.timings.JsonUtil;
@@ -49,11 +47,11 @@ import java.util.zip.Deflater;
 import static co.aikar.timings.TimingsManager.HISTORY;
 
 public class TimingsExport extends Thread {
-    private final CommandSender sender;
+    private final Player sender;
     private final JsonObject out;
     private final TimingsHistory[] history;
 
-    private TimingsExport(CommandSender sender, JsonObject out, TimingsHistory[] history) {
+    private TimingsExport(Player sender, JsonObject out, TimingsHistory[] history) {
         super("Timings paste thread");
         this.sender = sender;
         this.out = out;
@@ -65,7 +63,7 @@ public class TimingsExport extends Thread {
      *
      * @param sender Sender that issued the command
      */
-    public static void reportTimings(CommandSender sender) {
+    public static void reportTimings(Player sender) {
         JsonObject out = new JsonObject();
         out.addProperty("version", Server.getInstance().getVersion());
         out.addProperty("maxplayers", Server.getInstance().getMaxPlayers());
@@ -186,12 +184,7 @@ public class TimingsExport extends Thread {
 
     @Override
     public synchronized void start() {
-        if (this.sender instanceof RemoteConsoleCommandSender) {
-            this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.rcon"));
-            run();
-        } else {
-            super.start();
-        }
+        super.start();
     }
 
     @Override
@@ -225,9 +218,6 @@ public class TimingsExport extends Thread {
 
             String location = con.getHeaderField("Location");
             this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsLocation", location));
-            if (!(this.sender instanceof ConsoleCommandSender)) {
-                Server.getInstance().getLogger().info(Server.getInstance().getLanguage().translateString("nukkit.command.timings.timingsLocation", location));
-            }
 
             if (response != null && !response.isEmpty()) {
                 Server.getInstance().getLogger().info(Server.getInstance().getLanguage().translateString("nukkit.command.timings.timingsResponse", response));

@@ -1,112 +1,11 @@
 package cn.nukkit.plugin;
 
-import cn.nukkit.permission.Permission;
 import cn.nukkit.utils.PluginException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.*;
 
-/* TODO Add these to Javadoc：
- *     <li><i>softdepend</i><br>
- *     <br>
- *     </li>
- *     <li><i>loadbefore</i><br>
- *     <br>
- *     </li>
- */
-
-/**
- * 描述一个Nukkit插件的类。<br>
- * Describes a Nukkit plugin.
- *
- * 在jar格式的插件中，插件的描述内容可以在plugin.yml中定义。比如这个：<br>
- * The description of a jar-packed plugin can be defined in the 'plugin.yml' file. For example:
- * <blockquote><pre>
- * <b>name:</b> HelloWorldPlugin
- * <b>main:</b> com.cnblogs.xtypr.helloworldplugin.HelloWorldPlugin
- * <b>version:</b> "1.0.0"
- * <b>api:</b> ["1.0.0"]
- * load: POSTWORLD
- * author: 粉鞋大妈
- * description: A simple Hello World plugin for Nukkit
- * website: http://www.cnblogs.com/xtypr
- * permissions:
- *  helloworldplugin.command.helloworld:
- *   description: Allows to use helloworld command.
- *   default: true
- * commands:
- *  helloworld:
- *   description: the helloworld command
- *   usage: "/helloworld"
- *   permission: helloworldplugin.command.helloworld
- * depend:
- * - TestPlugin1
- * </pre></blockquote>
- * 在使用plugin.yml来定义插件时，{@code name}、{@code main}、{@code version}、{@code api}这几个字段是必需的，
- * 要让Nukkit能够正常加载你的插件，必须要合理地填写这几个字段。<br>
- * When using plugin.yml file to define your plugin, it's REQUIRED to fill these items:
- * {@code name},{@code main},{@code version} and {@code api}.You are supposed to fill these items to make sure
- * your plugin can be normally loaded by Nukkit.<br>
- *
- * <p>接下来对所有的字段做一些说明，<b>加粗</b>的字段表示必需，<i>斜体</i>表示可选：（来自
- * <a href="http://www.cnblogs.com/xtypr/p/nukkit_plugin_start_from_0_about_config.html">粉鞋大妈的博客文章</a>）<br>
- * Here are some instructions for there items, <b>bold</b> means required, <i>italic</i> means optional: (From
- * <a href="http://www.cnblogs.com/xtypr/p/nukkit_plugin_start_from_0_about_config.html">a blog article of @粉鞋大妈</a>)
- * </p>
- * <ul>
- * <li><b>name</b><br>
- * 字符串，表示这个插件的名字，名字是区分不同插件的标准之一。
- * 插件的名字<i>不能包含“nukkit”“minecraft”“mojang”</i>这几个字符串，而且不应该包含空格。<br>
- * String, the plugin name. Name is one of the ways to distinguish different plugins.
- * A plugin name <i>can't contain 'nukkit' 'minecraft' 'mojang'</i>, and shouldn't contain spaces.</li>
- * <li><b>version</b><br>
- * 字符串，表示这个插件的版本号。使用类似于1.0.0这样的版本号时，应该使用引号包围来防止误识别。<br>
- * String, the version string of plugin. When using the version string like "1.0.0",
- * quotation marks are required to add, or there will be an exception.</li>
- * <li><b>api</b><br>
- * 字符串序列，表示这个插件支持的Nukkit API版本号列表。插件作者应该调试能支持的API，然后把版本号添加到这个列表。<br>
- * A set of String, the Nukkit API versions that the plugin supports. Plugin developers should debug in different
- * Nukkit APIs and try out the versions supported, and add them to this list. </li>
- * <li><b>main</b><br>
- * 字符串，表示这个插件的主类。插件的主类<i>不能放在“cn.nukkit”包下</i>。<br>
- * String, the main class of plugin. The main class<i> can't be placed at 'cn.nukkit' package</i>.</li>
- * <li><i>author</i> or <i>authors</i><br>
- * 字符串/字符串序列，两个任选一个，表示这个插件的作者/作者列表。<br>
- * String or A set of String. One of two is chosen, to describe the author or the list of authors.</li>
- * <li><i>website</i><br>
- * 字符串，表示这个插件的网站。插件使用者或者开发者可以访问这个网站来获取插件更多的信息。
- * 这个网站可以是插件发布帖子或者插件官网等。<br>
- * String, the website of plugin. More information can be found by visiting this website. The website
- * can be a forum post or the official website.</li>
- * <li><i>description</i><br>
- * 字符串，表示这个插件的一些描述。<br>
- * String, some description of plugin.</li>
- * <li><i>depend</i><br>
- * 序列，表示这个插件所依赖的一个或一些插件的名字的列表。参见：{@link PluginDescription#getDepend()}<br>
- * List, strings for plugin names, what is depended on by this plugin. See:
- * {@link PluginDescription#getDepend()}</li>
- * <li><i>prefix</i><br>
- * 字符串，表示这个插件的消息头衔。参见：{@link PluginDescription#getPrefix()}<br>
- * String, the message title of the plugin. See: {@link PluginDescription#getPrefix()}</li>
- * <li><i>load</i><br>
- * 字符串，表示这个插件的加载顺序，或者说在什么时候加载。参见：{@link PluginLoadOrder}<br>
- * String, the load order of plugin, or when the plugin loads. See: {@link PluginLoadOrder}</li>
- * <li><i>commands</i><br>
- * 序列，表示这个插件的命令列表。<br>
- * List, the command list.</li>
- * <li><i>permissions</i><br>
- * 序列，表示这个插件的权限组列表。<br>
- * List, the list of permission groups defined.</li>
- * </ul>
- *
- * @author MagicDroidX(code) @ Nukkit Project
- * @author iNevet(code and javadoc) @ Nukkit Project
- * @author 粉鞋大妈(javadoc) @ Nukkit Project
- * @see Plugin
- * @see PluginLoadOrder
- * @since Nukkit 1.0 | Nukkit API 1.0.0
- */
 public class PluginDescription {
 
     private String name;
@@ -122,8 +21,6 @@ public class PluginDescription {
     private String website;
     private String prefix;
     private PluginLoadOrder order = PluginLoadOrder.POSTWORLD;
-
-    private List<Permission> permissions = new ArrayList<>();
 
     public PluginDescription(Map<String, Object> yamlMap) {
         this.loadMap(yamlMap);
@@ -199,10 +96,6 @@ public class PluginDescription {
 
         if (plugin.containsKey("authors")) {
             this.authors.addAll((Collection<? extends String>) plugin.get("authors"));
-        }
-
-        if (plugin.containsKey("permissions")) {
-            this.permissions = Permission.loadPermissions((Map<String, Object>) plugin.get("permissions"));
         }
     }
 
@@ -364,18 +257,6 @@ public class PluginDescription {
      */
     public PluginLoadOrder getOrder() {
         return order;
-    }
-
-    /**
-     * 返回这个插件定义的权限列表。<br>
-     * Returns all the defined permissions of this plugin.
-     *
-     * @return 这个插件定义的权限列表。<br>A map of all defined permissions of this plugin.
-     * @see PluginDescription
-     * @since Nukkit 1.0 | Nukkit API 1.0.0
-     */
-    public List<Permission> getPermissions() {
-        return permissions;
     }
 
     /**

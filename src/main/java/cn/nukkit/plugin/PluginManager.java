@@ -1,11 +1,7 @@
 package cn.nukkit.plugin;
 
 import cn.nukkit.Server;
-import cn.nukkit.command.PluginCommand;
-import cn.nukkit.command.SimpleCommandMap;
 import cn.nukkit.event.*;
-import cn.nukkit.permission.Permissible;
-import cn.nukkit.permission.Permission;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.PluginException;
 import cn.nukkit.utils.Utils;
@@ -24,28 +20,11 @@ import java.util.regex.Pattern;
 public class PluginManager {
 
     private final Server server;
-
-    private final SimpleCommandMap commandMap;
-
     protected final Map<String, Plugin> plugins = new LinkedHashMap<>();
-
-    protected final Map<String, Permission> permissions = new HashMap<>();
-
-    protected final Map<String, Permission> defaultPerms = new HashMap<>();
-
-    protected final Map<String, Permission> defaultPermsOp = new HashMap<>();
-
-    protected final Map<String, Set<Permissible>> permSubs = new HashMap<>();
-
-    protected final Set<Permissible> defSubs = Collections.newSetFromMap(new WeakHashMap<>());
-
-    protected final Set<Permissible> defSubsOp = Collections.newSetFromMap(new WeakHashMap<>());
-
     protected final Map<String, PluginLoader> fileAssociations = new HashMap<>();
 
-    public PluginManager(Server server, SimpleCommandMap commandMap) {
+    public PluginManager(Server server) {
         this.server = server;
-        this.commandMap = commandMap;
     }
 
     public Plugin getPlugin(String name) {
@@ -95,12 +74,6 @@ public class PluginManager {
                             Plugin plugin = loader.loadPlugin(file);
                             if (plugin != null) {
                                 this.plugins.put(plugin.getDescription().getName(), plugin);
-
-                                List<PluginCommand> pluginCommands = this.parseYamlCommands(plugin);
-
-                                if (!pluginCommands.isEmpty()) {
-                                    this.commandMap.registerAll(plugin.getDescription().getName(), pluginCommands);
-                                }
 
                                 return plugin;
                             }
@@ -306,133 +279,9 @@ public class PluginManager {
         }
     }
 
-    public Permission getPermission(String name) {
-        if (this.permissions.containsKey(name)) {
-            return this.permissions.get(name);
-        }
-        return null;
-    }
-
-    public boolean addPermission(Permission permission) {
-        if (!this.permissions.containsKey(permission.getName())) {
-            this.permissions.put(permission.getName(), permission);
-            this.calculatePermissionDefault(permission);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public void removePermission(String name) {
-        this.permissions.remove(name);
-    }
-
-    public void removePermission(Permission permission) {
-        this.removePermission(permission.getName());
-    }
-
-    public Map<String, Permission> getDefaultPermissions(boolean op) {
-        if (op) {
-            return this.defaultPermsOp;
-        } else {
-            return this.defaultPerms;
-        }
-    }
-
-    public void recalculatePermissionDefaults(Permission permission) {
-        if (this.permissions.containsKey(permission.getName())) {
-            this.defaultPermsOp.remove(permission.getName());
-            this.defaultPerms.remove(permission.getName());
-            this.calculatePermissionDefault(permission);
-        }
-    }
-
-    private void calculatePermissionDefault(Permission permission) {
-        Timings.permissionDefaultTimer.startTiming();
-        if (permission.getDefault().equals(Permission.DEFAULT_OP) || permission.getDefault().equals(Permission.DEFAULT_TRUE)) {
-            this.defaultPermsOp.put(permission.getName(), permission);
-            this.dirtyPermissibles(true);
-        }
-
-        if (permission.getDefault().equals(Permission.DEFAULT_NOT_OP) || permission.getDefault().equals(Permission.DEFAULT_TRUE)) {
-            this.defaultPerms.put(permission.getName(), permission);
-            this.dirtyPermissibles(false);
-        }
-        Timings.permissionDefaultTimer.startTiming();
-    }
-
-    private void dirtyPermissibles(boolean op) {
-        for (Permissible p : this.getDefaultPermSubscriptions(op)) {
-            p.recalculatePermissions();
-        }
-    }
-
-    public void subscribeToPermission(String permission, Permissible permissible) {
-        if (!this.permSubs.containsKey(permission)) {
-            this.permSubs.put(permission, Collections.newSetFromMap(new WeakHashMap<>()));
-        }
-        this.permSubs.get(permission).add(permissible);
-    }
-
-    public void unsubscribeFromPermission(String permission, Permissible permissible) {
-        if (this.permSubs.containsKey(permission)) {
-            this.permSubs.get(permission).remove(permissible);
-            if (this.permSubs.get(permission).size() == 0) {
-                this.permSubs.remove(permission);
-            }
-        }
-    }
-
-    public Set<Permissible> getPermissionSubscriptions(String permission) {
-        if (this.permSubs.containsKey(permission)) {
-            return new HashSet<>(this.permSubs.get(permission));
-        }
-        return new HashSet<>();
-    }
-
-    public void subscribeToDefaultPerms(boolean op, Permissible permissible) {
-        if (op) {
-            this.defSubsOp.add(permissible);
-        } else {
-            this.defSubs.add(permissible);
-        }
-    }
-
-    public void unsubscribeFromDefaultPerms(boolean op, Permissible permissible) {
-        if (op) {
-            this.defSubsOp.remove(permissible);
-        } else {
-            this.defSubs.remove(permissible);
-        }
-    }
-
-    public Set<Permissible> getDefaultPermSubscriptions(boolean op) {
-        if (op) {
-            return new HashSet<>(this.defSubsOp);
-        } else {
-            return new HashSet<>(this.defSubs);
-        }
-    }
-
-    public Map<String, Permission> getPermissions() {
-        return permissions;
-    }
-
-    public boolean isPluginEnabled(Plugin plugin) {
-        if (plugin != null && this.plugins.containsKey(plugin.getDescription().getName())) {
-            return plugin.isEnabled();
-        } else {
-            return false;
-        }
-    }
-
     public void enablePlugin(Plugin plugin) {
         if (!plugin.isEnabled()) {
             try {
-                for (Permission permission : plugin.getDescription().getPermissions()) {
-                    this.addPermission(permission);
-                }
                 plugin.getPluginLoader().enablePlugin(plugin);
             } catch (Throwable e) {
                 MainLogger logger = this.server.getLogger();
@@ -442,58 +291,6 @@ public class PluginManager {
                 this.disablePlugin(plugin);
             }
         }
-    }
-
-    protected List<PluginCommand> parseYamlCommands(Plugin plugin) {
-        List<PluginCommand> pluginCmds = new ArrayList<>();
-
-        for (Map.Entry entry : plugin.getDescription().getCommands().entrySet()) {
-            String key = (String) entry.getKey();
-            Object data = entry.getValue();
-            if (key.contains(":")) {
-                this.server.getLogger().critical(this.server.getLanguage().translateString("nukkit.plugin.commandError", new String[]{key, plugin.getDescription().getFullName()}));
-                continue;
-            }
-            if (data instanceof Map) {
-                PluginCommand newCmd = new PluginCommand<>(key, plugin);
-
-                if (((Map) data).containsKey("description")) {
-                    newCmd.setDescription((String) ((Map) data).get("description"));
-                }
-
-                if (((Map) data).containsKey("usage")) {
-                    newCmd.setUsage((String) ((Map) data).get("usage"));
-                }
-
-                if (((Map) data).containsKey("aliases")) {
-                    Object aliases = ((Map) data).get("aliases");
-                    if (aliases instanceof List) {
-                        List<String> aliasList = new ArrayList<>();
-                        for (String alias : (List<String>) aliases) {
-                            if (alias.contains(":")) {
-                                this.server.getLogger().critical(this.server.getLanguage().translateString("nukkit.plugin.aliasError", new String[]{alias, plugin.getDescription().getFullName()}));
-                                continue;
-                            }
-                            aliasList.add(alias);
-                        }
-
-                        newCmd.setAliases(aliasList.toArray(new String[0]));
-                    }
-                }
-
-                if (((Map) data).containsKey("permission")) {
-                    newCmd.setPermission((String) ((Map) data).get("permission"));
-                }
-
-                if (((Map) data).containsKey("permission-message")) {
-                    newCmd.setPermissionMessage((String) ((Map) data).get("permission-message"));
-                }
-
-                pluginCmds.add(newCmd);
-            }
-        }
-
-        return pluginCmds;
     }
 
     public void disablePlugins() {
@@ -517,9 +314,6 @@ public class PluginManager {
 
             this.server.getScheduler().cancelTask(plugin);
             HandlerList.unregisterAll(plugin);
-            for (Permission permission : plugin.getDescription().getPermissions()) {
-                this.removePermission(permission);
-            }
         }
     }
 
@@ -527,9 +321,6 @@ public class PluginManager {
         this.disablePlugins();
         this.plugins.clear();
         this.fileAssociations.clear();
-        this.permissions.clear();
-        this.defaultPerms.clear();
-        this.defaultPermsOp.clear();
     }
 
     public void callEvent(Event event) {

@@ -51,8 +51,8 @@ public class AdventureSettings implements Cloneable {
     public void update() {
         UpdateAbilitiesPacket packet = new UpdateAbilitiesPacket();
         packet.setEntityId(player.getId());
-        packet.setCommandPermission(player.isOp() ? UpdateAbilitiesPacket.CommandPermission.OPERATOR : UpdateAbilitiesPacket.CommandPermission.NORMAL);
-        packet.setPlayerPermission(player.isOp() && !player.isSpectator() ? UpdateAbilitiesPacket.PlayerPermission.OPERATOR : UpdateAbilitiesPacket.PlayerPermission.MEMBER);
+        packet.setCommandPermission(UpdateAbilitiesPacket.CommandPermission.NORMAL);
+        packet.setPlayerPermission(UpdateAbilitiesPacket.PlayerPermission.MEMBER);
 
         AbilityLayer layer = new AbilityLayer();
         layer.setLayerType(AbilityLayer.Type.BASE);
@@ -70,10 +70,6 @@ public class AdventureSettings implements Cloneable {
 
         if (player.isCreative()) { // Make sure player can interact with creative menu
             layer.getAbilityValues().add(PlayerAbility.INSTABUILD);
-        }
-
-        if (player.isOp()) {
-            layer.getAbilityValues().add(PlayerAbility.OPERATOR_COMMANDS);
         }
 
         layer.setWalkSpeed(Player.DEFAULT_SPEED);
