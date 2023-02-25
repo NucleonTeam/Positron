@@ -1435,27 +1435,6 @@ public class Server {
         nameLookup.put(nameBytes, buffer.array());
     }
 
-    @Deprecated
-    public IPlayer getOfflinePlayer(final String name) {
-        IPlayer result = this.getPlayerExact(name.toLowerCase());
-        if (result != null) {
-            return result;
-        }
-
-        return lookupName(name).map(uuid -> new OfflinePlayer(this, uuid))
-                .orElse(new OfflinePlayer(this, name));
-    }
-
-    public IPlayer getOfflinePlayer(UUID uuid) {
-        Preconditions.checkNotNull(uuid, "uuid");
-        Optional<Player> onlinePlayer = getPlayer(uuid);
-        if (onlinePlayer.isPresent()) {
-            return onlinePlayer.get();
-        }
-
-        return new OfflinePlayer(this, uuid);
-    }
-
     public CompoundTag getOfflinePlayerData(UUID uuid) {
         return getOfflinePlayerData(uuid, false);
     }
