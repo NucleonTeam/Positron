@@ -2,7 +2,6 @@ package cn.nukkit.level.biome.impl.forest;
 
 import cn.nukkit.block.BlockSapling;
 import cn.nukkit.level.biome.type.GrassyBiome;
-import cn.nukkit.level.generator.populator.impl.PopulatorTree;
 
 /**
  * author: MagicDroidX
@@ -23,17 +22,6 @@ public class ForestBiome extends GrassyBiome {
         super();
 
         this.type = type;
-
-        PopulatorTree trees = new PopulatorTree(type == TYPE_BIRCH_TALL ? BlockSapling.BIRCH_TALL : BlockSapling.BIRCH);
-        trees.setBaseAmount(type == TYPE_NORMAL ? 3 : 6);
-        this.addPopulator(trees);
-
-        if (type == TYPE_NORMAL) {
-            //normal forest biomes have both oak and birch trees
-            trees = new PopulatorTree(BlockSapling.OAK);
-            trees.setBaseAmount(3);
-            this.addPopulator(trees);
-        }
     }
 
     @Override

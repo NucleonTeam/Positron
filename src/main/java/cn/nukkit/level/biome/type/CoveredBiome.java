@@ -2,15 +2,7 @@ package cn.nukkit.level.biome.type;
 
 import cn.nukkit.level.biome.Biome;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.level.generator.Normal;
 
-/**
- * author: DaPorkchop_
- * Nukkit Project
- * <p>
- * A biome with ground covering
- * </p>
- */
 public abstract class CoveredBiome extends Biome {
     public int getCoverId(int x, int z) {
         return AIR << 4;
@@ -41,7 +33,7 @@ public abstract class CoveredBiome extends Biome {
             if (chunk.getFullBlock(x, y, z) == STONE << 4) {
                 COVER:
                 if (!hasCovered) {
-                    if (y >= Normal.seaHeight) {
+                    if (y >= 60) {
                         chunk.setFullBlockId(x, y + 1, z, coverBlock);
                         int surfaceDepth = this.getSurfaceDepth(fullX, y, fullZ);
                         for (int i = 0; i < surfaceDepth; i++) {

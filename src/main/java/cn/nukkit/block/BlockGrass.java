@@ -5,16 +5,11 @@ import cn.nukkit.Server;
 import cn.nukkit.event.block.BlockSpreadEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
-import cn.nukkit.level.generator.object.ObjectTallGrass;
 import cn.nukkit.level.particle.BoneMealParticle;
 import cn.nukkit.math.NukkitRandom;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.BlockColor;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockGrass extends BlockDirt {
 
     public BlockGrass() {
@@ -53,7 +48,6 @@ public class BlockGrass extends BlockDirt {
                 item.count--;
             }
             this.level.addParticle(new BoneMealParticle(this));
-            ObjectTallGrass.growGrass(this.getLevel(), this, new NukkitRandom());
             return true;
         } else if (item.isHoe()) {
             item.useOn(this);

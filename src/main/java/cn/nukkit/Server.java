@@ -38,8 +38,6 @@ import cn.nukkit.level.format.leveldb.LevelDB;
 import cn.nukkit.level.format.mcregion.McRegion;
 import cn.nukkit.level.generator.Flat;
 import cn.nukkit.level.generator.Generator;
-import cn.nukkit.level.generator.Nether;
-import cn.nukkit.level.generator.Normal;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.metadata.EntityMetadataStore;
 import cn.nukkit.metadata.LevelMetadataStore;
@@ -84,9 +82,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -465,9 +461,6 @@ public class Server {
         LevelProviderManager.addProvider(this, LevelDB.class);
 
         Generator.addGenerator(Flat.class, "flat", Generator.TYPE_FLAT);
-        Generator.addGenerator(Normal.class, "normal", Generator.TYPE_INFINITE);
-        Generator.addGenerator(Normal.class, "default", Generator.TYPE_INFINITE);
-        Generator.addGenerator(Nether.class, "nether", Generator.TYPE_NETHER);
         //todo: add old generator and hell generator
 
         for (String name : this.getConfig("worlds", new HashMap<String, Object>()).keySet()) {

@@ -6,7 +6,6 @@ import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.ListChunkManager;
 import cn.nukkit.level.generator.object.BasicGenerator;
-import cn.nukkit.level.generator.object.tree.*;
 import cn.nukkit.level.particle.BoneMealParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.NukkitRandom;
@@ -121,82 +120,7 @@ public class BlockSapling extends BlockFlowable {
     }
 
     private void grow() {
-        BasicGenerator generator = null;
-        boolean bigTree = false;
 
-        Vector3 vector3 = new Vector3();
-
-        switch (this.getDamage() & 0x07) {
-            case JUNGLE:
-                Vector2 vector2;
-                if ((vector2 = this.findSaplings(JUNGLE)) != null) {
-                    vector3 = this.add(vector2.getFloorX(), 0, vector2.getFloorY());
-                    generator = new ObjectJungleBigTree(10, 20, Block.get(BlockID.WOOD, BlockWood.JUNGLE), Block.get(BlockID.LEAVES, BlockLeaves.JUNGLE));
-                    bigTree = true;
-                }
-
-                if (!bigTree) {
-                    generator = new NewJungleTree(4, 7);
-                    vector3 = this.add(0,0,0);
-                }
-                break;
-            case ACACIA:
-                generator = new ObjectSavannaTree();
-                vector3 = this.add(0,0,0);
-                break;
-            case DARK_OAK:
-                if ((vector2 = this.findSaplings(DARK_OAK)) != null) {
-                    vector3 = this.add(vector2.getFloorX(), 0, vector2.getFloorY());
-                    generator = new ObjectDarkOakTree();
-                    bigTree = true;
-                }
-
-                if (!bigTree) {
-                    return;
-                }
-                break;
-            //TODO: big spruce
-            default:
-                ListChunkManager chunkManager = new ListChunkManager(this.level);
-                ObjectTree.growTree(chunkManager, this.getFloorX(), this.getFloorY(), this.getFloorZ(), new NukkitRandom(), this.getDamage() & 0x07);
-                StructureGrowEvent ev = new StructureGrowEvent(this, chunkManager.getBlocks());
-                this.level.getServer().getPluginManager().callEvent(ev);
-                if (ev.isCancelled()) {
-                    return;
-                }
-                for(Block block : ev.getBlockList()) {
-                    this.level.setBlockAt(block.getFloorX(), block.getFloorY(), block.getFloorZ(), block.getId(), block.getDamage());
-                }
-                return;
-        }
-
-        if (bigTree) {
-            this.level.setBlock(vector3, get(AIR), true, false);
-            this.level.setBlock(vector3.add(1, 0, 0), get(AIR), true, false);
-            this.level.setBlock(vector3.add(0, 0, 1), get(AIR), true, false);
-            this.level.setBlock(vector3.add(1, 0, 1), get(AIR), true, false);
-        } else {
-            this.level.setBlock(this, get(AIR), true, false);
-        }
-
-        ListChunkManager chunkManager = new ListChunkManager(this.level);
-        boolean success = generator.generate(chunkManager, new NukkitRandom(), vector3);
-        StructureGrowEvent ev = new StructureGrowEvent(this, chunkManager.getBlocks());
-        this.level.getServer().getPluginManager().callEvent(ev);
-        if (ev.isCancelled() || !success) {
-            if (bigTree) {
-                this.level.setBlock(vector3, this, true, false);
-                this.level.setBlock(vector3.add(1, 0, 0), this, true, false);
-                this.level.setBlock(vector3.add(0, 0, 1), this, true, false);
-                this.level.setBlock(vector3.add(1, 0, 1), this, true, false);
-            } else {
-                this.level.setBlock(this, this, true, false);
-            }
-            return;
-        }
-        for(Block block : ev.getBlockList()) {
-            this.level.setBlockAt(block.getFloorX(), block.getFloorY(), block.getFloorZ(), block.getId(), block.getDamage());
-        }
     }
 
     private Vector2 findSaplings(int type) {
