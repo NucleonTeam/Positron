@@ -9,7 +9,7 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class Bootstrap {
+public final class Bootstrap {
 
     public static void main(String[] args) {
         System.setProperty("java.net.preferIPv4Stack" , "true");

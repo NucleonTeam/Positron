@@ -648,36 +648,6 @@ public class Server {
         this.pluginManager.enablePlugin(plugin);
     }
 
-    public void disablePlugins() {
-        this.pluginManager.disablePlugins();
-    }
-
-    public void reload() {
-        log.info("Reloading...");
-
-        log.info("Saving levels...");
-
-        for (Level level : this.levelArray) {
-            level.save();
-        }
-
-        this.pluginManager.disablePlugins();
-        this.pluginManager.clearPlugins();
-
-        log.info("Reloading properties...");
-        this.properties.reload();
-        this.maxPlayers = this.getPropertyInt("max-players", 20);
-
-        if (this.getPropertyBoolean("hardcore", false) && this.getDifficulty() < 3) {
-            this.setPropertyInt("difficulty", difficulty = 3);
-        }
-
-        this.pluginManager.registerInterface(JavaPluginLoader.class);
-        this.pluginManager.loadPlugins(this.pluginPath);
-        this.enablePlugins(PluginLoadOrder.STARTUP);
-        this.enablePlugins(PluginLoadOrder.POSTWORLD);
-    }
-
     public void shutdown() {
         isRunning.compareAndSet(true, false);
     }
