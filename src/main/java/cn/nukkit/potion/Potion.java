@@ -3,17 +3,11 @@ package cn.nukkit.potion;
 import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityLiving;
-import cn.nukkit.entity.EntitySmite;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityRegainHealthEvent;
 import cn.nukkit.event.potion.PotionApplyEvent;
 import cn.nukkit.utils.ServerException;
-
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Potion implements Cloneable {
 
     public static final int NO_EFFECTS = 0;
@@ -202,19 +196,11 @@ public class Potion implements Cloneable {
         switch (this.getId()) {
             case INSTANT_HEALTH:
             case INSTANT_HEALTH_II:
-                if (entity instanceof EntitySmite) {
-                    entity.attack(new EntityDamageEvent(entity, DamageCause.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
-                } else {
-                    entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
-                }
+                entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
                 break;
             case HARMING:
             case HARMING_II:
-                if (entity instanceof EntitySmite) {
-                    entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
-                } else {
-                    entity.attack(new EntityDamageEvent(entity, DamageCause.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
-                }
+                entity.attack(new EntityDamageEvent(entity, DamageCause.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
                 break;
             default:
                 int duration = (int) ((isSplash() ? health : 1) * (double) applyEffect.getDuration() + 0.5);

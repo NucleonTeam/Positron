@@ -4,7 +4,6 @@ import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.EntityExplosive;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.event.block.BlockUpdateEvent;
 import cn.nukkit.event.entity.EntityDamageByBlockEvent;
@@ -60,11 +59,6 @@ public class Explosion {
      * @return bool
      */
     public boolean explodeA() {
-        if (what instanceof EntityExplosive) {
-            Entity entity = (Entity) what;
-            int block = level.getBlockIdAt(entity.getFloorX(), entity.getFloorY(), entity.getFloorZ());
-        }
-
         if (this.size < 0.1) {
             return false;
         }

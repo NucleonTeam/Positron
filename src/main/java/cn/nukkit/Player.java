@@ -1526,70 +1526,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return true;
     }
 
-    public void checkInteractNearby() {
-        int interactDistance = isCreative() ? 5 : 3;
-        if (canInteract(this, interactDistance)) {
-            if (getEntityPlayerLookingAt(interactDistance) != null) {
-                EntityInteractable onInteract = getEntityPlayerLookingAt(interactDistance);
-                String buttonText = onInteract.getInteractButtonText(this);
-                if (buttonText == null) {
-                    buttonText = "";
-                }
-                setButtonText(buttonText);
-            } else {
-                setButtonText("");
-            }
-        } else {
-            setButtonText("");
-        }
-    }
-
-    /**
-     * Returns the Entity the player is looking at currently
-     *
-     * @param maxDistance the maximum distance to check for entities
-     * @return Entity|null    either NULL if no entity is found or an instance of the entity
-     */
-    public EntityInteractable getEntityPlayerLookingAt(int maxDistance) {
-
-        EntityInteractable entity = null;
-
-        // just a fix because player MAY not be fully initialized
-        if (temporalVector != null) {
-            Entity[] nearbyEntities = level.getNearbyEntities(boundingBox.grow(maxDistance, maxDistance, maxDistance), this);
-
-            // get all blocks in looking direction until the max interact distance is reached (it's possible that startblock isn't found!)
-            try {
-                BlockIterator itr = new BlockIterator(level, getPosition(), getDirectionVector(), getEyeHeight(), maxDistance);
-                if (itr.hasNext()) {
-                    Block block;
-                    while (itr.hasNext()) {
-                        block = itr.next();
-                        entity = getEntityAtPosition(nearbyEntities, block.getFloorX(), block.getFloorY(), block.getFloorZ());
-                        if (entity != null) {
-                            break;
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                // nothing to log here!
-            }
-        }
-
-        return entity;
-    }
-
-    private EntityInteractable getEntityAtPosition(Entity[] nearbyEntities, int x, int y, int z) {
-        for (Entity nearestEntity : nearbyEntities) {
-            if (nearestEntity.getFloorX() == x && nearestEntity.getFloorY() == y && nearestEntity.getFloorZ() == z
-                    && nearestEntity instanceof EntityInteractable
-                    && ((EntityInteractable) nearestEntity).canDoInteraction()) {
-                return (EntityInteractable) nearestEntity;
-            }
-        }
-        return null;
-    }
-
     public void checkNetwork() {
         if (!this.isOnline()) {
             return;
@@ -2090,9 +2026,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     break;
                 }
                 PlayerInputPacket ipk = (PlayerInputPacket) packet;
-                if (riding instanceof EntityMinecartAbstract) {
-                    ((EntityMinecartAbstract) riding).setCurrentSpeed(ipk.motionY);
-                }
                 break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
                 if (this.teleportPosition != null) {
@@ -2174,12 +2107,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
 
                 if (this.teleportPosition != null) {
-                    break;
-                }
-
-                // Proper player.isPassenger() check may be needed
-                if (this.riding instanceof EntityMinecartAbstract) {
-                    ((EntityMinecartAbstract) riding).setCurrentSpeed(authPacket.getMotion().getY());
                     break;
                 }
 
@@ -2449,22 +2376,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 switch (interactPacket.action) {
                     case InteractPacket.ACTION_MOUSEOVER:
                         String buttonText = "";
-                        if (targetEntity instanceof EntityInteractable) {
-                            buttonText = ((EntityInteractable) targetEntity).getInteractButtonText(this);
-                            if (buttonText == null) {
-                                buttonText = "";
-                            }
-                        }
                         this.setButtonText(buttonText);
 
                         this.getServer().getPluginManager().callEvent(new PlayerMouseOverEntityEvent(this, targetEntity));
                         break;
                     case InteractPacket.ACTION_VEHICLE_EXIT:
-                        if (!(targetEntity instanceof EntityRideable) || this.riding != targetEntity) {
-                            break;
-                        }
-
-                        ((EntityRideable) riding).dismountEntity(this);
                         break;
                     case InteractPacket.ACTION_OPEN_INVENTORY:
                         if (targetEntity != this) {
@@ -3625,10 +3541,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.loadQueue.clear();
             this.hasSpawned.clear();
             this.spawnPosition = null;
-
-            if (this.riding instanceof EntityRideable) {
-                this.riding.passengers.remove(this);
-            }
 
             this.riding = null;
         }

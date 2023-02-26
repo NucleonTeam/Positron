@@ -1334,9 +1334,6 @@ public abstract class Entity extends Location implements Metadatable {
             }
             return false;
         }
-        if (riding != null && !riding.isAlive() && riding instanceof EntityRideable) {
-            ((EntityRideable) riding).dismountEntity(this);
-        }
 
         updatePassengers();
 

@@ -3,7 +3,6 @@ package cn.nukkit.entity.projectile;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityLiving;
 import cn.nukkit.entity.data.LongEntityData;
-import cn.nukkit.entity.item.EntityMinecartAbstract;
 import cn.nukkit.event.entity.*;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.MovingObjectPosition;
@@ -13,10 +12,6 @@ import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class EntityProjectile extends Entity {
 
     public static final int DATA_SHOOTER_ID = 17;
@@ -100,7 +95,7 @@ public abstract class EntityProjectile extends Entity {
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return (entity instanceof EntityLiving || entity instanceof EntityMinecartAbstract) && !this.onGround;
+        return (entity instanceof EntityLiving) && !this.onGround;
     }
 
     @Override

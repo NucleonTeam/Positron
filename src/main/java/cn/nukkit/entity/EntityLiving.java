@@ -26,10 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class EntityLiving extends Entity implements EntityDamageable {
 
     public EntityLiving(FullChunk chunk, CompoundTag nbt) {
@@ -257,14 +253,6 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
 
         if (this.attackTime > 0) {
             this.attackTime -= tickDiff;
-        }
-
-        if (this.riding == null) {
-            for (Entity entity : level.getNearbyEntities(this.boundingBox.grow(0.20000000298023224, 0.0D, 0.20000000298023224), this)) {
-                if (entity instanceof EntityRideable) {
-                    this.collidingWith(entity);
-                }
-            }
         }
 
         // Used to check collisions with magma blocks
