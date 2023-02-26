@@ -51,7 +51,7 @@ public abstract class Biome implements BlockID {
 
     public static int getBiomeIdOrCorrect(int biomeId) {
         if (runtimeId2Identifier.get(biomeId) == null) {
-            return EnumBiome.OCEAN.id;
+            return EnumBiome.PLAINS.id;
         }
         return biomeId;
     }
@@ -63,8 +63,7 @@ public abstract class Biome implements BlockID {
     }
 
     public static Biome getBiome(int id) {
-        Biome biome = biomes[id];
-        return biome != null ? biome : EnumBiome.OCEAN.biome;
+        return  EnumBiome.PLAINS.biome;
     }
 
     /**
@@ -119,14 +118,6 @@ public abstract class Biome implements BlockID {
         this.heightVariation = heightVariation;
     }
 
-    public float getBaseHeight() {
-        return baseHeight;
-    }
-
-    public float getHeightVariation() {
-        return heightVariation;
-    }
-
     @Override
     public int hashCode() {
         return getId();
@@ -135,33 +126,6 @@ public abstract class Biome implements BlockID {
     @Override
     public boolean equals(Object obj) {
         return hashCode() == obj.hashCode();
-    }
-
-    //whether or not water should freeze into ice on generation
-    public boolean isFreezing() {
-        return false;
-    }
-
-    /**
-     * Whether or not overhangs should generate in this biome (places where solid blocks generate over air)
-     *
-     * This should probably be used with a custom max elevation or things can look stupid
-     *
-     * @return overhang
-     */
-    public boolean doesOverhang()   {
-        return false;
-    }
-
-    /**
-     * How much offset should be added to the min/max heights at this position
-     *
-     * @param x x
-     * @param z z
-     * @return height offset
-     */
-    public int getHeightOffset(int x, int z)    {
-        return 0;
     }
 
     public boolean canRain() {
