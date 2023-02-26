@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public abstract class EntityLiving extends Entity implements EntityDamageable {
+public abstract class EntityLiving extends Entity {
 
     public EntityLiving(FullChunk chunk, CompoundTag nbt) {
         super(chunk, nbt);
