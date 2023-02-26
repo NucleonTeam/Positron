@@ -17,10 +17,6 @@ import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockLiquid extends BlockTransparentMeta {
 
     private final byte CAN_FLOW_DOWN = 1;

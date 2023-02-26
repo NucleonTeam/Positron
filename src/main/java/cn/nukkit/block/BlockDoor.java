@@ -11,10 +11,6 @@ import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.utils.Faceable;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockDoor extends BlockTransparentMeta implements Faceable {
 
     public static int DOOR_OPEN_BIT = 0x04;

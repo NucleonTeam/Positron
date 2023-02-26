@@ -2,10 +2,6 @@ package cn.nukkit.block;
 
 import cn.nukkit.utils.BlockColor;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockTransparentMeta extends BlockMeta {
 
     protected BlockTransparentMeta() {

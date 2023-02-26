@@ -10,9 +10,6 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.utils.Faceable;
 
-/**
- * Created by CreeperFace on 27. 11. 2016.
- */
 public abstract class BlockButton extends BlockFlowable implements Faceable {
 
     public BlockButton() {

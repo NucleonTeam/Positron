@@ -24,10 +24,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class Block extends Position implements Metadatable, Cloneable, AxisAlignedBB, BlockID {
     public static Class[] list = null;
     public static Block[] fullList = null;
@@ -36,9 +32,6 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
     public static boolean[] solid = null;
     public static double[] hardness = null;
     public static boolean[] transparent = null;
-    /**
-     * if a block has can have variants
-     */
     public static boolean[] hasMeta = null;
 
     protected Block() {}
@@ -263,10 +256,6 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
 
     public abstract int getId();
 
-    /**
-     * The full id is a combination of the id and data.
-     * @return full id
-     */
     public int getFullId() {
         return (getId() << 4);
     }
@@ -378,11 +367,6 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
                 efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
     }
 
-    /**
-     * @deprecated This function is lack of Player class and is not accurate enough, use #getBreakTime(Item, Player)
-     * @param item item used
-     * @return break time
-     */
     @Deprecated
     public double getBreakTime(Item item) {
         double base = this.getHardness() * 1.5;

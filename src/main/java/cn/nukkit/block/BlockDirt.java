@@ -6,11 +6,6 @@ import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.utils.BlockColor;
 
-/**
- * author: MagicDroidX
- * AMAZING COARSE DIRT added by kvetinac97
- * Nukkit Project
- */
 public class BlockDirt extends BlockSolidMeta {
 
     public BlockDirt() {

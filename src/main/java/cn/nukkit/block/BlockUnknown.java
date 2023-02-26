@@ -1,9 +1,5 @@
 package cn.nukkit.block;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockUnknown extends BlockMeta {
 
     private final int id;

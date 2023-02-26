@@ -16,10 +16,6 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 
-/**
- * Created by Snake1999 on 2016/1/11.
- * Package cn.nukkit.block in project nukkit
- */
 public abstract class BlockPressurePlateBase extends BlockFlowable {
 
     protected float onPitch;

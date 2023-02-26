@@ -5,10 +5,6 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.math.BlockFace;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockSlab extends BlockTransparentMeta {
 
     protected final int doubleSlab;

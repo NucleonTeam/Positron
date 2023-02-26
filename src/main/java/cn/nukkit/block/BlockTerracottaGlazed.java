@@ -6,9 +6,6 @@ import cn.nukkit.item.ItemTool;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.Faceable;
 
-/**
- * Created by CreeperFace on 2.6.2017.
- */
 public abstract class BlockTerracottaGlazed extends BlockSolidMeta implements Faceable {
 
     public BlockTerracottaGlazed() {

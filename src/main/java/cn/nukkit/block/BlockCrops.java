@@ -11,10 +11,6 @@ import cn.nukkit.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockCrops extends BlockFlowable {
 
     protected BlockCrops(int meta) {

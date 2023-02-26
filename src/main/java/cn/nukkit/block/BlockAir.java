@@ -4,10 +4,6 @@ import cn.nukkit.item.Item;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.utils.BlockColor;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockAir extends BlockTransparent {
 
     public BlockAir() {}

@@ -8,10 +8,6 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.utils.Faceable;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockStairs extends BlockTransparentMeta implements Faceable {
 
     protected BlockStairs(int meta) {

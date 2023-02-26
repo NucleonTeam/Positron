@@ -10,10 +10,6 @@ import cn.nukkit.nbt.tag.FloatTag;
 import cn.nukkit.nbt.tag.ListTag;
 
 
-/**
- * author: rcsuperman
- * Nukkit Project
- */
 public abstract class BlockFallable extends BlockSolid {
 
     protected BlockFallable() {
