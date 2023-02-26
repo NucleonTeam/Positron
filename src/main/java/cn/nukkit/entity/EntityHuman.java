@@ -11,6 +11,7 @@ import cn.nukkit.network.protocol.AddPlayerPacket;
 import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityLinkPacket;
 import cn.nukkit.utils.*;
+import lombok.Getter;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -31,7 +32,8 @@ public class EntityHuman extends EntityHumanType {
     public static final int DATA_PLAYER_BED_POSITION = 28;
     public static final int DATA_PLAYER_BUTTON_TEXT = 40;
 
-    protected UUID uuid;
+    @Getter private final UUID uuid = UUID.randomUUID();
+    protected UUID playerUuid;
     protected byte[] rawUUID;
 
     @Override
@@ -75,7 +77,7 @@ public class EntityHuman extends EntityHumanType {
     }
 
     public UUID getUniqueId() {
-        return uuid;
+        return playerUuid;
     }
 
     public byte[] getRawUniqueId() {
@@ -202,7 +204,7 @@ public class EntityHuman extends EntityHumanType {
                 this.setSkin(newSkin);
             }
 
-            this.uuid = Utils.dataToUUID(String.valueOf(this.getId()).getBytes(StandardCharsets.UTF_8), this.getSkin()
+            this.playerUuid = Utils.dataToUUID(String.valueOf(this.getId()).getBytes(StandardCharsets.UTF_8), this.getSkin()
                     .getSkinData().data, this.getNameTag().getBytes(StandardCharsets.UTF_8));
         }
 

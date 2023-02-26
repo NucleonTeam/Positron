@@ -62,14 +62,9 @@ public class RakNetInterface implements RakNetServerListener, AdvancedSourceInte
         while ((session = this.sessionCreationQueue.poll()) != null) {
             InetSocketAddress address = session.getRakNetSession().getAddress();
             try {
-                PlayerCreationEvent event = new PlayerCreationEvent(this, Player.class, Player.class, null, address);
-                this.server.getPluginManager().callEvent(event);
+                this.sessions.put(address, session);
 
-                this.sessions.put(event.getSocketAddress(), session);
-
-                Constructor<? extends Player> constructor = event.getPlayerClass().getConstructor(SourceInterface.class, Long.class, InetSocketAddress.class);
-                Player player = constructor.newInstance(this, event.getClientId(), event.getSocketAddress());
-                this.server.addPlayer(address, player);
+                var player = server.getPlayerManager().addPlayerConnection(this, address);
                 session.setPlayer(player);
             } catch (Exception e) {
                 Server.getInstance().getLogger().error("Failed to create player", e);

@@ -67,6 +67,7 @@ import cn.nukkit.utils.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -76,6 +77,8 @@ import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
+import ru.mc_positron.player.PlayerManager;
+import ru.mc_positron.player.PositronPlayerManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -178,11 +181,9 @@ public class Server {
     private Config properties;
     private Config config;
 
-    private final Map<InetSocketAddress, Player> players = new HashMap<>();
+    @Getter private final PlayerManager playerManager = new PositronPlayerManager(this);
 
-    private final Map<UUID, Player> playerList = new HashMap<>();
-
-    private final Map<Integer, Level> levels = new HashMap<Integer, Level>() {
+    private final Map<Integer, Level> levels = new HashMap<>() {
         public Level put(Integer key, Level value) {
             Level result = super.put(key, value);
             levelArray = levels.values().toArray(new Level[0]);
@@ -629,11 +630,10 @@ public class Server {
         BatchPacket pk = new BatchPacket();
         pk.payload = data;
 
-        for (InetSocketAddress i : targets) {
-            if (this.players.containsKey(i)) {
-                this.players.get(i).dataPacket(pk);
-            }
-        }
+        targets.stream()
+                .map(playerManager::getPlayerConnection)
+                .filter(Objects::nonNull)
+                .forEach(connection -> connection.dataPacket(pk));
     }
 
     public void enablePlugins(PluginLoadOrder type) {
@@ -665,8 +665,12 @@ public class Server {
             ServerStopEvent serverStopEvent = new ServerStopEvent();
             getPluginManager().callEvent(serverStopEvent);
 
-            for (Player player : new ArrayList<>(this.players.values())) {
-                player.close(player.getLeaveMessage(), this.getConfig("settings.shutdown-message", "Server closed"));
+            for (var connection: playerManager.getConnectedPlayers()) {
+                connection.close(
+                        connection.getLeaveMessage(),
+                        this.getConfig("settings.shutdown-message",
+                        "Server closed")
+                );
             }
 
             this.getLogger().debug("Disabling all plugins");
@@ -798,33 +802,12 @@ public class Server {
         }
     }
 
-    public void addPlayer(InetSocketAddress socketAddress, Player player) {
-        this.players.put(socketAddress, player);
-    }
-
-    public void addOnlinePlayer(Player player) {
-        this.playerList.put(player.getUniqueId(), player);
-        this.updatePlayerListData(player.getUniqueId(), player.getId(), player.getDisplayName(), player.getSkin(), player.getLoginChainData().getXUID());
-    }
-
-    public void removeOnlinePlayer(Player player) {
-        if (this.playerList.containsKey(player.getUniqueId())) {
-            this.playerList.remove(player.getUniqueId());
-
-            PlayerListPacket pk = new PlayerListPacket();
-            pk.type = PlayerListPacket.TYPE_REMOVE;
-            pk.entries = new PlayerListPacket.Entry[]{new PlayerListPacket.Entry(player.getUniqueId())};
-
-            Server.broadcastPacket(this.playerList.values(), pk);
-        }
-    }
-
     public void updatePlayerListData(UUID uuid, long entityId, String name, Skin skin) {
-        this.updatePlayerListData(uuid, entityId, name, skin, "", this.playerList.values());
+        this.updatePlayerListData(uuid, entityId, name, skin, "", playerManager.getPlayers());
     }
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, Skin skin, String xboxUserId) {
-        this.updatePlayerListData(uuid, entityId, name, skin, xboxUserId, this.playerList.values());
+        this.updatePlayerListData(uuid, entityId, name, skin, xboxUserId, playerManager.getPlayers());
     }
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, Skin skin, Player[] players) {
@@ -843,7 +826,7 @@ public class Server {
     }
 
     public void removePlayerListData(UUID uuid) {
-        this.removePlayerListData(uuid, this.playerList.values());
+        this.removePlayerListData(uuid, playerManager.getPlayers());
     }
 
     public void removePlayerListData(UUID uuid, Player[] players) {
@@ -867,13 +850,13 @@ public class Server {
     public void sendFullPlayerListData(Player player) {
         PlayerListPacket pk = new PlayerListPacket();
         pk.type = PlayerListPacket.TYPE_ADD;
-        pk.entries = this.playerList.values().stream()
+        pk.entries = playerManager.getPlayers().stream()
                 .map(p -> new PlayerListPacket.Entry(
-                p.getUniqueId(),
-                p.getId(),
-                p.getDisplayName(),
-                p.getSkin(),
-                p.getLoginChainData().getXUID()))
+                        p.getUniqueId(),
+                        p.getId(),
+                        p.getDisplayName(),
+                        p.getSkin(),
+                        p.getLoginChainData().getXUID()))
                 .toArray(PlayerListPacket.Entry[]::new);
 
         player.dataPacket(pk);
@@ -884,7 +867,7 @@ public class Server {
     }
 
     private void checkTickUpdates(int currentTick, long tickTime) {
-        for (Player p : new ArrayList<>(this.players.values())) {
+        for (var p: playerManager.getConnectedPlayers()) {
             /*if (!p.loggedIn && (tickTime - p.creationTime) >= 10000 && p.kick(PlayerKickEvent.Reason.LOGIN_TIMEOUT, "Login timeout")) {
                 continue;
             }
@@ -937,11 +920,11 @@ public class Server {
 
     public void doAutoSave() {
         if (this.getAutoSave()) {
-            for (Player player : new ArrayList<>(this.players.values())) {
+            for (var player: playerManager.getConnectedPlayers()) {
                 if (player.isOnline()) {
                     player.save(true);
                 } else if (!player.isConnected()) {
-                    this.removePlayer(player);
+                    playerManager.removePlayerConnection(player);
                 }
             }
 
@@ -977,7 +960,7 @@ public class Server {
 
         this.checkTickUpdates(this.tickCounter, tickTime);
 
-        for (Player player : new ArrayList<>(this.players.values())) {
+        for (var player: playerManager.getConnectedPlayers()) {
             player.checkNetwork();
         }
 
@@ -1335,17 +1318,8 @@ public class Server {
         return ((float) Math.round(sum / count * 100)) / 100;
     }
 
-    public Map<UUID, Player> getOnlinePlayers() {
-        return ImmutableMap.copyOf(playerList);
-    }
-
     public void addRecipe(Recipe recipe) {
         this.craftingManager.registerRecipe(recipe);
-    }
-
-    public Optional<Player> getPlayer(UUID uuid) {
-        Preconditions.checkNotNull(uuid, "uuid");
-        return Optional.ofNullable(playerList.get(uuid));
     }
 
     public Optional<UUID> lookupName(String name) {
@@ -1557,41 +1531,10 @@ public class Server {
         }
     }
 
-    public Player getPlayer(String name) {
-        Player found = null;
-        name = name.toLowerCase();
-        int delta = Integer.MAX_VALUE;
-        for (Player player : this.getOnlinePlayers().values()) {
-            if (player.getName().toLowerCase().startsWith(name)) {
-                int curDelta = player.getName().length() - name.length();
-                if (curDelta < delta) {
-                    found = player;
-                    delta = curDelta;
-                }
-                if (curDelta == 0) {
-                    break;
-                }
-            }
-        }
-
-        return found;
-    }
-
-    public Player getPlayerExact(String name) {
-        name = name.toLowerCase();
-        for (Player player : this.getOnlinePlayers().values()) {
-            if (player.getName().toLowerCase().equals(name)) {
-                return player;
-            }
-        }
-
-        return null;
-    }
-
     public Player[] matchPlayer(String partialName) {
         partialName = partialName.toLowerCase();
         List<Player> matchedPlayer = new ArrayList<>();
-        for (Player player : this.getOnlinePlayers().values()) {
+        for (var player: playerManager.getPlayers()) {
             if (player.getName().toLowerCase().equals(partialName)) {
                 return new Player[]{player};
             } else if (player.getName().toLowerCase().contains(partialName)) {
@@ -1600,21 +1543,6 @@ public class Server {
         }
 
         return matchedPlayer.toArray(new Player[0]);
-    }
-
-    public void removePlayer(Player player) {
-        Player toRemove = this.players.remove(player.getSocketAddress());
-        if (toRemove != null) {
-            return;
-        }
-
-        for (InetSocketAddress socketAddress : new ArrayList<>(this.players.keySet())) {
-            Player p = this.players.get(socketAddress);
-            if (player == p) {
-                this.players.remove(socketAddress);
-                break;
-            }
-        }
     }
 
     public Map<Integer, Level> getLevels() {

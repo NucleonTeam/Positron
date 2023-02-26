@@ -469,7 +469,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
 
-        this.uuid = null;
+        this.playerUuid = null;
         this.rawUUID = null;
 
         this.creationTime = System.currentTimeMillis();
@@ -1640,7 +1640,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected void processLogin() {
         Player oldPlayer = null;
-        for (Player p : new ArrayList<>(this.server.getOnlinePlayers().values())) {
+        for (var p: server.getPlayerManager().getPlayers()) {
             if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
                     this.getUniqueId().equals(p.getUniqueId())) {
                 oldPlayer = p;
@@ -1654,7 +1654,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
         } else {
             File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
-            File dataFile = new File(server.getDataPath() + "players/" + this.uuid.toString() + ".dat");
+            File dataFile = new File(server.getDataPath() + "players/" + this.playerUuid.toString() + ".dat");
             if (legacyDataFile.exists() && !dataFile.exists()) {
                 nbt = this.server.getOfflinePlayerData(this.username, false);
 
@@ -1662,7 +1662,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     log.warn("Could not delete legacy player data for {}", this.username);
                 }
             } else {
-                nbt = this.server.getOfflinePlayerData(this.uuid, true);
+                nbt = this.server.getOfflinePlayerData(this.playerUuid, true);
             }
         }
 
@@ -1672,7 +1672,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
 
         if (loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth") || !server.getPropertyBoolean("xbox-auth")) {
-            server.updateName(this.uuid, this.username);
+            server.updateName(this.playerUuid, this.username);
         }
 
         this.playedBefore = (nbt.getLong("lastPlayed") - nbt.getLong("firstPlayed")) > 1;
@@ -1729,7 +1729,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         nbt.putLong("UUIDMost", uuid.getMostSignificantBits());
 
         if (this.server.getAutoSave()) {
-            this.server.saveOfflinePlayerData(this.uuid, nbt, true);
+            this.server.saveOfflinePlayerData(this.playerUuid, nbt, true);
         }
 
         this.sendPlayStatus(PlayStatusPacket.LOGIN_SUCCESS);
@@ -1846,7 +1846,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 String.valueOf(NukkitMath.round(this.y, 4)),
                 String.valueOf(NukkitMath.round(this.z, 4))));
 
-        this.server.addOnlinePlayer(this);
+        this.server.getPlayerManager().addPlayer(this);
         this.server.onPlayerCompleteLoginSequence(this);
     }
 
@@ -1926,14 +1926,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     break;
                 }
 
-                if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
+                if (this.server.getPlayerManager().getPlayers().size() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
                     break;
                 }
 
                 this.randomClientId = loginPacket.clientId;
 
-                this.uuid = loginPacket.clientUUID;
-                this.rawUUID = Binary.writeUUID(this.uuid);
+                this.playerUuid = loginPacket.clientUUID;
+                this.rawUUID = Binary.writeUUID(this.playerUuid);
 
                 boolean valid = true;
                 int len = loginPacket.username.length();
@@ -1984,7 +1984,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                     @Override
                     public void onRun() {
-                        this.event = new PlayerAsyncPreLoginEvent(username, uuid, loginChainData, playerInstance.getSkin(), playerInstance.getAddress(), playerInstance.getPort());
+                        this.event = new PlayerAsyncPreLoginEvent(username, playerUuid, loginChainData, playerInstance.getSkin(), playerInstance.getAddress(), playerInstance.getPort());
                         server.getPluginManager().callEvent(this.event);
                     }
 
@@ -3290,7 +3290,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 server.setDifficulty(((SetDifficultyPacket) packet).difficulty);
                 SetDifficultyPacket difficultyPacket = new SetDifficultyPacket();
                 difficultyPacket.difficulty = server.getDifficulty();
-                Server.broadcastPacket(server.getOnlinePlayers().values(), difficultyPacket);
+                Server.broadcastPacket(server.getPlayerManager().getPlayers(), difficultyPacket);
                 break;
             default:
                 break;
@@ -3688,7 +3688,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
             }
 
-            for (Player player : new ArrayList<>(this.server.getOnlinePlayers().values())) {
+            for (var player: server.getPlayerManager().getPlayers()) {
                 if (!player.canSee(this)) {
                     player.showPlayer(this);
                 }
@@ -3716,7 +3716,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.interfaz.close(this, notify ? reason : "");
 
             if (this.loggedIn) {
-                this.server.removeOnlinePlayer(this);
+                this.server.getPlayerManager().removePlayer(this);
             }
 
             this.loggedIn = false;
@@ -3746,7 +3746,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         this.chunk = null;
 
-        this.server.removePlayer(this);
+        this.server.getPlayerManager().removePlayerConnection(this);
     }
 
     public void save() {
@@ -3790,7 +3790,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.namedTag.putInt("TimeSinceRest", this.timeSinceRest);
 
             if (!this.username.isEmpty() && this.namedTag != null) {
-                this.server.saveOfflinePlayerData(this.uuid, this.namedTag, async);
+                this.server.saveOfflinePlayerData(this.playerUuid, this.namedTag, async);
             }
         }
     }
