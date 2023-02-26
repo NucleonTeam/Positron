@@ -9,6 +9,6 @@ public class EnchantmentVanishingCurse extends Enchantment {
 
     @Override
     public boolean canEnchant(Item item) {
-        return item.getId() == Item.SKULL || item.getId() == Item.COMPASS || super.canEnchant(item);
+        return super.canEnchant(item);
     }
 }

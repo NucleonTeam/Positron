@@ -29,10 +29,6 @@ public class EnchantTransaction extends InventoryTransaction {
         Inventory inv = getSource().getWindowById(Player.ENCHANT_WINDOW_ID);
         if (inv == null) return false;
         EnchantInventory eInv = (EnchantInventory) inv;
-        if (!getSource().isCreative()) {
-            if (cost == -1 || !eInv.getReagentSlot().equals(Item.get(Item.DYE, 4), true, false) || eInv.getReagentSlot().count < cost)
-                return false;
-        }
         return (inputItem != null && outputItem != null && inputItem.equals(eInv.getInputSlot(), true, true));
     }
 

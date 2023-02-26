@@ -51,18 +51,6 @@ public abstract class BlockMushroom extends BlockFlowable {
 
     @Override
     public boolean onActivate(Item item, Player player) {
-        if (item.getId() == Item.DYE && item.getDamage() == DyeColor.WHITE.getDyeData()) {
-            if (player != null && (player.gamemode & 0x01) == 0) {
-                item.count--;
-            }
-
-            if (ThreadLocalRandom.current().nextFloat() < 0.4) {
-                this.grow();
-            }
-
-            this.level.addParticle(new BoneMealParticle(this));
-            return true;
-        }
         return false;
     }
 

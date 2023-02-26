@@ -456,9 +456,6 @@ public class BinaryStream {
                 canBreak[i] = stream.readUTF();
             }
 
-            if (id == ItemID.SHIELD) {
-                stream.readLong();
-            }
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read item user data", e);
         } finally {
@@ -563,10 +560,6 @@ public class BinaryStream {
             stream.writeInt(canDestroy.size());
             for (String string : canDestroy) {
                 stream.writeUTF(string);
-            }
-
-            if (id == ItemID.SHIELD) {
-                stream.writeLong(0);
             }
 
             byte[] bytes = new byte[userDataBuf.readableBytes()];

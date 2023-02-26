@@ -128,7 +128,7 @@ public class RepairItemTransaction extends InventoryTransaction {
                     return false;
                 }
             } else {
-                boolean consumeEnchantedBook = this.materialItem.getId() == Item.ENCHANTED_BOOK && this.materialItem.hasEnchantments();
+                boolean consumeEnchantedBook = false;
                 if (!consumeEnchantedBook && (this.inputItem.getMaxDurability() == -1 || this.inputItem.getId() != this.materialItem.getId())) {
                     return false;
                 }
@@ -161,7 +161,7 @@ public class RepairItemTransaction extends InventoryTransaction {
                     int materialLevel = materialEnchantment.getLevel();
                     int outputLevel = inputLevel == materialLevel ? materialLevel + 1 : Math.max(materialLevel, inputLevel);
 
-                    boolean canEnchant = materialEnchantment.canEnchant(this.inputItem) || this.inputItem.getId() == Item.ENCHANTED_BOOK;
+                    boolean canEnchant = materialEnchantment.canEnchant(this.inputItem);
                     for (Enchantment inputEnchantment : this.inputItem.getEnchantments()) {
                         if (inputEnchantment.getId() != materialEnchantment.getId() && !materialEnchantment.isCompatibleWith(inputEnchantment)) {
                             canEnchant = false;
@@ -258,82 +258,14 @@ public class RepairItemTransaction extends InventoryTransaction {
     }
 
     private boolean isMapRecipe() {
-        return this.hasMaterial() && (this.inputItem.getId() == Item.MAP || this.inputItem.getId() == Item.EMPTY_MAP)
-                && (this.materialItem.getId() == Item.EMPTY_MAP || this.materialItem.getId() == Item.PAPER || this.materialItem.getId() == Item.COMPASS);
+        return false;
     }
 
     private boolean matchMapRecipe() {
-        if (this.inputItem.getId() == Item.EMPTY_MAP) {
-            return this.inputItem.getDamage() != 2 && this.materialItem.getId() == Item.COMPASS // locator
-                    && this.outputItem.getId() == Item.EMPTY_MAP && this.outputItem.getDamage() == 2 && this.outputItem.getCount() == 1;
-        } else if (this.inputItem.getId() == Item.MAP && this.outputItem.getDamage() == this.inputItem.getDamage()) {
-            if (this.materialItem.getId() == Item.COMPASS) { // locator
-                return this.inputItem.getDamage() != 2 && this.outputItem.getId() == Item.MAP && this.outputItem.getCount() == 1;
-            } else if (this.materialItem.getId() == Item.EMPTY_MAP) { // clone
-                return this.outputItem.getId() == Item.MAP && this.outputItem.getCount() == 2;
-            } else if (this.materialItem.getId() == Item.PAPER && this.materialItem.getCount() >= 8) { // zoom out
-                return this.inputItem.getDamage() < 3 && this.outputItem.getId() == Item.MAP && this.outputItem.getCount() == 1;
-            }
-        }
         return false;
     }
 
     private boolean matchRepairItem() {
-        switch (this.inputItem.getId()) {
-            case Item.LEATHER_CAP:
-            case Item.LEATHER_TUNIC:
-            case Item.LEATHER_PANTS:
-            case Item.LEATHER_BOOTS:
-                return this.materialItem.getId() == Item.LEATHER;
-            case Item.IRON_SWORD:
-            case Item.IRON_PICKAXE:
-            case Item.IRON_SHOVEL:
-            case Item.IRON_AXE:
-            case Item.IRON_HOE:
-            case Item.IRON_HELMET:
-            case Item.IRON_CHESTPLATE:
-            case Item.IRON_LEGGINGS:
-            case Item.IRON_BOOTS:
-            case Item.CHAIN_HELMET:
-            case Item.CHAIN_CHESTPLATE:
-            case Item.CHAIN_LEGGINGS:
-            case Item.CHAIN_BOOTS:
-                return this.materialItem.getId() == Item.IRON_INGOT;
-            case Item.GOLD_SWORD:
-            case Item.GOLD_PICKAXE:
-            case Item.GOLD_SHOVEL:
-            case Item.GOLD_AXE:
-            case Item.GOLD_HOE:
-            case Item.GOLD_HELMET:
-            case Item.GOLD_CHESTPLATE:
-            case Item.GOLD_LEGGINGS:
-            case Item.GOLD_BOOTS:
-                return this.materialItem.getId() == Item.GOLD_INGOT;
-            case Item.DIAMOND_SWORD:
-            case Item.DIAMOND_PICKAXE:
-            case Item.DIAMOND_SHOVEL:
-            case Item.DIAMOND_AXE:
-            case Item.DIAMOND_HOE:
-            case Item.DIAMOND_HELMET:
-            case Item.DIAMOND_CHESTPLATE:
-            case Item.DIAMOND_LEGGINGS:
-            case Item.DIAMOND_BOOTS:
-                return this.materialItem.getId() == Item.DIAMOND;
-            case Item.NETHERITE_SWORD:
-            case Item.NETHERITE_PICKAXE:
-            case Item.NETHERITE_SHOVEL:
-            case Item.NETHERITE_AXE:
-            case Item.NETHERITE_HOE:
-            case Item.NETHERITE_HELMET:
-            case Item.NETHERITE_CHESTPLATE:
-            case Item.NETHERITE_LEGGINGS:
-            case Item.NETHERITE_BOOTS:
-                return this.materialItem.getId() == Item.NETHERITE_INGOT;
-            case Item.TURTLE_SHELL:
-                return this.materialItem.getId() == Item.SCUTE;
-            case Item.ELYTRA:
-                return this.materialItem.getId() == Item.PHANTOM_MEMBRANE;
-        }
         return false;
     }
 

@@ -3192,9 +3192,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             case ProtocolInfo.BOOK_EDIT_PACKET:
                 BookEditPacket bookEditPacket = (BookEditPacket) packet;
                 Item oldBook = this.inventory.getItem(bookEditPacket.inventorySlot);
-                if (oldBook.getId() != Item.BOOK_AND_QUILL) {
-                    return;
-                }
 
                 if (bookEditPacket.text != null && bookEditPacket.text.length() > 256) {
                     this.getServer().getLogger().debug(username + ": BookEditPacket with too long text");

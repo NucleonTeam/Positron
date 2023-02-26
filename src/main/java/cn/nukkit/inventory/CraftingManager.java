@@ -314,11 +314,6 @@ public class CraftingManager {
     }
 
     public BrewingRecipe matchBrewingRecipe(Item input, Item potion) {
-        int id = potion.getId();
-        if (id == Item.POTION || id == Item.SPLASH_POTION || id == Item.LINGERING_POTION) {
-            return this.brewingRecipes.get(getPotionHash(input.getId(), potion.getDamage()));
-        }
-
         return null;
     }
 

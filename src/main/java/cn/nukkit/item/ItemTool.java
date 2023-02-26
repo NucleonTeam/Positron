@@ -147,7 +147,7 @@ public abstract class ItemTool extends Item implements ItemDurable {
 
     @Override
     public boolean isShears() {
-        return (this.id == SHEARS);
+        return false;
     }
 
     @Override

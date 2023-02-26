@@ -1127,13 +1127,6 @@ public abstract class Entity extends Location implements Metadatable {
             if (source.getCause() != DamageCause.VOID && source.getCause() != DamageCause.SUICIDE) {
                 Player p = (Player) this;
                 boolean totem = false;
-                if (p.getOffhandInventory().getItem(0).getId() == ItemID.TOTEM) {
-                    p.getOffhandInventory().clear(0);
-                    totem = true;
-                } else if (p.getInventory().getItemInHand().getId() == ItemID.TOTEM) {
-                    p.getInventory().clear(p.getInventory().getHeldItemIndex());
-                    totem = true;
-                }
                 if (totem) {
                     this.getLevel().addLevelEvent(this, LevelEventPacket.EVENT_SOUND_TOTEM);
 

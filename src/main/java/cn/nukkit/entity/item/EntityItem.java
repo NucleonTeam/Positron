@@ -107,9 +107,6 @@ public class EntityItem extends Entity {
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY, true);
 
         int id = this.item.getId();
-        if (id >= Item.NETHERITE_INGOT && id <= Item.NETHERITE_SCRAP) {
-            this.fireProof = true; // Netherite items are fireproof
-        }
 
         this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
     }
@@ -119,7 +116,7 @@ public class EntityItem extends Entity {
         DamageCause cause = source.getCause();
         if ((cause == DamageCause.VOID || cause == DamageCause.CONTACT || cause == DamageCause.FIRE_TICK
                 || (cause == DamageCause.ENTITY_EXPLOSION || cause == DamageCause.BLOCK_EXPLOSION) && !this.isInsideOfWater()
-                && (this.item == null || this.item.getId() != Item.NETHER_STAR)) && super.attack(source)) {
+                && (this.item == null) && super.attack(source))) {
             if (this.item == null || this.isAlive()) {
                 return true;
             }

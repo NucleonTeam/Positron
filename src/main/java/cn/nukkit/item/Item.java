@@ -688,9 +688,6 @@ public class Item implements Cloneable, BlockID, ItemID {
         if (!Fuel.duration.containsKey(id)) {
             return null;
         }
-        if (this.id != BUCKET || this.meta == 10) {
-            return Fuel.duration.get(this.id);
-        }
         return null;
     }
 

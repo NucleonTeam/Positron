@@ -5,12 +5,8 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityRegainHealthEvent;
 import cn.nukkit.event.player.PlayerFoodLevelChangeEvent;
-import cn.nukkit.item.food.Food;
 import cn.nukkit.potion.Effect;
 
-/**
- * Created by funcraft on 2015/11/11.
- */
 public class PlayerFood {
 
     private int foodLevel = 20;
@@ -106,10 +102,6 @@ public class PlayerFood {
         } else {
             this.setLevel(foodLevel - amount);
         }
-    }
-
-    public void addFoodLevel(Food food) {
-        this.addFoodLevel(food.getRestoreFood(), food.getRestoreSaturation());
     }
 
     public void addFoodLevel(int foodLevel, float fsl) {
