@@ -1852,8 +1852,6 @@ public class Level implements ChunkManager, Metadatable {
 
             if (player.isSurvival() && !target.isBreakable(item)) {
                 ev.setCancelled();
-            } else if(isInSpawnRadius(target)) {
-                ev.setCancelled();
             } else if (!ev.getInstaBreak() && ev.isFastBreak()) {
                 ev.setCancelled();
             }
