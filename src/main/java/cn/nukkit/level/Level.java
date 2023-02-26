@@ -30,8 +30,6 @@ import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.BaseFullChunk;
 import cn.nukkit.level.format.generic.BaseLevelProvider;
 import cn.nukkit.level.format.generic.EmptyChunkSection;
-import cn.nukkit.level.format.leveldb.LevelDB;
-import cn.nukkit.level.format.mcregion.McRegion;
 import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.generator.PopChunkManager;
 import cn.nukkit.level.generator.task.GenerationTask;
@@ -59,6 +57,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import lombok.Getter;
+import lombok.NonNull;
+import ru.mc_positron.world.loader.WorldLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +71,8 @@ import java.util.concurrent.*;
  * author: MagicDroidX Nukkit Project
  */
 public class Level implements ChunkManager, Metadatable {
+
+    @Getter private final UUID uuid = UUID.randomUUID();
 
     private static int levelIdCounter = 1;
     private static int chunkLoaderCounter = 1;
@@ -252,38 +255,20 @@ public class Level implements ChunkManager, Metadatable {
 
     public GameRules gameRules;
 
+    public Level(@NonNull WorldLoader loader) {
+        this(Server.getInstance(), "", "", null);
+    }
+
     public Level(Server server, String name, String path, Class<? extends LevelProvider> provider) {
         this.levelId = levelIdCounter++;
         this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
         this.autoSave = server.getAutoSave();
 
-        boolean convert = provider == McRegion.class || provider == LevelDB.class;
         try {
-            if (convert) {
-                String newPath = new File(path).getParent() + "/" + name + ".old/";
-                new File(path).renameTo(new File(newPath));
-                this.provider = provider.getConstructor(Level.class, String.class).newInstance(this, newPath);
-            } else {
-                this.provider = provider.getConstructor(Level.class, String.class).newInstance(this, path);
-            }
+            this.provider = provider.getConstructor(Level.class, String.class).newInstance(this, path);
         } catch (Exception e) {
             throw new LevelException("Caused by " + Utils.getExceptionMessage(e));
-        }
-
-        if (convert) {
-            this.server.getLogger().info(this.server.getLanguage().translateString("nukkit.level.updating",
-                    TextFormat.GREEN + this.provider.getName() + TextFormat.WHITE));
-            LevelProvider old = this.provider;
-            try {
-                this.provider = new LevelProviderConverter(this, path)
-                        .from(old)
-                        .to(Anvil.class)
-                        .perform();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            old.close();
         }
 
         this.provider.updateLevelName(name);

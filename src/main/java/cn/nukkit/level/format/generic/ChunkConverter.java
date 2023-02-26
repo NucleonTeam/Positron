@@ -18,9 +18,6 @@ public class ChunkConverter {
     }
 
     public ChunkConverter from(BaseFullChunk chunk) {
-        if (!(chunk instanceof cn.nukkit.level.format.mcregion.Chunk) && !(chunk instanceof cn.nukkit.level.format.leveldb.Chunk)) {
-            throw new IllegalArgumentException("From type can be only McRegion or LevelDB");
-        }
         this.chunk = chunk;
         return this;
     }
