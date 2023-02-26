@@ -22,7 +22,7 @@ public abstract class BlockFallable extends BlockSolid {
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             Block down = this.down();
-            if (down.getId() == AIR || down instanceof BlockLiquid || down instanceof BlockFire) {
+            if (down.getId() == AIR || down instanceof BlockLiquid) {
                 BlockFallEvent event = new BlockFallEvent(this);
                 this.level.getServer().getPluginManager().callEvent(event);
                 if (event.isCancelled()) {

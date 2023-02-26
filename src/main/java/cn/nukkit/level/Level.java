@@ -4,7 +4,6 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
-import cn.nukkit.block.BlockRedstoneDiode;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
@@ -15,7 +14,6 @@ import cn.nukkit.event.block.BlockUpdateEvent;
 import cn.nukkit.event.level.*;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerInteractEvent.Action;
-import cn.nukkit.event.weather.LightningStrikeEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.ItemBucket;
@@ -61,8 +59,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import ru.mc_positron.world.loader.WorldLoader;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.*;
@@ -99,38 +95,12 @@ public class Level implements ChunkManager, Metadatable {
     public static final int DIMENSION_NETHER = 1;
     public static final int DIMENSION_THE_END = 2;
 
-    // Lower values use less memory
     public static final int MAX_BLOCK_CACHE = 512;
 
-    // The blocks that can randomly tick
     private static final boolean[] randomTickBlocks = new boolean[256];
 
     static {
         randomTickBlocks[Block.GRASS] = true;
-        randomTickBlocks[Block.FARMLAND] = true;
-        randomTickBlocks[Block.MYCELIUM] = true;
-        randomTickBlocks[Block.SAPLING] = true;
-        randomTickBlocks[Block.LEAVES] = true;
-        randomTickBlocks[Block.LEAVES2] = true;
-        randomTickBlocks[Block.SNOW_LAYER] = true;
-        randomTickBlocks[Block.ICE] = true;
-        randomTickBlocks[Block.LAVA] = true;
-        randomTickBlocks[Block.STILL_LAVA] = true;
-        randomTickBlocks[Block.CACTUS] = true;
-        randomTickBlocks[Block.BEETROOT_BLOCK] = true;
-        randomTickBlocks[Block.CARROT_BLOCK] = true;
-        randomTickBlocks[Block.POTATO_BLOCK] = true;
-        randomTickBlocks[Block.MELON_STEM] = true;
-        randomTickBlocks[Block.PUMPKIN_STEM] = true;
-        randomTickBlocks[Block.WHEAT_BLOCK] = true;
-        randomTickBlocks[Block.SUGARCANE_BLOCK] = true;
-        randomTickBlocks[Block.RED_MUSHROOM] = true;
-        randomTickBlocks[Block.BROWN_MUSHROOM] = true;
-        randomTickBlocks[Block.NETHER_WART_BLOCK] = true;
-        randomTickBlocks[Block.FIRE] = true;
-        randomTickBlocks[Block.GLOWING_REDSTONE_ORE] = true;
-        randomTickBlocks[Block.COCOA_BLOCK] = true;
-        randomTickBlocks[Block.VINE] = true;
     }
 
     private final Long2ObjectOpenHashMap<BlockEntity> blockEntities = new Long2ObjectOpenHashMap<>();
@@ -170,14 +140,9 @@ public class Level implements ChunkManager, Metadatable {
 
     private String folderName;
 
-    private Vector3 mutableBlock;
-
-    // Avoid OOM, gc'd references result in whole chunk being sent (possibly higher cpu)
     private final Long2ObjectOpenHashMap<SoftReference<Map<Character, Object>>> changedBlocks = new Long2ObjectOpenHashMap<>();
-    // Storing the vector is redundant
     private final Object changeBlocksPresent = new Object();
-    // Storing extra blocks past 512 is redundant
-    private final Map<Character, Object> changeBlocksFullMap = new HashMap<Character, Object>() {
+    private final Map<Character, Object> changeBlocksFullMap = new HashMap<>() {
         @Override
         public int size() {
             return Character.MAX_VALUE;
@@ -187,9 +152,6 @@ public class Level implements ChunkManager, Metadatable {
 
     private final BlockUpdateScheduler updateQueue;
     private final Queue<Block> normalUpdateQueue = new ConcurrentLinkedDeque<>();
-//    private final TreeSet<BlockUpdateEntry> updateQueue = new TreeSet<>();
-//    private final List<BlockUpdateEntry> nextTickUpdates = Lists.newArrayList();
-    //private final Map<BlockVector3, Integer> updateQueueIndex = new HashMap<>();
 
     private final ConcurrentMap<Long, Int2ObjectMap<Player>> chunkSendQueue = new ConcurrentHashMap<>();
     private final LongSet chunkSendTasks = new LongOpenHashSet();
@@ -886,25 +848,6 @@ public class Level implements ChunkManager, Metadatable {
             }
 
             int bId = this.getBlockIdAt(vector.getFloorX(), vector.getFloorY(), vector.getFloorZ());
-            if (bId != Block.TALL_GRASS && bId != Block.WATER)
-                vector.y += 1;
-            CompoundTag nbt = new CompoundTag()
-                    .putList(new ListTag<DoubleTag>("Pos").add(new DoubleTag("", vector.x))
-                            .add(new DoubleTag("", vector.y)).add(new DoubleTag("", vector.z)))
-                    .putList(new ListTag<DoubleTag>("Motion").add(new DoubleTag("", 0))
-                            .add(new DoubleTag("", 0)).add(new DoubleTag("", 0)))
-                    .putList(new ListTag<FloatTag>("Rotation").add(new FloatTag("", 0))
-                            .add(new FloatTag("", 0)));
-
-            EntityLightning bolt = (EntityLightning) Entity.createEntity("Lightning", chunk, nbt);
-            if(bolt == null) return;
-            LightningStrikeEvent ev = new LightningStrikeEvent(this, bolt);
-            getServer().getPluginManager().callEvent(ev);
-            if (!ev.isCancelled()) {
-                bolt.spawnToAll();
-            } else {
-                bolt.setEffect(false);
-            }
 
             this.addLevelSoundEvent(vector, LevelSoundEventPacket.SOUND_THUNDER, -1, EntityLightning.NETWORK_ID);
             this.addLevelSoundEvent(vector, LevelSoundEventPacket.SOUND_EXPLODE, -1, EntityLightning.NETWORK_ID);
@@ -1197,16 +1140,6 @@ public class Level implements ChunkManager, Metadatable {
             if (this.isChunkLoaded((int) pos.x >> 4, (int) pos.z >> 4)) {
                 Block block1 = this.getBlock(pos);
 
-                if (BlockRedstoneDiode.isDiode(block1)) {
-                    block1.onUpdate(BLOCK_UPDATE_REDSTONE);
-                } else if (block1.isNormalBlock()) {
-                    pos = pos.getSideVec(face);
-                    block1 = this.getBlock(pos);
-
-                    if (BlockRedstoneDiode.isDiode(block1)) {
-                        block1.onUpdate(BLOCK_UPDATE_REDSTONE);
-                    }
-                }
             }
         }
     }
@@ -1946,11 +1879,6 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         Block above = this.getBlock(new Vector3(target.x, target.y + 1, target.z));
-        if (above != null) {
-            if (above.getId() == Item.FIRE) {
-                this.setBlock(above, Block.get(BlockID.AIR), true);
-            }
-        }
 
         if (createParticles) {
             Map<Integer, Player> players = this.getChunkPlayers((int) target.x >> 4, (int) target.z >> 4);
@@ -2062,14 +1990,7 @@ public class Level implements ChunkManager, Metadatable {
                     }
                 }
             } else {
-                if(item.getId() == ItemID.BUCKET && ItemBucket.getDamageByTarget(item.getDamage()) == BlockID.WATER) {
-                    player.getLevel().sendBlocks(new Player[]{player}, new Block[]{Block.get(Block.AIR, 0, target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
-                }
                 return null;
-            }
-
-            if(item.getId() == ItemID.BUCKET && ItemBucket.getDamageByTarget(item.getDamage()) == BlockID.WATER) {
-                player.getLevel().sendBlocks(new Player[] {player}, new Block[] {Block.get(Block.AIR, 0, target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
             }
         } else if (target.canBeActivated() && target.onActivate(item, player)) {
             if (item.isTool() && item.getDamage() >= item.getMaxDurability()) {
@@ -2085,7 +2006,7 @@ public class Level implements ChunkManager, Metadatable {
             return null;
         }
 
-        if (!(block.canBeReplaced() || (hand.getId() == Item.SLAB && block.getId() == Item.SLAB))) {
+        if (!(block.canBeReplaced())) {
             return null;
         }
 
@@ -3460,220 +3381,6 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public boolean createPortal(Block target) {
-        if (this.getDimension() == DIMENSION_THE_END) return false;
-        int maxPortalSize = 23;
-        final int targX = target.getFloorX();
-        final int targY = target.getFloorY();
-        final int targZ = target.getFloorZ();
-        //check if there's air above (at least 3 blocks)
-        for (int i = 1; i < 4; i++) {
-            if (this.getBlockIdAt(targX, targY + i, targZ) != BlockID.AIR) {
-                return false;
-            }
-        }
-        int sizePosX = 0;
-        int sizeNegX = 0;
-        int sizePosZ = 0;
-        int sizeNegZ = 0;
-        for (int i = 1; i < maxPortalSize; i++) {
-            if (this.getBlockIdAt(targX + i, targY, targZ) == BlockID.OBSIDIAN) {
-                sizePosX++;
-            } else {
-                break;
-            }
-        }
-        for (int i = 1; i < maxPortalSize; i++) {
-            if (this.getBlockIdAt(targX - i, targY, targZ) == BlockID.OBSIDIAN) {
-                sizeNegX++;
-            } else {
-                break;
-            }
-        }
-        for (int i = 1; i < maxPortalSize; i++) {
-            if (this.getBlockIdAt(targX, targY, targZ + i) == BlockID.OBSIDIAN) {
-                sizePosZ++;
-            } else {
-                break;
-            }
-        }
-        for (int i = 1; i < maxPortalSize; i++) {
-            if (this.getBlockIdAt(targX, targY, targZ - i) == BlockID.OBSIDIAN) {
-                sizeNegZ++;
-            } else {
-                break;
-            }
-        }
-        //plus one for target block
-        int sizeX = sizePosX + sizeNegX + 1;
-        int sizeZ = sizePosZ + sizeNegZ + 1;
-        if (sizeX >= 2 && sizeX <= maxPortalSize) {
-            //start scan from 1 block above base
-            //find pillar or end of portal to start scan
-            int scanX = targX;
-            int scanY = targY + 1;
-            int scanZ = targZ;
-            for (int i = 0; i < sizePosX + 1; i++) {
-                //this must be air
-                if (this.getBlockIdAt(scanX + i, scanY, scanZ) != BlockID.AIR) {
-                    return false;
-                }
-                if (this.getBlockIdAt(scanX + i + 1, scanY, scanZ) == BlockID.OBSIDIAN) {
-                    scanX += i;
-                    break;
-                }
-            }
-            //make sure that the above loop finished
-            if (this.getBlockIdAt(scanX + 1, scanY, scanZ) != BlockID.OBSIDIAN) {
-                return false;
-            }
-
-            int innerWidth = 0;
-            LOOP: for (int i = 0; i < maxPortalSize - 2; i++) {
-                int id = this.getBlockIdAt(scanX - i, scanY, scanZ);
-                switch (id) {
-                    case BlockID.AIR:
-                        innerWidth++;
-                        break;
-                    case BlockID.OBSIDIAN:
-                        break LOOP;
-                    default:
-                        return false;
-                }
-            }
-            int innerHeight = 0;
-            LOOP: for (int i = 0; i < maxPortalSize - 2; i++) {
-                int id = this.getBlockIdAt(scanX, scanY + i, scanZ);
-                switch (id) {
-                    case BlockID.AIR:
-                        innerHeight++;
-                        break;
-                    case BlockID.OBSIDIAN:
-                        break LOOP;
-                    default:
-                        return false;
-                }
-            }
-            if (!(innerWidth <= maxPortalSize - 2
-                    && innerWidth >= 2
-                    && innerHeight <= maxPortalSize - 2
-                    && innerHeight >= 3))   {
-                return false;
-            }
-
-            for (int height = 0; height < innerHeight + 1; height++)    {
-                if (height == innerHeight) {
-                    for (int width = 0; width < innerWidth; width++) {
-                        if (this.getBlockIdAt(scanX - width, scanY + height, scanZ) != BlockID.OBSIDIAN) {
-                            return false;
-                        }
-                    }
-                } else {
-                    if (this.getBlockIdAt(scanX + 1, scanY + height, scanZ) != BlockID.OBSIDIAN
-                            || this.getBlockIdAt(scanX - innerWidth, scanY + height, scanZ) != BlockID.OBSIDIAN) {
-                        return false;
-                    }
-
-                    for (int width = 0; width < innerWidth; width++) {
-                        if (this.getBlockIdAt(scanX - width, scanY + height, scanZ) != BlockID.AIR) {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            for (int height = 0; height < innerHeight; height++)    {
-                for (int width = 0; width < innerWidth; width++)    {
-                    this.setBlock(new Vector3(scanX - width, scanY + height, scanZ), Block.get(BlockID.NETHER_PORTAL));
-                }
-            }
-
-            this.addLevelSoundEvent(target, LevelSoundEventPacket.SOUND_IGNITE);
-            return true;
-        } else if (sizeZ >= 2 && sizeZ <= maxPortalSize) {
-            //start scan from 1 block above base
-            //find pillar or end of portal to start scan
-            int scanX = targX;
-            int scanY = targY + 1;
-            int scanZ = targZ;
-            for (int i = 0; i < sizePosZ + 1; i++) {
-                //this must be air
-                if (this.getBlockIdAt(scanX, scanY, scanZ + i) != BlockID.AIR) {
-                    return false;
-                }
-                if (this.getBlockIdAt(scanX, scanY, scanZ + i + 1) == BlockID.OBSIDIAN) {
-                    scanZ += i;
-                    break;
-                }
-            }
-            //make sure that the above loop finished
-            if (this.getBlockIdAt(scanX, scanY, scanZ + 1) != BlockID.OBSIDIAN) {
-                return false;
-            }
-
-            int innerWidth = 0;
-            LOOP: for (int i = 0; i < maxPortalSize - 2; i++) {
-                int id = this.getBlockIdAt(scanX, scanY, scanZ - i);
-                switch (id) {
-                    case BlockID.AIR:
-                        innerWidth++;
-                        break;
-                    case BlockID.OBSIDIAN:
-                        break LOOP;
-                    default:
-                        return false;
-                }
-            }
-            int innerHeight = 0;
-            LOOP: for (int i = 0; i < maxPortalSize - 2; i++) {
-                int id = this.getBlockIdAt(scanX, scanY + i, scanZ);
-                switch (id) {
-                    case BlockID.AIR:
-                        innerHeight++;
-                        break;
-                    case BlockID.OBSIDIAN:
-                        break LOOP;
-                    default:
-                        return false;
-                }
-            }
-            if (!(innerWidth <= maxPortalSize - 2
-                    && innerWidth >= 2
-                    && innerHeight <= maxPortalSize - 2
-                    && innerHeight >= 3))   {
-                return false;
-            }
-
-            for (int height = 0; height < innerHeight + 1; height++)    {
-                if (height == innerHeight) {
-                    for (int width = 0; width < innerWidth; width++) {
-                        if (this.getBlockIdAt(scanX, scanY + height, scanZ - width) != BlockID.OBSIDIAN) {
-                            return false;
-                        }
-                    }
-                } else {
-                    if (this.getBlockIdAt(scanX, scanY + height, scanZ + 1) != BlockID.OBSIDIAN
-                            || this.getBlockIdAt(scanX, scanY + height, scanZ - innerWidth) != BlockID.OBSIDIAN) {
-                        return false;
-                    }
-
-                    for (int width = 0; width < innerWidth; width++) {
-                        if (this.getBlockIdAt(scanX, scanY + height, scanZ - width) != BlockID.AIR) {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            for (int height = 0; height < innerHeight; height++)    {
-                for (int width = 0; width < innerWidth; width++)    {
-                    this.setBlock(new Vector3(scanX, scanY + height, scanZ - width), Block.get(BlockID.NETHER_PORTAL));
-                }
-            }
-
-            this.addLevelSoundEvent(target, LevelSoundEventPacket.SOUND_IGNITE);
-            return true;
-        }
-
         return false;
     }
 

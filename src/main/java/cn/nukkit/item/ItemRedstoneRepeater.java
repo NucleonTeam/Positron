@@ -18,6 +18,5 @@ public class ItemRedstoneRepeater extends Item {
 
     public ItemRedstoneRepeater(Integer meta, int count) {
         super(REPEATER, meta, count, "Redstone Repeater");
-        this.block = Block.get(BlockID.UNPOWERED_REPEATER);
     }
 }

@@ -13,9 +13,6 @@ public final class PopulatorHelpers implements BlockID {
 
     static {
         nonSolidBlocks.add(AIR);
-        nonSolidBlocks.add(LEAVES);
-        nonSolidBlocks.add(LEAVES2);
-        nonSolidBlocks.add(SNOW_LAYER);
     }
 
     private PopulatorHelpers() {

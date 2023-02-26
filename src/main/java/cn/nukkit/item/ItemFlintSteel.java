@@ -39,36 +39,6 @@ public class ItemFlintSteel extends ItemTool {
         }
 
         if (block.getId() == AIR && (target instanceof BlockSolid || target instanceof BlockSolidMeta)) {
-            if (target.getId() == OBSIDIAN) {
-                if (level.createPortal(target)) {
-                    return true;
-                }
-            }
-
-            BlockFire fire = (BlockFire) Block.get(BlockID.FIRE);
-            fire.x = block.x;
-            fire.y = block.y;
-            fire.z = block.z;
-            fire.level = level;
-
-            if (fire.isBlockTopFacingSurfaceSolid(fire.down()) || fire.canNeighborBurn()) {
-                BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
-                block.getLevel().getServer().getPluginManager().callEvent(e);
-
-                if (!e.isCancelled()) {
-                    level.setBlock(fire, fire, true);
-                    level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_IGNITE);
-                    level.scheduleUpdate(fire, fire.tickRate() + ThreadLocalRandom.current().nextInt(10));
-
-                    if ((player.gamemode & 0x01) == 0 && this.useOn(block)) {
-                        if (this.getDamage() >= this.getMaxDurability()) {
-                            this.count = 0;
-                        }
-                        player.getInventory().setItemInHand(this);
-                    }
-                }
-                return true;
-            }
         }
         return false;
     }

@@ -19,7 +19,6 @@ public class ItemCarrot extends ItemEdible {
 
     public ItemCarrot(Integer meta, int count) {
         super(CARROT, 0, count, "Carrot");
-        this.block = Block.get(BlockID.CARROT_BLOCK);
     }
 
 }

@@ -19,6 +19,6 @@ public class OceanBiome extends WateryBiome {
     }
 
     public int getGroundId(int y) {
-        return GRAVEL << 4;
+        return 2;
     }
 }

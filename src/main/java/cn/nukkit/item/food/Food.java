@@ -33,10 +33,7 @@ public abstract class Food {
     public static final Food beetroot = registerDefaultFood(new FoodNormal(1, 1.2F).addRelative(Item.BEETROOT));
     public static final Food beetroot_soup = registerDefaultFood(new FoodInBowl(6, 7.2F).addRelative(Item.BEETROOT_SOUP));
     public static final Food bread = registerDefaultFood(new FoodNormal(5, 6F).addRelative(Item.BREAD));
-    public static final Food cake_slice = registerDefaultFood(new FoodNormal(2, 0.4F)
-            .addRelative(Block.CAKE_BLOCK, 0).addRelative(Block.CAKE_BLOCK, 1).addRelative(Block.CAKE_BLOCK, 2)
-            .addRelative(Block.CAKE_BLOCK, 3).addRelative(Block.CAKE_BLOCK, 4).addRelative(Block.CAKE_BLOCK, 5)
-            .addRelative(Block.CAKE_BLOCK, 6));
+    public static final Food cake_slice = registerDefaultFood(new FoodNormal(2, 0.4F));
     public static final Food carrot = registerDefaultFood(new FoodNormal(3, 4.8F).addRelative(Item.CARROT));
     public static final Food carrot_golden = registerDefaultFood(new FoodNormal(6, 14.4F).addRelative(Item.GOLDEN_CARROT));
     public static final Food chicken_raw = registerDefaultFood(new FoodEffective(2, 1.2F)

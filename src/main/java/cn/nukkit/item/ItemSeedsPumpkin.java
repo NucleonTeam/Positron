@@ -19,6 +19,5 @@ public class ItemSeedsPumpkin extends Item {
 
     public ItemSeedsPumpkin(Integer meta, int count) {
         super(PUMPKIN_SEEDS, 0, count, "Pumpkin Seeds");
-        this.block = Block.get(BlockID.PUMPKIN_STEM);
     }
 }

@@ -106,9 +106,6 @@ public class ItemBucket extends Item {
                     // replaced with water that can flow.
                     for (BlockFace side : Plane.HORIZONTAL) {
                         Block b = target.getSide(side);
-                        if (b.getId() == STILL_WATER) {
-                            level.setBlock(b, Block.get(BlockID.WATER));
-                        }
                     }
 
                     if (player.isSurvival()) {
@@ -126,11 +123,7 @@ public class ItemBucket extends Item {
                         }
                     }
 
-                    if (target instanceof BlockLava) {
-                        level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_BUCKET_FILL_LAVA);
-                    } else {
-                        level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_BUCKET_FILL_WATER);
-                    }
+                    level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_BUCKET_FILL_WATER);
 
                     return true;
                 } else {

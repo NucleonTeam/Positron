@@ -18,6 +18,5 @@ public class ItemRedstoneComparator extends Item {
 
     public ItemRedstoneComparator(Integer meta, int count) {
         super(COMPARATOR, meta, count, "Redstone Comparator");
-        this.block = Block.get(BlockID.UNPOWERED_COMPARATOR);
     }
 }

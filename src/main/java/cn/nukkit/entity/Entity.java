@@ -1418,15 +1418,6 @@ public abstract class Entity extends Location implements Metadatable {
                         }
                     }
                     this.teleport(newPos.add(1.5, 1, 0.5));
-                    server.getScheduler().scheduleDelayedTask(new Task() {
-                        @Override
-                        public void onRun(int currentTick) {
-                            // dirty hack to make sure chunks are loaded and generated before spawning
-                            // player
-                            teleport(newPos.add(1.5, 1, 0.5));
-                            BlockNetherPortal.spawnPortal(newPos);
-                        }
-                    }, 20);
                 }
             }
         }
@@ -1695,7 +1686,7 @@ public abstract class Entity extends Location implements Metadatable {
 
             if (fallDistance > 0) {
                 // check if we fell into at least 1 block of water
-                if (this instanceof EntityLiving && !(this.getLevelBlock() instanceof BlockWater)) {
+                if (this instanceof EntityLiving) {
                     this.fall(fallDistance);
                 }
                 this.resetFallDistance();
@@ -1717,31 +1708,8 @@ public abstract class Entity extends Location implements Metadatable {
         if (!this.isPlayer || level.getGameRules().getBoolean(GameRule.FALL_DAMAGE)) {
             float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(Effect.JUMP) ? this.getEffect(Effect.JUMP).getAmplifier() + 1 : 0));
 
-            if (down instanceof BlockHayBale) {
-                damage -= (damage * 0.8f);
-            }
-
             if (damage > 0) {
                 this.attack(new EntityDamageEvent(this, DamageCause.FALL, damage));
-            }
-        }
-
-        if (fallDistance > 0.75) {
-
-            if (down.getId() == Item.FARMLAND) {
-                Event ev;
-
-                if (this instanceof Player) {
-                    ev = new PlayerInteractEvent((Player) this, null, down, null, Action.PHYSICAL);
-                } else {
-                    ev = new EntityInteractEvent(this, down);
-                }
-
-                this.server.getPluginManager().callEvent(ev);
-                if (ev.isCancelled()) {
-                    return;
-                }
-                this.level.setBlock(down, Block.get(BlockID.DIRT), false, true);
             }
         }
     }
@@ -1856,11 +1824,6 @@ public abstract class Entity extends Location implements Metadatable {
         double y = this.y + this.getEyeHeight();
         Block block = this.level.getBlock(this.temporalVector.setComponents(NukkitMath.floorDouble(this.x), NukkitMath.floorDouble(y), NukkitMath.floorDouble(this.z)));
 
-        if (block instanceof BlockWater) {
-            double f = (block.y + 1) - (((BlockWater) block).getFluidHeightPercent() - 0.1111111);
-            return y < f;
-        }
-
         return false;
     }
 
@@ -1880,19 +1843,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public boolean isInsideOfFire() {
-        for (Block block : this.getCollisionBlocks()) {
-            if (block instanceof BlockFire) {
-                return true;
-            }
-        }
-
         return false;
     }
 
     public boolean isOnLadder() {
-        Block b = this.getLevelBlock();
-
-        return b.getId() == Block.LADDER;
+        return false;
     }
 
     public boolean fastMove(double dx, double dy, double dz) {
@@ -2095,11 +2050,6 @@ public abstract class Entity extends Location implements Metadatable {
         boolean portal = false;
 
         for (Block block : this.getCollisionBlocks()) {
-            if (block.getId() == Block.NETHER_PORTAL) {
-                portal = true;
-                continue;
-            }
-
             block.onEntityCollide(this);
             block.addVelocityToEntity(this, vector);
         }
@@ -2154,12 +2104,6 @@ public abstract class Entity extends Location implements Metadatable {
         this.scheduleUpdate();
     }
 
-    /**
-     * Whether the entity can active pressure plates.
-     * Used for {@link cn.nukkit.entity.passive.EntityBat}s only.
-     *
-     * @return triggers pressure plate
-     */
     public boolean doesTriggerPressurePlate() {
         return true;
     }

@@ -87,10 +87,6 @@ public class ItemDye extends Item {
 
     public ItemDye(Integer meta, int amount) {
         super(DYE, meta, amount, meta >= 0 && meta <= 20 ? NAMES[meta] : UNKNOWN_STR);
-
-        if (this.meta == DyeColor.BROWN.getDyeData()) {
-            this.block = Block.get(BlockID.COCOA_BLOCK);
-        }
     }
 
     @Deprecated

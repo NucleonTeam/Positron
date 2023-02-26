@@ -1,6 +1,5 @@
 package cn.nukkit.level.biome.impl.mesa;
 
-import cn.nukkit.block.BlockSand;
 import cn.nukkit.level.biome.type.CoveredBiome;
 import cn.nukkit.level.generator.noise.nukkit.f.SimplexF;
 import cn.nukkit.math.NukkitRandom;
@@ -68,12 +67,7 @@ public class MesaBiome extends CoveredBiome {
 
     @Override
     public int getSurfaceId(int x, int y, int z) {
-        if (y < (71 + Math.round((redSandNoise.noise2D(x, z, true) + 1) * 1.5f))) {
-            return (SAND << 4) | BlockSand.RED;
-        } else {
-            int meta = colorLayer[(y + Math.round((colorNoise.noise2D(x, z, true) + 1) * 1.5f)) & 0x3F];
-            return (meta == -1 ? TERRACOTTA << 4 : STAINED_TERRACOTTA << 4) | Math.max(0, meta);
-        }
+        return 2;
     }
 
     @Override
@@ -83,7 +77,7 @@ public class MesaBiome extends CoveredBiome {
 
     @Override
     public int getGroundId(int x, int y, int z) {
-        return RED_SANDSTONE << 4;
+        return 2;
     }
 
     @Override

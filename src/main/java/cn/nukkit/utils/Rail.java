@@ -136,15 +136,7 @@ public final class Rail {
     }
 
     public static boolean isRailBlock(int blockId) {
-        switch (blockId) {
-            case Block.RAIL:
-            case Block.POWERED_RAIL:
-            case Block.ACTIVATOR_RAIL:
-            case Block.DETECTOR_RAIL:
-                return true;
-            default:
-                return false;
-        }
+        return false;
     }
 
     private Rail() {

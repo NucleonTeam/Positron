@@ -73,8 +73,7 @@ public abstract class BlockMushroom extends BlockFlowable {
     }
 
     public boolean canStay() {
-        Block block = this.down();
-        return block.getId() == MYCELIUM || block.getId() == PODZOL || (!block.isTransparent() && this.level.getFullLight(this) < 13);
+        return false;
     }
 
     @Override

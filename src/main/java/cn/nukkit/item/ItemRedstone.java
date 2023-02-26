@@ -19,7 +19,6 @@ public class ItemRedstone extends Item {
 
     public ItemRedstone(Integer meta, int count) {
         super(REDSTONE, meta, count, "Redstone Dust");
-        this.block = Block.get(BlockID.REDSTONE_WIRE);
     }
 
 }

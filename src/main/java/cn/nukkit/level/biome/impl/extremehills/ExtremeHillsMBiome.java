@@ -33,7 +33,7 @@ public class ExtremeHillsMBiome extends ExtremeHillsPlusBiome {
 
     @Override
     public int getSurfaceId(int x, int y, int z) {
-        return gravelNoise.noise2D(x, z, true) < -0.75f ? GRAVEL << 4 : super.getSurfaceId(x, y, z);
+        return super.getSurfaceId(x, y, z);
     }
 
     @Override

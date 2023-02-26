@@ -42,11 +42,6 @@ public class ItemBlock extends Item {
 
     @Override
     public int getMaxStackSize() {
-        //Shulker boxes don't stack!
-        if (this.block.getId() == Block.SHULKER_BOX || this.block.getId() == Block.UNDYED_SHULKER_BOX) {
-            return 1;
-        }
-
         return super.getMaxStackSize();
     }
 

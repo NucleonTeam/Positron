@@ -124,9 +124,6 @@ public class EntityItem extends Entity {
                 return true;
             }
             int id = this.item.getId();
-            if (id != Item.SHULKER_BOX && id != Item.UNDYED_SHULKER_BOX) {
-                return true;
-            }
             CompoundTag nbt = this.item.getNamedTag();
             if (nbt == null) {
                 return true;
@@ -212,9 +209,7 @@ public class EntityItem extends Entity {
             }*/
 
             int bid = level.getBlockIdAt(this.getFloorX(), NukkitMath.floorDouble(this.y + 0.53), this.getFloorZ());
-            if (bid == BlockID.WATER || bid == BlockID.STILL_WATER) {
-                this.motionY = this.getGravity() / 2;
-            } else if (!this.isOnGround()) {
+            if (!this.isOnGround()) {
                 this.motionY -= this.getGravity();
             }
 

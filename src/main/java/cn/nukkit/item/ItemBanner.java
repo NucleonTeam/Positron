@@ -21,7 +21,6 @@ public class ItemBanner extends Item {
 
     public ItemBanner(Integer meta, int count) {
         super(BANNER, meta, count, "Banner");
-        this.block = Block.get(Block.STANDING_BANNER);
     }
 
     @Override

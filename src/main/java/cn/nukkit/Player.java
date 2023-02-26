@@ -217,8 +217,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected boolean enableClientCommand = true;
 
-    private BlockEnderChest viewingEnderChest = null;
-
     protected int lastEnderPearl = 20;
     protected int lastChorusFruitTeleport = 20;
 
@@ -271,19 +269,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     public void onChorusFruitTeleport() {
         this.lastChorusFruitTeleport = this.server.getTick();
-    }
-
-    public BlockEnderChest getViewingEnderChest() {
-        return viewingEnderChest;
-    }
-
-    public void setViewingEnderChest(BlockEnderChest chest) {
-        if (chest == null && this.viewingEnderChest != null) {
-            this.viewingEnderChest.getViewers().remove(this);
-        } else if (chest != null) {
-            chest.getViewers().add(this);
-        }
-        this.viewingEnderChest = chest;
     }
 
     public TranslationContainer getLeaveMessage() {
@@ -1192,10 +1177,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         boolean portal = false;
 
         for (Block block : this.getCollisionBlocks()) {
-            if (block.getId() == Block.NETHER_PORTAL) {
-                portal = true;
-                continue;
-            }
 
             block.onEntityCollide(this);
         }
@@ -1502,7 +1483,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                         double diff = (this.speed.y - expectedVelocity) * (this.speed.y - expectedVelocity);
 
                         int block = level.getBlockIdAt(this.getFloorX(), this.getFloorY(), this.getFloorZ());
-                        boolean ignore = block == Block.LADDER || block == Block.VINES || block == Block.COBWEB;
+                        boolean ignore = false;
 
                         if (!this.hasEffect(Effect.JUMP) && diff > 0.6 && expectedVelocity < this.speed.y && !ignore) {
                             if (this.inAirTicks < 150) {
@@ -3322,21 +3303,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return;
         }
 
-        switch (target.getId()) {
-            case Block.DRAGON_EGG:
-                if (!this.isCreative()) {
-                    ((BlockDragonEgg) target).teleport();
-                    return;
-                }
-                break;
-        }
-
         Block block = target.getSide(face);
-        if (block.getId() == Block.FIRE) {
-            this.level.setBlock(block, Block.get(BlockID.AIR), true);
-            this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
-            return;
-        }
 
         if (!this.isCreative()) {
             double breakTime = Math.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
@@ -3864,10 +3831,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                 case LAVA:
                     Block block = this.level.getBlock(new Vector3(this.x, this.y - 1, this.z));
-                    if (block.getId() == Block.MAGMA) {
-                        message = "death.attack.lava.magma";
-                        break;
-                    }
                     message = "death.attack.lava";
                     break;
 
@@ -3886,11 +3849,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 case CONTACT:
                     if (cause instanceof EntityDamageByBlockEvent) {
                         int id = ((EntityDamageByBlockEvent) cause).getDamager().getId();
-                        if (id == Block.CACTUS) {
-                            message = "death.attack.cactus";
-                        } else if (id == Block.ANVIL) {
-                            message = "death.attack.anvil";
-                        }
                     }
                     break;
 
@@ -4160,13 +4118,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             //source.setCancelled();
             return false;
         } else if (source.getCause() == DamageCause.FALL) {
-            if (this.getLevel().getBlock(this.getPosition().floor().add(0.5, -1, 0.5)).getId() == Block.SLIME_BLOCK) {
-                if (!this.isSneaking()) {
-                    //source.setCancelled();
-                    this.resetFallDistance();
-                    return false;
-                }
-            }
         }
 
         if (super.attack(source)) { //!source.isCancelled()

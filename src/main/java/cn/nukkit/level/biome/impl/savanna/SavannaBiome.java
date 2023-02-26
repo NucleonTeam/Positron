@@ -1,6 +1,5 @@
 package cn.nukkit.level.biome.impl.savanna;
 
-import cn.nukkit.block.BlockSapling;
 import cn.nukkit.level.biome.type.GrassyBiome;
 
 public class SavannaBiome extends GrassyBiome {

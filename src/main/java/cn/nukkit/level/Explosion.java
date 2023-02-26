@@ -2,7 +2,6 @@ package cn.nukkit.level;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
-import cn.nukkit.block.BlockTNT;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityExplosive;
@@ -64,10 +63,6 @@ public class Explosion {
         if (what instanceof EntityExplosive) {
             Entity entity = (Entity) what;
             int block = level.getBlockIdAt(entity.getFloorX(), entity.getFloorY(), entity.getFloorZ());
-            if (block == BlockID.WATER || block == BlockID.STILL_WATER) {
-                this.doesDamage = false;
-                return true;
-            }
         }
 
         if (this.size < 0.1) {
@@ -180,9 +175,7 @@ public class Explosion {
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlocks) {
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (block.getId() == Block.TNT) {
-                ((BlockTNT) block).prime(new NukkitRandom().nextRange(10, 30), this.what instanceof Entity ? (Entity) this.what : null);
-            } else if ((container = block.getLevel().getBlockEntity(block)) instanceof InventoryHolder) {
+            if ((container = block.getLevel().getBlockEntity(block)) instanceof InventoryHolder) {
                 for (Item drop : ((InventoryHolder) container).getInventory().getContents().values()) {
                     this.level.dropItem(block.add(0.5, 0.5, 0.5), drop);
                 }

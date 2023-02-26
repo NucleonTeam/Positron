@@ -75,32 +75,6 @@ public class RepairItemTransaction extends InventoryTransaction {
 
         FakeBlockMenu holder = inventory.getHolder();
         Block block = this.source.level.getBlock(holder.getFloorX(), holder.getFloorY(), holder.getFloorZ());
-        if (block.getId() == Block.ANVIL) {
-            int oldDamage = block.getDamage() >= 8 ? 2 : block.getDamage() >= 4 ? 1 : 0;
-            int newDamage = !this.source.isCreative() && ThreadLocalRandom.current().nextInt(100) < 12 ? oldDamage + 1 : oldDamage;
-
-            AnvilDamageEvent ev = new AnvilDamageEvent(block, oldDamage, newDamage, DamageCause.USE, this.source);
-            ev.setCancelled(oldDamage == newDamage);
-            this.source.getServer().getPluginManager().callEvent(ev);
-            if (!ev.isCancelled()) {
-                newDamage = ev.getNewDamage();
-                if (newDamage > 2) {
-                    this.source.level.setBlock(block, Block.get(Block.AIR), true);
-                    this.source.level.addLevelEvent(block, LevelEventPacket.EVENT_SOUND_ANVIL_BREAK);
-                } else {
-                    if (newDamage < 0) {
-                        newDamage = 0;
-                    }
-                    if (newDamage != oldDamage) {
-                        block.setDamage((newDamage << 2) | (block.getDamage() & 0x3));
-                        this.source.level.setBlock(block, block, true);
-                    }
-                    this.source.level.addLevelEvent(block, LevelEventPacket.EVENT_SOUND_ANVIL_USE);
-                }
-            } else {
-                this.source.level.addLevelEvent(block, LevelEventPacket.EVENT_SOUND_ANVIL_USE);
-            }
-        }
 
         if (!this.source.isCreative()) {
             this.source.setExperience(this.source.getExperience(), this.source.getExperienceLevel() - event.getCost());
@@ -311,19 +285,6 @@ public class RepairItemTransaction extends InventoryTransaction {
             case Item.LEATHER_PANTS:
             case Item.LEATHER_BOOTS:
                 return this.materialItem.getId() == Item.LEATHER;
-            case Item.WOODEN_SWORD:
-            case Item.WOODEN_PICKAXE:
-            case Item.WOODEN_SHOVEL:
-            case Item.WOODEN_AXE:
-            case Item.WOODEN_HOE:
-            case Item.SHIELD:
-                return this.materialItem.getId() == Item.PLANKS;
-            case Item.STONE_SWORD:
-            case Item.STONE_PICKAXE:
-            case Item.STONE_SHOVEL:
-            case Item.STONE_AXE:
-            case Item.STONE_HOE:
-                return this.materialItem.getId() == Item.COBBLESTONE;
             case Item.IRON_SWORD:
             case Item.IRON_PICKAXE:
             case Item.IRON_SHOVEL:

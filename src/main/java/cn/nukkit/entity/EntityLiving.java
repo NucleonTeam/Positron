@@ -3,7 +3,6 @@ package cn.nukkit.entity;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockMagma;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.event.entity.EntityDamageByChildEntityEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
@@ -271,7 +270,7 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
 
         // Used to check collisions with magma blocks
         Block block = this.level.getBlock((int) x, (int) y - 1, (int) z);
-        if (block instanceof BlockMagma) block.onEntityCollide(this);
+        //if (block instanceof BlockMagma) block.onEntityCollide(this);
 
         return hasUpdate;
     }

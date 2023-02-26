@@ -2,9 +2,6 @@ package cn.nukkit.entity.item;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockRail;
-import cn.nukkit.block.BlockRailActivator;
-import cn.nukkit.block.BlockRailPowered;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.entity.EntityLiving;
@@ -154,6 +151,7 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
 
             Block block = level.getBlock(new Vector3(dx, dy, dz));
 
+            /*
             // Ensure that the block is a rail
             if (Rail.isRailBlock(block)) {
                 processMovement(dx, dy, dz, (BlockRail) block);
@@ -165,7 +163,7 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
                 setFalling();
             }
             checkBlockCollision();
-
+            */
             // Minecart head
             pitch = 0;
             double diffX = this.lastX - this.x;
@@ -408,6 +406,7 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         }
     }
 
+    /*
     private void processMovement(int dx, int dy, int dz, BlockRail block) {
         fallDistance = 0.0F;
         Vector3 vector = getNextRail(x, y, z);
@@ -586,6 +585,7 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         }
 
     }
+     */
 
     private void applyDrag() {
         if (!passengers.isEmpty() || !slowWhenEmpty) {
@@ -600,6 +600,7 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
     }
 
     private Vector3 getNextRail(double dx, double dy, double dz) {
+        /*
         int checkX = MathHelper.floor(dx);
         int checkY = MathHelper.floor(dy);
         int checkZ = MathHelper.floor(dz);
@@ -650,6 +651,8 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         } else {
             return null;
         }
+         */
+        return null;
     }
 
     /**

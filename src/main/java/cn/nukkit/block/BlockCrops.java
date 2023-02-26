@@ -29,10 +29,6 @@ public abstract class BlockCrops extends BlockFlowable {
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (block.down().getId() == FARMLAND) {
-            this.getLevel().setBlock(block, this, true, true);
-            return true;
-        }
         return false;
     }
 
@@ -70,10 +66,6 @@ public abstract class BlockCrops extends BlockFlowable {
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().getId() != FARMLAND) {
-                this.getLevel().useBreakOn(this);
-                return Level.BLOCK_UPDATE_NORMAL;
-            }
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
                 if (this.getDamage() < 0x07) {

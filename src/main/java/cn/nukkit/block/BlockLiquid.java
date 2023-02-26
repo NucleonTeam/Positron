@@ -215,14 +215,6 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                 if (topFlowDecay >= 0) {
                     newDecay = topFlowDecay | 0x08;
                 }
-                if (this.adjacentSources >= 2 && this instanceof BlockWater) {
-                    Block bottomBlock = this.level.getBlock((int) this.x, (int) this.y - 1, (int) this.z);
-                    if (bottomBlock.isSolid()) {
-                        newDecay = 0;
-                    } else if (bottomBlock instanceof BlockWater && bottomBlock.getDamage() == 0) {
-                        newDecay = 0;
-                    }
-                }
                 if (newDecay != decay) {
                     decay = newDecay;
                     boolean decayed = decay < 0;
@@ -280,7 +272,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             level.getServer().getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
                 if (block.getId() > 0) {
-                    this.level.useBreakOn(block, block.getId() == COBWEB ? Item.get(Item.WOODEN_SWORD) : null);
+                    this.level.useBreakOn(block, null);
                 }
                 this.level.setBlock(block, getBlock(newFlowDecay), true, true);
                 this.level.scheduleUpdate(block, this.tickRate());

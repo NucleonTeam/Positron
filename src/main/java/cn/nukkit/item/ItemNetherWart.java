@@ -18,7 +18,6 @@ public class ItemNetherWart extends Item {
 
     public ItemNetherWart(Integer meta, int count) {
         super(NETHER_WART, meta, count, "Nether Wart");
-        this.block = Block.get(BlockID.NETHER_WART_BLOCK, meta);
     }
 
 }

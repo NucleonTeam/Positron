@@ -49,14 +49,6 @@ public class BlockGrass extends BlockDirt {
             }
             this.level.addParticle(new BoneMealParticle(this));
             return true;
-        } else if (item.isHoe()) {
-            item.useOn(this);
-            this.getLevel().setBlock(this, Block.get(BlockID.FARMLAND));
-            return true;
-        } else if (item.isShovel()) {
-            item.useOn(this);
-            this.getLevel().setBlock(this, Block.get(BlockID.GRASS_PATH));
-            return true;
         }
 
         return false;

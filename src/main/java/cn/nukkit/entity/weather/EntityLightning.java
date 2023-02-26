@@ -1,7 +1,6 @@
 package cn.nukkit.entity.weather;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockFire;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.block.BlockIgniteEvent;
@@ -45,28 +44,6 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
 
         this.state = 2;
         this.liveTime = ThreadLocalRandom.current().nextInt(3) + 1;
-
-        if (isEffect && this.level.gameRules.getBoolean(GameRule.DO_FIRE_TICK) && (this.server.getDifficulty() >= 2)) {
-            Block block = this.getLevelBlock();
-            if (block.getId() == 0 || block.getId() == Block.TALL_GRASS) {
-                BlockFire fire = (BlockFire) Block.get(BlockID.FIRE);
-                fire.x = block.x;
-                fire.y = block.y;
-                fire.z = block.z;
-                fire.level = level;
-                this.getLevel().setBlock(fire, fire, true);
-                if (fire.isBlockTopFacingSurfaceSolid(fire.down()) || fire.canNeighborBurn()) {
-
-                    BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
-                    getServer().getPluginManager().callEvent(e);
-
-                    if (!e.isCancelled()) {
-                        level.setBlock(fire, fire, true);
-                        level.scheduleUpdate(fire, fire.tickRate() + ThreadLocalRandom.current().nextInt(10));
-                    }
-                }
-            }
-        }
     }
 
     public boolean isEffect() {
@@ -117,17 +94,6 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
 
                 if (this.isEffect && this.level.gameRules.getBoolean(GameRule.DO_FIRE_TICK)) {
                     Block block = this.getLevelBlock();
-
-                    if (block.getId() == Block.AIR || block.getId() == Block.TALL_GRASS) {
-                        BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
-                        getServer().getPluginManager().callEvent(e);
-
-                        if (!e.isCancelled()) {
-                            Block fire = Block.get(BlockID.FIRE);
-                            this.level.setBlock(block, fire);
-                            this.getLevel().scheduleUpdate(fire, fire.tickRate());
-                        }
-                    }
                 }
             }
         }

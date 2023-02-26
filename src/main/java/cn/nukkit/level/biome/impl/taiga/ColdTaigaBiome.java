@@ -15,7 +15,7 @@ public class ColdTaigaBiome extends TaigaBiome {
 
     @Override
     public int getCoverId(int x, int z) {
-        return SNOW_LAYER << 4;
+        return 1;
     }
 
     @Override

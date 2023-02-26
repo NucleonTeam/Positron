@@ -57,7 +57,7 @@ public class EntityFallingBlock extends Entity {
 
     @Override
     public boolean canCollide() {
-        return blockId == BlockID.ANVIL;
+        return false;
     }
 
     protected int blockId;
@@ -96,7 +96,7 @@ public class EntityFallingBlock extends Entity {
     }
 
     public boolean canCollideWith(Entity entity) {
-        return blockId == BlockID.ANVIL;
+        return false;
     }
 
     @Override
@@ -139,52 +139,10 @@ public class EntityFallingBlock extends Entity {
 
                 Vector3 floorPos = (new Vector3(x - 0.5, y, z - 0.5)).floor();
                 Block floorBlock = this.level.getBlock(floorPos);
-                if (this.getBlock() == Block.SNOW_LAYER && floorBlock.getId() == Block.SNOW_LAYER && (floorBlock.getDamage() & 0x7) != 0x7) {
-                    int mergedHeight = (floorBlock.getDamage() & 0x7) + 1 + (this.getDamage() & 0x7) + 1;
-                    if (mergedHeight > 8) {
-                        EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, floorBlock, Block.get(Block.SNOW_LAYER, 0x7));
-                        this.server.getPluginManager().callEvent(event);
-                        if (!event.isCancelled()) {
-                            this.level.setBlock(floorPos, event.getTo(), true);
-
-                            Vector3 abovePos = floorPos.up();
-                            Block aboveBlock = this.level.getBlock(abovePos);
-                            if (aboveBlock.getId() == Block.AIR) {
-                                EntityBlockChangeEvent event2 = new EntityBlockChangeEvent(this, aboveBlock, Block.get(Block.SNOW_LAYER, mergedHeight - 8 - 1));
-                                this.server.getPluginManager().callEvent(event2);
-                                if (!event2.isCancelled()) {
-                                    this.level.setBlock(abovePos, event2.getTo(), true);
-                                }
-                            }
-                        }
-                    } else {
-                        EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, floorBlock, Block.get(Block.SNOW_LAYER, mergedHeight - 1));
-                        this.server.getPluginManager().callEvent(event);
-                        if (!event.isCancelled()) {
-                            this.level.setBlock(floorPos, event.getTo(), true);
-                        }
-                    }
-                } else if (block.getId() > 0 && block.isTransparent() && !block.canBeReplaced() || this.getBlock() == Block.SNOW_LAYER && block instanceof BlockLiquid) {
-                    if (this.getBlock() != Block.SNOW_LAYER ? this.level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS) : this.level.getGameRules().getBoolean(GameRule.DO_TILE_DROPS)) {
-                        getLevel().dropItem(this, Block.get(this.getBlock(), this.getDamage()).toItem());
-                    }
-                } else {
-                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
-                    server.getPluginManager().callEvent(event);
-                    if (!event.isCancelled()) {
-                        getLevel().setBlock(pos, event.getTo(), true);
-
-                        if (event.getTo().getId() == Item.ANVIL) {
-                            getLevel().addLevelEvent(block, LevelEventPacket.EVENT_SOUND_ANVIL_FALL);
-
-                            Entity[] e = level.getCollidingEntities(this.getBoundingBox(), this);
-                            for (Entity entity : e) {
-                                if (entity instanceof EntityLiving && highestPosition > y) {
-                                    entity.attack(new EntityDamageByBlockEvent(event.getTo(), entity, DamageCause.CONTACT, (float) Math.min(40, Math.max(0, (highestPosition - y) * 2))));
-                                }
-                            }
-                        }
-                    }
+                EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
+                server.getPluginManager().callEvent(event);
+                if (!event.isCancelled()) {
+                    getLevel().setBlock(pos, event.getTo(), true);
                 }
                 hasUpdate = true;
             }
