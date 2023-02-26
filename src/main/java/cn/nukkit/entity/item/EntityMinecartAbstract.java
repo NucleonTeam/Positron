@@ -12,7 +12,6 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.vehicle.VehicleMoveEvent;
 import cn.nukkit.event.vehicle.VehicleUpdateEvent;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemMinecart;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.format.FullChunk;
@@ -22,7 +21,6 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.MinecartType;
 import cn.nukkit.utils.Rail;
-import cn.nukkit.utils.Rail.Orientation;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -242,7 +240,6 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
                 return;
             }
         }
-        level.dropItem(this, new ItemMinecart());
     }
 
     @Override

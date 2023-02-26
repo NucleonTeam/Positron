@@ -2727,27 +2727,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 MapInfoRequestPacket pk = (MapInfoRequestPacket) packet;
                 Item mapItem = null;
 
-                for (Item item1 : this.offhandInventory.getContents().values()) {
-                    if (item1 instanceof ItemMap && ((ItemMap) item1).getMapId() == pk.mapId) {
-                        mapItem = item1;
-                    }
-                }
-
-                if (mapItem == null) {
-                    for (Item item1 : this.inventory.getContents().values()) {
-                        if (item1 instanceof ItemMap && ((ItemMap) item1).getMapId() == pk.mapId) {
-                            mapItem = item1;
-                        }
-                    }
-                }
 
                 if (mapItem != null) {
                     PlayerMapInfoRequestEvent event;
                     getServer().getPluginManager().callEvent(event = new PlayerMapInfoRequestEvent(this, mapItem));
-
-                    if (!event.isCancelled()) {
-                        ((ItemMap) mapItem).sendImage(this);
-                    }
                 }
 
                 break;
@@ -3220,61 +3203,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                 Item newBook = oldBook.clone();
                 boolean success;
-                switch (bookEditPacket.action) {
-                    case REPLACE_PAGE:
-                        success = ((ItemBookAndQuill) newBook).setPageText(bookEditPacket.pageNumber, bookEditPacket.text);
-                        break;
-                    case ADD_PAGE:
-                        success = ((ItemBookAndQuill) newBook).insertPage(bookEditPacket.pageNumber, bookEditPacket.text);
-                        break;
-                    case DELETE_PAGE:
-                        success = ((ItemBookAndQuill) newBook).deletePage(bookEditPacket.pageNumber);
-                        break;
-                    case SWAP_PAGES:
-                        success = ((ItemBookAndQuill) newBook).swapPages(bookEditPacket.pageNumber, bookEditPacket.secondaryPageNumber);
-                        break;
-                    case SIGN_BOOK:
-                        if (bookEditPacket.title == null || bookEditPacket.author == null || bookEditPacket.xuid == null || bookEditPacket.title.length() > 64 || bookEditPacket.author.length() > 64 || bookEditPacket.xuid.length() > 64) {
-                            this.getServer().getLogger().debug(username + ": Invalid BookEditPacket action SIGN_BOOK: title/author/xuid is too long");
-                            return;
-                        }
-                        newBook = Item.get(Item.WRITTEN_BOOK, 0, 1, oldBook.getCompoundTag());
-                        success = ((ItemBookWritten) newBook).signBook(bookEditPacket.title, bookEditPacket.author, bookEditPacket.xuid, ItemBookWritten.GENERATION_ORIGINAL);
-                        break;
-                    default:
-                        return;
-                }
-
-                if (success) {
-                    PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(this, oldBook, newBook, bookEditPacket.action);
-                    this.server.getPluginManager().callEvent(editBookEvent);
-                    if (!editBookEvent.isCancelled()) {
-                        this.inventory.setItem(bookEditPacket.inventorySlot, editBookEvent.getNewBook());
-                    }
-                }
-                break;
-            case ProtocolInfo.FILTER_TEXT_PACKET:
-                FilterTextPacket filterTextPacket = (FilterTextPacket) packet;
-                if (filterTextPacket.text == null || filterTextPacket.text.length() > 64) {
-                    this.getServer().getLogger().debug(username + ": FilterTextPacket with too long text");
-                    return;
-                }
-                FilterTextPacket textResponsePacket = new FilterTextPacket();
-                textResponsePacket.text = filterTextPacket.text;
-                textResponsePacket.fromServer = true;
-                this.dataPacket(textResponsePacket);
-                break;
-            case ProtocolInfo.SET_DIFFICULTY_PACKET:
-                if (!this.spawned) {
-                    return;
-                }
-                server.setDifficulty(((SetDifficultyPacket) packet).difficulty);
-                SetDifficultyPacket difficultyPacket = new SetDifficultyPacket();
-                difficultyPacket.difficulty = server.getDifficulty();
-                Server.broadcastPacket(server.getPlayerManager().getPlayers(), difficultyPacket);
-                break;
-            default:
-                break;
+                return;
         }
 
     }

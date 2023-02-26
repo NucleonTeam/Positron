@@ -10,7 +10,6 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityDeathEvent;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemTurtleShell;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
@@ -204,7 +203,7 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
         boolean isBreathing = !this.isInsideOfWater();
 
         if (this instanceof Player) {
-            if (isBreathing && ((Player) this).getInventory().getHelmet() instanceof ItemTurtleShell) {
+            if (isBreathing) {
                 turtleTicks = 200;
             } else if (turtleTicks > 0) {
                 isBreathing = true;

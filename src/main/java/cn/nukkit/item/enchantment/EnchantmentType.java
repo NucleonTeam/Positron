@@ -2,11 +2,6 @@ package cn.nukkit.item.enchantment;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemArmor;
-import cn.nukkit.item.ItemBow;
-import cn.nukkit.item.ItemCrossbow;
-import cn.nukkit.item.ItemFishingRod;
-import cn.nukkit.item.ItemSkull;
-import cn.nukkit.item.ItemTrident;
 
 /**
  * author: MagicDroidX
@@ -59,16 +54,6 @@ public enum EnchantmentType {
                     return item.isSword();
                 case DIGGER:
                     return item.isPickaxe() || item.isShovel() || item.isAxe() || item.isHoe();
-                case BOW:
-                    return item instanceof ItemBow;
-                case FISHING_ROD:
-                    return item instanceof ItemFishingRod;
-                case WEARABLE:
-                    return item instanceof ItemSkull;
-                case TRIDENT:
-                    return item instanceof ItemTrident;
-                case CROSSBOW:
-                    return item instanceof ItemCrossbow;
                 default:
                     return false;
             }

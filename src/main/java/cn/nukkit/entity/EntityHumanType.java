@@ -13,7 +13,6 @@ import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.inventory.PlayerOffhandInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
-import cn.nukkit.item.ItemSkull;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.NukkitMath;
@@ -205,7 +204,7 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
                         source.getCause() != DamageCause.FIRE_TICK &&
                         source.getCause() != DamageCause.FALL) { // No armor damage
 
-                    if (armor.isUnbreakable() || armor instanceof ItemSkull) {
+                    if (armor.isUnbreakable()) {
                         continue;
                     }
 
