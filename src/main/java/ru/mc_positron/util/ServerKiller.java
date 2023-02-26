@@ -1,11 +1,7 @@
-package cn.nukkit.utils;
+package ru.mc_positron.util;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class ServerKiller extends Thread {
 
     public final long sleepTime;
@@ -15,17 +11,18 @@ public class ServerKiller extends Thread {
     }
 
     public ServerKiller(long time, TimeUnit unit) {
-        this.sleepTime = unit.toMillis(time);
-        this.setName("Server Killer");
+        sleepTime = unit.toMillis(time);
+        setName("Server Killer");
     }
 
     @Override
     public void run() {
         try {
             sleep(sleepTime);
-        } catch (InterruptedException e) {
-            // ignore
+        } catch (InterruptedException ignored) {
+
         }
+
         System.out.println("\nTook too long to stop, server was killed forcefully!\n");
         System.exit(1);
     }

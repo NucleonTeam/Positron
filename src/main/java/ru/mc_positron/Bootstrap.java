@@ -2,7 +2,7 @@ package ru.mc_positron;
 
 import cn.nukkit.InterruptibleThread;
 import cn.nukkit.Server;
-import cn.nukkit.utils.ServerKiller;
+import ru.mc_positron.util.ServerKiller;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
