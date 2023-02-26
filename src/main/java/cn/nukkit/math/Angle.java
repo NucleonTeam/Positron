@@ -4,50 +4,10 @@ import java.util.Locale;
 
 import static java.lang.Math.PI;
 
-/**
- * Copyright 2017 lmlstarqaq
- * All rights reserved.
- */
-public final class Angle implements Comparable<Angle> {
-
-    public static Angle fromDegree(float floatDegree) {
-        return new Angle(floatDegree, true);
-    }
-
-    public static Angle fromDegree(double doubleDegree) {
-        return new Angle(doubleDegree, true);
-    }
-
-    public static Angle fromRadian(float floatRadian) {
-        return new Angle(floatRadian, false);
-    }
+public final class Angle {
 
     public static Angle fromRadian(double doubleRadian) {
         return new Angle(doubleRadian, false);
-    }
-
-    public static Angle asin(double v) {
-        return fromRadian(Math.asin(v));
-    }
-
-    public static Angle acos(double v) {
-        return fromRadian(Math.acos(v));
-    }
-
-    public static Angle atan(double v) {
-        return fromRadian(Math.atan(v));
-    }
-
-    public double sin() {
-        return Math.sin(asDoubleRadian());
-    }
-
-    public double cos() {
-        return Math.cos(asDoubleRadian());
-    }
-
-    public double tan() {
-        return Math.tan(asDoubleRadian());
     }
 
     public float asFloatRadian() {
@@ -90,12 +50,6 @@ public final class Angle implements Comparable<Angle> {
     }
     }
 
-    public static int compare(Angle a, Angle b) {
-        return a.compareTo(b);
-    }
-
-  /* -- Override -- */
-
     @Override
     public String toString() {
         return String.format(Locale.ROOT,
@@ -111,16 +65,6 @@ public final class Angle implements Comparable<Angle> {
     }
 
     @Override
-    public int compareTo(Angle o) {
-        return Double.compare(asDoubleRadian(), o.asDoubleRadian());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Angle && this.compareTo((Angle) obj) == 0;
-    }
-
-    @Override
     public int hashCode() {
         int hash;
         if (isOriginDouble) hash = Double.hashCode(doubleValue);
@@ -129,18 +73,9 @@ public final class Angle implements Comparable<Angle> {
         return hash;
     }
 
-  /* -- Internal Part -- */
-
     private final float floatValue;
     private final double doubleValue;
     private final boolean isDegree, isOriginDouble;
-
-    private Angle(float floatValue, boolean isDegree) {
-        this.isOriginDouble = false;
-        this.floatValue = floatValue;
-        this.doubleValue = 0.0;
-        this.isDegree = isDegree;
-    }
 
     private Angle(double doubleValue, boolean isDegree) {
         this.isOriginDouble = true;
