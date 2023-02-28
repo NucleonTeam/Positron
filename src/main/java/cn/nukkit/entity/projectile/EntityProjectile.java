@@ -8,9 +8,9 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.MovingObjectPosition;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
-import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import ru.mc_positron.math.FastMath;
 
 public abstract class EntityProjectile extends Entity {
 
@@ -49,7 +49,7 @@ public abstract class EntityProjectile extends Entity {
     }
 
     public int getResultDamage() {
-        return NukkitMath.ceilDouble(Math.sqrt(this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ) * getDamage());
+        return FastMath.ceilDouble(Math.sqrt(this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ) * getDamage());
     }
 
     public boolean attack(EntityDamageEvent source) {

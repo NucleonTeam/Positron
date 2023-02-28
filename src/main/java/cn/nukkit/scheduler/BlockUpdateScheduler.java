@@ -3,10 +3,10 @@ package cn.nukkit.scheduler;
 import cn.nukkit.block.Block;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.AxisAlignedBB;
-import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.BlockUpdateEntry;
 import com.google.common.collect.Maps;
+import ru.mc_positron.math.FastMath;
 
 import java.util.*;
 
@@ -50,7 +50,7 @@ public class BlockUpdateScheduler {
             if (updates != null) {
                 for (BlockUpdateEntry entry : updates) {
                     Vector3 pos = entry.pos;
-                    if (level.isChunkLoaded(NukkitMath.floorDouble(pos.x) >> 4, NukkitMath.floorDouble(pos.z) >> 4)) {
+                    if (level.isChunkLoaded(FastMath.floorDouble(pos.x) >> 4, FastMath.floorDouble(pos.z) >> 4)) {
                         Block block = level.getBlock(entry.pos);
 
                         if (Block.equals(block, entry.block, false)) {

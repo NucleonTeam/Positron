@@ -1,6 +1,7 @@
 package cn.nukkit.math;
 
 import com.google.common.collect.Iterators;
+import ru.mc_positron.math.FastMath;
 
 import java.util.Iterator;
 import java.util.Random;
@@ -87,7 +88,7 @@ public enum BlockFace {
      * @return block face
      */
     public static BlockFace fromIndex(int index) {
-        return VALUES[MathHelper.abs(index % VALUES.length)];
+        return VALUES[FastMath.abs(index % VALUES.length)];
     }
 
     /**
@@ -97,7 +98,7 @@ public enum BlockFace {
      * @return block face
      */
     public static BlockFace fromHorizontalIndex(int index) {
-        return HORIZONTALS[MathHelper.abs(index % HORIZONTALS.length)];
+        return HORIZONTALS[FastMath.abs(index % HORIZONTALS.length)];
     }
 
     /**
@@ -107,7 +108,7 @@ public enum BlockFace {
      * @return block face
      */
     public static BlockFace fromHorizontalAngle(double angle) {
-        return fromHorizontalIndex(NukkitMath.floorDouble(angle / 90.0D + 0.5D) & 3);
+        return fromHorizontalIndex(FastMath.floorDouble(angle / 90.0D + 0.5D) & 3);
     }
 
     public static BlockFace fromAxis(AxisDirection axisDirection, Axis axis) {

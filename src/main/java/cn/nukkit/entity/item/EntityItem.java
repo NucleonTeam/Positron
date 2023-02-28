@@ -1,7 +1,6 @@
 package cn.nukkit.entity.item;
 
 import cn.nukkit.Server;
-import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -9,13 +8,13 @@ import cn.nukkit.event.entity.ItemDespawnEvent;
 import cn.nukkit.event.entity.ItemSpawnEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.math.NukkitMath;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
+import ru.mc_positron.math.FastMath;
 
 /**
  * @author MagicDroidX
@@ -205,7 +204,7 @@ public class EntityItem extends Entity {
                 }
             }*/
 
-            int bid = level.getBlockIdAt(this.getFloorX(), NukkitMath.floorDouble(this.y + 0.53), this.getFloorZ());
+            int bid = level.getBlockIdAt(this.getFloorX(), FastMath.floorDouble(this.y + 0.53), this.getFloorZ());
             if (!this.isOnGround()) {
                 this.motionY -= this.getGravity();
             }

@@ -32,7 +32,6 @@ import cn.nukkit.level.format.LevelProviderManager;
 import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.generator.Flat;
 import cn.nukkit.level.generator.Generator;
-import cn.nukkit.math.NukkitMath;
 import cn.nukkit.metadata.EntityMetadataStore;
 import cn.nukkit.metadata.LevelMetadataStore;
 import cn.nukkit.metadata.PlayerMetadataStore;
@@ -75,6 +74,7 @@ import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
+import ru.mc_positron.math.FastMath;
 import ru.mc_positron.player.PlayerManager;
 import ru.mc_positron.player.PositronPlayerManager;
 import ru.mc_positron.registry.Registry;
@@ -312,7 +312,7 @@ public class Server {
         log.info("Loading {} ...", TextFormat.GREEN + "nukkit.yml" + TextFormat.WHITE);
         this.config = new Config(this.dataPath + "nukkit.yml", Config.YAML);
 
-        DEBUG_LEVEL = NukkitMath.clamp(this.getConfig("debug.level", 1), 1, 3);
+        DEBUG_LEVEL = FastMath.clamp(this.getConfig("debug.level", 1), 1, 3);
 
         int logLevel = (DEBUG_LEVEL + 3) * 100;
         org.apache.logging.log4j.Level currentLevel = Server.getLogLevel();
@@ -904,10 +904,10 @@ public class Server {
                     } else if (tickMs >= 50) {
                         if (level.getTickRate() == this.baseTickRate) {
                             level.setTickRate(Math.max(this.baseTickRate + 1, Math.min(this.autoTickRateLimit, tickMs / 50)));
-                            this.getLogger().debug("Level \"" + level.getName() + "\" took " + NukkitMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
+                            this.getLogger().debug("Level \"" + level.getName() + "\" took " + FastMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
                         } else if ((tickMs / level.getTickRate()) >= 50 && level.getTickRate() < this.autoTickRateLimit) {
                             level.setTickRate(level.getTickRate() + 1);
-                            this.getLogger().debug("Level \"" + level.getName() + "\" took " + NukkitMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
+                            this.getLogger().debug("Level \"" + level.getName() + "\" took " + FastMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
                         }
                         level.tickRateCounter = level.getTickRate();
                     }
@@ -1303,11 +1303,11 @@ public class Server {
         for (float aTickAverage : this.tickAverage) {
             sum += aTickAverage;
         }
-        return (float) NukkitMath.round(sum / count, 2);
+        return (float) FastMath.round(sum / count, 2);
     }
 
     public float getTickUsage() {
-        return (float) NukkitMath.round(this.maxUse * 100, 2);
+        return (float) FastMath.round(this.maxUse * 100, 2);
     }
 
     public float getTickUsageAverage() {

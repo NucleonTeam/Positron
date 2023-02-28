@@ -3,10 +3,10 @@ package cn.nukkit.utils;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.math.BlockVector3;
-import cn.nukkit.math.NukkitMath;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
+import ru.mc_positron.math.FastMath;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -291,7 +291,7 @@ public class Binary {
     public static float readFloat(byte[] bytes, int accuracy) {
         float val = Float.intBitsToFloat(readInt(bytes));
         if (accuracy > -1) {
-            return (float) NukkitMath.round(val, accuracy);
+            return (float) FastMath.round(val, accuracy);
         } else {
             return val;
         }
@@ -308,7 +308,7 @@ public class Binary {
     public static float readLFloat(byte[] bytes, int accuracy) {
         float val = Float.intBitsToFloat(readLInt(bytes));
         if (accuracy > -1) {
-            return (float) NukkitMath.round(val, accuracy);
+            return (float) FastMath.round(val, accuracy);
         } else {
             return val;
         }

@@ -31,6 +31,7 @@ import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
+import ru.mc_positron.math.FastMath;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -1224,9 +1225,9 @@ public abstract class Entity extends Location implements Metadatable {
             return false;
         }
 
-        int i = NukkitMath.floorDouble(x);
-        int j = NukkitMath.floorDouble(y);
-        int k = NukkitMath.floorDouble(z);
+        int i = FastMath.floorDouble(x);
+        int j = FastMath.floorDouble(y);
+        int k = FastMath.floorDouble(z);
 
         double diffX = x - i;
         double diffY = y - j;
@@ -1469,7 +1470,7 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public BlockFace getHorizontalFacing() {
-        return BlockFace.fromHorizontalIndex(NukkitMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
+        return BlockFace.fromHorizontalIndex(FastMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
     }
 
     public boolean onUpdate(int currentTick) {
@@ -1712,15 +1713,15 @@ public abstract class Entity extends Location implements Metadatable {
         // This is special for Nukkit! :)
         float speed = strafe * strafe + forward * forward;
         if (speed >= 1.0E-4F) {
-            speed = MathHelper.sqrt(speed);
+            speed = FastMath.sqrt(speed);
             if (speed < 1.0F) {
                 speed = 1.0F;
             }
             speed = friction / speed;
             strafe *= speed;
             forward *= speed;
-            float nest = MathHelper.sin((float) (this.yaw * 3.1415927F / 180.0F));
-            float place = MathHelper.cos((float) (this.yaw * 3.1415927F / 180.0F));
+            float nest = FastMath.sin((float) (this.yaw * 3.1415927F / 180.0F));
+            float place = FastMath.cos((float) (this.yaw * 3.1415927F / 180.0F));
             this.motionX += strafe * place - forward * nest;
             this.motionZ += forward * place + strafe * nest;
         }
@@ -1734,10 +1735,10 @@ public abstract class Entity extends Location implements Metadatable {
         if (entity.riding != this && !entity.passengers.contains(this)) {
             double dx = entity.x - this.x;
             double dy = entity.z - this.z;
-            double dz = NukkitMath.getDirection(dx, dy);
+            double dz = FastMath.getDirection(dx, dy);
 
             if (dz >= 0.009999999776482582D) {
-                dz = MathHelper.sqrt((float) dz);
+                dz = FastMath.sqrt((float) dz);
                 dx /= dz;
                 dy /= dz;
                 double d3 = 1.0D / dz;
@@ -1812,7 +1813,7 @@ public abstract class Entity extends Location implements Metadatable {
 
     public boolean isInsideOfWater() {
         double y = this.y + this.getEyeHeight();
-        Block block = this.level.getBlock(this.temporalVector.setComponents(NukkitMath.floorDouble(this.x), NukkitMath.floorDouble(y), NukkitMath.floorDouble(this.z)));
+        Block block = this.level.getBlock(this.temporalVector.setComponents(FastMath.floorDouble(this.x), FastMath.floorDouble(y), FastMath.floorDouble(this.z)));
 
         return false;
     }
@@ -1821,9 +1822,9 @@ public abstract class Entity extends Location implements Metadatable {
         double y = this.y + this.getEyeHeight();
         Block block = this.level.getBlock(
                 this.temporalVector.setComponents(
-                        NukkitMath.floorDouble(this.x),
-                        NukkitMath.floorDouble(y),
-                        NukkitMath.floorDouble(this.z))
+                        FastMath.floorDouble(this.x),
+                        FastMath.floorDouble(y),
+                        FastMath.floorDouble(this.z))
         );
 
         AxisAlignedBB bb = block.getBoundingBox();
@@ -1990,12 +1991,12 @@ public abstract class Entity extends Location implements Metadatable {
 
     public List<Block> getBlocksAround() {
         if (this.blocksAround == null) {
-            int minX = NukkitMath.floorDouble(this.boundingBox.getMinX());
-            int minY = NukkitMath.floorDouble(this.boundingBox.getMinY());
-            int minZ = NukkitMath.floorDouble(this.boundingBox.getMinZ());
-            int maxX = NukkitMath.ceilDouble(this.boundingBox.getMaxX());
-            int maxY = NukkitMath.ceilDouble(this.boundingBox.getMaxY());
-            int maxZ = NukkitMath.ceilDouble(this.boundingBox.getMaxZ());
+            int minX = FastMath.floorDouble(this.boundingBox.getMinX());
+            int minY = FastMath.floorDouble(this.boundingBox.getMinY());
+            int minZ = FastMath.floorDouble(this.boundingBox.getMinZ());
+            int maxX = FastMath.ceilDouble(this.boundingBox.getMaxX());
+            int maxY = FastMath.ceilDouble(this.boundingBox.getMaxY());
+            int maxZ = FastMath.ceilDouble(this.boundingBox.getMaxZ());
 
             this.blocksAround = new ArrayList<>();
 

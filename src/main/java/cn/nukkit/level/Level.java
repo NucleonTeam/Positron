@@ -54,6 +54,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
 import ru.mc_positron.blockentity.BlockEntity;
+import ru.mc_positron.math.FastMath;
 import ru.mc_positron.world.loader.WorldLoader;
 
 import java.lang.ref.SoftReference;
@@ -1238,12 +1239,12 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public Block[] getCollisionBlocks(AxisAlignedBB bb, boolean targetFirst) {
-        int minX = NukkitMath.floorDouble(bb.getMinX());
-        int minY = NukkitMath.floorDouble(bb.getMinY());
-        int minZ = NukkitMath.floorDouble(bb.getMinZ());
-        int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-        int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-        int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+        int minX = FastMath.floorDouble(bb.getMinX());
+        int minY = FastMath.floorDouble(bb.getMinY());
+        int minZ = FastMath.floorDouble(bb.getMinZ());
+        int maxX = FastMath.ceilDouble(bb.getMaxX());
+        int maxY = FastMath.ceilDouble(bb.getMaxY());
+        int maxZ = FastMath.ceilDouble(bb.getMaxZ());
 
         List<Block> collides = new ArrayList<>();
 
@@ -1297,12 +1298,12 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB bb, boolean entities, boolean solidEntities) {
-        int minX = NukkitMath.floorDouble(bb.getMinX());
-        int minY = NukkitMath.floorDouble(bb.getMinY());
-        int minZ = NukkitMath.floorDouble(bb.getMinZ());
-        int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-        int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-        int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+        int minX = FastMath.floorDouble(bb.getMinX());
+        int minY = FastMath.floorDouble(bb.getMinY());
+        int minZ = FastMath.floorDouble(bb.getMinZ());
+        int maxX = FastMath.ceilDouble(bb.getMaxX());
+        int maxY = FastMath.ceilDouble(bb.getMaxY());
+        int maxZ = FastMath.ceilDouble(bb.getMaxZ());
 
         List<AxisAlignedBB> collides = new ArrayList<>();
 
@@ -1329,12 +1330,12 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public boolean hasCollision(Entity entity, AxisAlignedBB bb, boolean entities) {
-        int minX = NukkitMath.floorDouble(bb.getMinX());
-        int minY = NukkitMath.floorDouble(bb.getMinY());
-        int minZ = NukkitMath.floorDouble(bb.getMinZ());
-        int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-        int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-        int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+        int minX = FastMath.floorDouble(bb.getMinX());
+        int minY = FastMath.floorDouble(bb.getMinY());
+        int minZ = FastMath.floorDouble(bb.getMinZ());
+        int maxX = FastMath.ceilDouble(bb.getMaxX());
+        int maxY = FastMath.ceilDouble(bb.getMaxY());
+        int maxZ = FastMath.ceilDouble(bb.getMaxZ());
 
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
@@ -1371,7 +1372,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public int calculateSkylightSubtracted(float tickDiff) {
         float angle = this.calculateCelestialAngle(getTime(), tickDiff);
-        float light = 1 - (MathHelper.cos(angle * ((float) Math.PI * 2F)) * 2 + 0.5f);
+        float light = 1 - (FastMath.cos(angle * ((float) Math.PI * 2F)) * 2 + 0.5f);
         light = light < 0 ? 0 : light > 1 ? 1 : light;
         light = 1 - light;
         light = (float) ((double) light * ((isRaining() ? 1 : 0) - (double) 5f / 16d));
@@ -1692,7 +1693,7 @@ public class Level implements ChunkManager, Metadatable {
                 float f = ThreadLocalRandom.current().nextFloat() * 0.5f;
                 float f1 = ThreadLocalRandom.current().nextFloat() * ((float) Math.PI * 2);
 
-                motion = new Vector3(-MathHelper.sin(f1) * f, 0.20000000298023224, MathHelper.cos(f1) * f);
+                motion = new Vector3(-FastMath.sin(f1) * f, 0.20000000298023224, FastMath.cos(f1) * f);
             } else {
                 motion = new Vector3(new java.util.Random().nextDouble() * 0.2 - 0.1, 0.2,
                         new java.util.Random().nextDouble() * 0.2 - 0.1);
@@ -1730,7 +1731,7 @@ public class Level implements ChunkManager, Metadatable {
                 float f = ThreadLocalRandom.current().nextFloat() * 0.5f;
                 float f1 = ThreadLocalRandom.current().nextFloat() * ((float) Math.PI * 2);
 
-                motion = new Vector3(-MathHelper.sin(f1) * f, 0.20000000298023224, MathHelper.cos(f1) * f);
+                motion = new Vector3(-FastMath.sin(f1) * f, 0.20000000298023224, FastMath.cos(f1) * f);
             } else {
                 motion = new Vector3(new java.util.Random().nextDouble() * 0.2 - 0.1, 0.2,
                         new java.util.Random().nextDouble() * 0.2 - 0.1);
@@ -2107,10 +2108,10 @@ public class Level implements ChunkManager, Metadatable {
         List<Entity> nearby = new ArrayList<>();
 
         if (entity == null || entity.canCollide()) {
-            int minX = NukkitMath.floorDouble((bb.getMinX() - 2) / 16);
-            int maxX = NukkitMath.ceilDouble((bb.getMaxX() + 2) / 16);
-            int minZ = NukkitMath.floorDouble((bb.getMinZ() - 2) / 16);
-            int maxZ = NukkitMath.ceilDouble((bb.getMaxZ() + 2) / 16);
+            int minX = FastMath.floorDouble((bb.getMinX() - 2) / 16);
+            int maxX = FastMath.ceilDouble((bb.getMaxX() + 2) / 16);
+            int minZ = FastMath.floorDouble((bb.getMinZ() - 2) / 16);
+            int maxZ = FastMath.ceilDouble((bb.getMaxZ() + 2) / 16);
 
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
@@ -2141,10 +2142,10 @@ public class Level implements ChunkManager, Metadatable {
     public Entity[] getNearbyEntities(AxisAlignedBB bb, Entity entity, boolean loadChunks) {
         int index = 0;
 
-        int minX = NukkitMath.floorDouble((bb.getMinX() - 2) * 0.0625);
-        int maxX = NukkitMath.ceilDouble((bb.getMaxX() + 2) * 0.0625);
-        int minZ = NukkitMath.floorDouble((bb.getMinZ() - 2) * 0.0625);
-        int maxZ = NukkitMath.ceilDouble((bb.getMaxZ() + 2) * 0.0625);
+        int minX = FastMath.floorDouble((bb.getMinX() - 2) * 0.0625);
+        int maxX = FastMath.ceilDouble((bb.getMaxX() + 2) * 0.0625);
+        int minZ = FastMath.floorDouble((bb.getMinZ() - 2) * 0.0625);
+        int maxZ = FastMath.ceilDouble((bb.getMaxZ() + 2) * 0.0625);
 
         ArrayList<Entity> overflow = null;
 
@@ -2771,7 +2772,7 @@ public class Level implements ChunkManager, Metadatable {
             int x = (int) v.x & 0x0f;
             int z = (int) v.z & 0x0f;
             if (chunk != null && chunk.isGenerated()) {
-                int y = (int) NukkitMath.clamp(v.y, 1, 254);
+                int y = (int) FastMath.clamp(v.y, 1, 254);
                 boolean wasAir = chunk.getBlockId(x, y - 1, z) == 0;
                 for (; y > 0; --y) {
                     int b = chunk.getFullBlock(x, y, z);
@@ -3351,10 +3352,10 @@ public class Level implements ChunkManager, Metadatable {
         if (bb.getMaxY() < 0 || bb.getMinY() >= 256) {
             return false;
         }
-        int minX = NukkitMath.floorDouble(bb.getMinX()) >> 4;
-        int minZ = NukkitMath.floorDouble(bb.getMinZ()) >> 4;
-        int maxX = NukkitMath.floorDouble(bb.getMaxX()) >> 4;
-        int maxZ = NukkitMath.floorDouble(bb.getMaxZ()) >> 4;
+        int minX = FastMath.floorDouble(bb.getMinX()) >> 4;
+        int minZ = FastMath.floorDouble(bb.getMinZ()) >> 4;
+        int maxX = FastMath.floorDouble(bb.getMaxX()) >> 4;
+        int maxZ = FastMath.floorDouble(bb.getMaxZ()) >> 4;
 
         for (int x = minX; x <= maxX; ++x) {
             for (int z = minZ; z <= maxZ; ++z) {

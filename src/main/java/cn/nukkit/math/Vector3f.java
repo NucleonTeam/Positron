@@ -1,5 +1,7 @@
 package cn.nukkit.math;
 
+import ru.mc_positron.math.FastMath;
+
 public class Vector3f implements Cloneable {
     public static final int SIDE_DOWN = 0;
     public static final int SIDE_UP = 1;
@@ -58,15 +60,15 @@ public class Vector3f implements Cloneable {
     }
 
     public int getFloorX() {
-        return NukkitMath.floorFloat(this.x);
+        return FastMath.floorFloat(this.x);
     }
 
     public int getFloorY() {
-        return NukkitMath.floorFloat(this.y);
+        return FastMath.floorFloat(this.y);
     }
 
     public int getFloorZ() {
-        return NukkitMath.floorFloat(this.z);
+        return FastMath.floorFloat(this.z);
     }
 
     public float getRight() {

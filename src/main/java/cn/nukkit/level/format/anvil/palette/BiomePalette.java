@@ -1,7 +1,8 @@
 package cn.nukkit.level.format.anvil.palette;
 
-import cn.nukkit.math.MathHelper;
 import cn.nukkit.utils.ThreadCache;
+import ru.mc_positron.math.FastMath;
+
 import java.util.Arrays;
 
 @Deprecated
@@ -83,8 +84,8 @@ public final class BiomePalette {
 
                 palette.add(value);
 
-                int oldBits = MathHelper.log2(palette.length() - 2);
-                int newBits = MathHelper.log2(palette.length() - 1);
+                int oldBits = FastMath.log2(palette.length() - 2);
+                int newBits = FastMath.log2(palette.length() - 1);
                 if (oldBits != newBits) {
                     encodedData = new BitArray256(newBits);
                 }

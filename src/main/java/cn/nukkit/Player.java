@@ -67,6 +67,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import ru.mc_positron.blockentity.BlockEntity;
 import ru.mc_positron.blockentity.SpawnableBlockEntityType;
+import ru.mc_positron.math.FastMath;
 import ru.mc_positron.network.packet.BlockEntityDataPacket;
 
 import java.io.File;
@@ -1137,12 +1138,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             realBB.setMaxY(realBB.getMinY() + 0.1);
             realBB.setMinY(realBB.getMinY() - 0.2);
 
-            int minX = NukkitMath.floorDouble(bb.getMinX());
-            int minY = NukkitMath.floorDouble(bb.getMinY());
-            int minZ = NukkitMath.floorDouble(bb.getMinZ());
-            int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-            int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-            int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+            int minX = FastMath.floorDouble(bb.getMinX());
+            int minY = FastMath.floorDouble(bb.getMinY());
+            int minZ = FastMath.floorDouble(bb.getMinZ());
+            int maxX = FastMath.ceilDouble(bb.getMaxX());
+            int maxY = FastMath.ceilDouble(bb.getMaxY());
+            int maxZ = FastMath.ceilDouble(bb.getMaxZ());
 
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
@@ -1760,9 +1761,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 String.valueOf(this.getPort()),
                 String.valueOf(this.id),
                 this.level.getName(),
-                String.valueOf(NukkitMath.round(this.x, 4)),
-                String.valueOf(NukkitMath.round(this.y, 4)),
-                String.valueOf(NukkitMath.round(this.z, 4))));
+                String.valueOf(FastMath.round(this.x, 4)),
+                String.valueOf(FastMath.round(this.y, 4)),
+                String.valueOf(FastMath.round(this.z, 4))));
 
         this.server.getPlayerManager().addPlayer(this);
         this.server.onPlayerCompleteLoginSequence(this);
@@ -1944,7 +1945,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                             ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
                             dataInfoPacket.packId = resourcePack.getPackId();
                             dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
-                            dataInfoPacket.chunkCount = MathHelper.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
+                            dataInfoPacket.chunkCount = FastMath.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
                             dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
                             dataInfoPacket.sha256 = resourcePack.getSha256();
                             this.dataPacket(dataInfoPacket);

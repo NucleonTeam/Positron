@@ -1,5 +1,7 @@
 package cn.nukkit.math;
 
+import ru.mc_positron.math.FastMath;
+
 /**
  * author: MagicDroidX
  * Nukkit Project
@@ -30,11 +32,11 @@ public class Vector2f {
     }
 
     public int getFloorX() {
-        return NukkitMath.floorFloat(this.x);
+        return FastMath.floorFloat(this.x);
     }
 
     public int getFloorY() {
-        return NukkitMath.floorFloat(this.y);
+        return FastMath.floorFloat(this.y);
     }
 
     public Vector2f add(float x) {

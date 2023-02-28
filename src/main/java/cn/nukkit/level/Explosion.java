@@ -19,6 +19,7 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.utils.Hash;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import ru.mc_positron.blockentity.BlockEntity;
+import ru.mc_positron.math.FastMath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,12 +131,12 @@ public class Explosion {
         }
 
         double explosionSize = this.size * 2d;
-        double minX = NukkitMath.floorDouble(this.source.x - explosionSize - 1);
-        double maxX = NukkitMath.ceilDouble(this.source.x + explosionSize + 1);
-        double minY = NukkitMath.floorDouble(this.source.y - explosionSize - 1);
-        double maxY = NukkitMath.ceilDouble(this.source.y + explosionSize + 1);
-        double minZ = NukkitMath.floorDouble(this.source.z - explosionSize - 1);
-        double maxZ = NukkitMath.ceilDouble(this.source.z + explosionSize + 1);
+        double minX = FastMath.floorDouble(this.source.x - explosionSize - 1);
+        double maxX = FastMath.ceilDouble(this.source.x + explosionSize + 1);
+        double minY = FastMath.floorDouble(this.source.y - explosionSize - 1);
+        double maxY = FastMath.ceilDouble(this.source.y + explosionSize + 1);
+        double minZ = FastMath.floorDouble(this.source.z - explosionSize - 1);
+        double maxZ = FastMath.ceilDouble(this.source.z + explosionSize + 1);
 
         AxisAlignedBB explosionBB = new SimpleAxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
         Entity[] list = this.level.getNearbyEntities(explosionBB, this.what instanceof Entity ? (Entity) this.what : null);

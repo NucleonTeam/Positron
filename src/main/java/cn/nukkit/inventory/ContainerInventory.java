@@ -3,17 +3,13 @@ package cn.nukkit.inventory;
 import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.item.Item;
-import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.ContainerClosePacket;
 import cn.nukkit.network.protocol.ContainerOpenPacket;
+import ru.mc_positron.math.FastMath;
 
 import java.util.Map;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class ContainerInventory extends BaseInventory {
     public ContainerInventory(InventoryHolder holder, InventoryType type) {
         super(holder, type);
@@ -80,7 +76,7 @@ public abstract class ContainerInventory extends BaseInventory {
             }
 
             averageCount = averageCount / (float) inv.getSize();
-            return NukkitMath.floorFloat(averageCount * 14) + (itemCount > 0 ? 1 : 0);
+            return FastMath.floorFloat(averageCount * 14) + (itemCount > 0 ? 1 : 0);
         }
     }
 }

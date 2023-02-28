@@ -1,6 +1,7 @@
 package cn.nukkit.math;
 
 import cn.nukkit.level.MovingObjectPosition;
+import ru.mc_positron.math.FastMath;
 
 public interface AxisAlignedBB extends Cloneable {
 
@@ -308,13 +309,13 @@ public interface AxisAlignedBB extends Cloneable {
     AxisAlignedBB clone();
 
     default void forEach(BBConsumer action) {
-        int minX = NukkitMath.floorDouble(this.getMinX());
-        int minY = NukkitMath.floorDouble(this.getMinY());
-        int minZ = NukkitMath.floorDouble(this.getMinZ());
+        int minX = FastMath.floorDouble(this.getMinX());
+        int minY = FastMath.floorDouble(this.getMinY());
+        int minZ = FastMath.floorDouble(this.getMinZ());
 
-        int maxX = NukkitMath.floorDouble(this.getMaxX());
-        int maxY = NukkitMath.floorDouble(this.getMaxY());
-        int maxZ = NukkitMath.floorDouble(this.getMaxZ());
+        int maxX = FastMath.floorDouble(this.getMaxX());
+        int maxY = FastMath.floorDouble(this.getMaxY());
+        int maxZ = FastMath.floorDouble(this.getMaxZ());
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
