@@ -5,10 +5,11 @@ import lombok.NonNull;
 
 import java.util.function.Consumer;
 
-public class Registry {
+public final class Registry {
 
     private static Registry instance = null;
     private boolean completedInitialization = false;
+    private final BlockEntities blockEntities = new BlockEntities();
 
     private Registry() {
 
@@ -29,5 +30,9 @@ public class Registry {
         if (instance.completedInitialization) {
             throw new IllegalStateException("You can't register new content after initialization");
         }
+    }
+
+    public static @NonNull BlockEntities blockEntities() {
+        return instance.blockEntities;
     }
 }
