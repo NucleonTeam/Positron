@@ -2,7 +2,6 @@ package cn.nukkit.level.format.generic;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.ChunkManager;
 import cn.nukkit.level.Level;
@@ -14,6 +13,9 @@ import cn.nukkit.nbt.tag.NumberTag;
 import cn.nukkit.network.protocol.BatchPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.blockentity.BlockEntity;
+import ru.mc_positron.registry.Registry;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,22 +23,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BaseFullChunk implements FullChunk, ChunkManager {
+
     protected Map<Long, Entity> entities;
 
     protected Map<Long, BlockEntity> tiles;
 
     protected Map<Integer, BlockEntity> tileList;
 
-    /**
-     * encoded as:
-     *
-     * (x &lt;&lt; 4) | z
-     */
     protected byte[] biomes;
 
     protected byte[] blocks;
@@ -150,10 +144,8 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
                             changed = true;
                             continue;
                         }
-                        BlockEntity blockEntity = BlockEntity.createBlockEntity(nbt.getString("id"), this, nbt);
-                        if (blockEntity == null) {
-                            changed = true;
-                        }
+                        var blockEntity = new BlockEntity(Registry.blockEntities().get(nbt.getString("id")), nbt);
+                        blockEntity.place(this.provider.getLevel(), new Vector3i(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z")));
                     }
                 }
                 this.NBTtiles = null;
@@ -329,33 +321,36 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
 
     @Override
     public void addBlockEntity(BlockEntity blockEntity) {
-        if (this.tiles == null) {
-            this.tiles = new Long2ObjectOpenHashMap<>();
-            this.tileList = new Int2ObjectOpenHashMap<>();
+        if (tiles == null) {
+            tiles = new Long2ObjectOpenHashMap<>();
+            tileList = new Int2ObjectOpenHashMap<>();
         }
-        this.tiles.put(blockEntity.getId(), blockEntity);
-        int index = ((blockEntity.getFloorZ() & 0x0f) << 12) | ((blockEntity.getFloorX() & 0x0f) << 8) | (blockEntity.getFloorY() & 0xff);
-        if (this.tileList.containsKey(index) && !this.tileList.get(index).equals(blockEntity)) {
-            BlockEntity entity = this.tileList.get(index);
-            this.tiles.remove(entity.getId());
-            entity.close();
+
+        tiles.put(blockEntity.getId(), blockEntity);
+        var pos = blockEntity.getPosition();
+        int index = ((pos.z() & 0x0f) << 12) | ((pos.x() & 0x0f) << 8) | (pos.y() & 0xff);
+
+        if (tileList.containsKey(index) && !tileList.get(index).equals(blockEntity)) {
+            var entity = tileList.get(index);
+            tiles.remove(entity.getId());
+            blockEntity.remove();
         }
-        this.tileList.put(index, blockEntity);
-        if (this.isInit) {
-            this.setChanged();
-        }
+
+        tileList.put(index, blockEntity);
+        if (isInit) setChanged();
     }
 
     @Override
     public void removeBlockEntity(BlockEntity blockEntity) {
-        if (this.tiles != null) {
-            this.tiles.remove(blockEntity.getId());
-            int index = ((blockEntity.getFloorZ() & 0x0f) << 12) | ((blockEntity.getFloorX() & 0x0f) << 8) | (blockEntity.getFloorY() & 0xff);
-            this.tileList.remove(index);
-            if (this.isInit) {
-                this.setChanged();
-            }
-        }
+        if (tiles == null) return;
+
+        tiles.remove(blockEntity.getId());
+
+        var pos = blockEntity.getPosition();
+        int index = ((pos.z() & 0x0f) << 12) | ((pos.x() & 0x0f) << 8) | (pos.y() & 0xff);
+        tileList.remove(index);
+
+        if (this.isInit) setChanged();
     }
 
     @Override
@@ -405,30 +400,28 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
 
     @Override
     public boolean unload(boolean save, boolean safe) {
-        LevelProvider provider = this.getProvider();
+        LevelProvider provider = getProvider();
         if (provider == null) {
             return true;
         }
-        if (save && this.changes != 0) {
-            provider.saveChunk(this.getX(), this.getZ());
+        if (save && changes != 0) {
+            provider.saveChunk(getX(), getZ());
         }
         if (safe) {
-            for (Entity entity : this.getEntities().values()) {
-                if (entity instanceof Player) {
-                    return false;
-                }
+            for (var entity: getEntities().values()) {
+                if (entity instanceof Player) return false;
             }
         }
-        for (Entity entity : new ArrayList<>(this.getEntities().values())) {
-            if (entity instanceof Player) {
-                continue;
-            }
+
+        for (Entity entity: new ArrayList<>(getEntities().values())) {
+            if (entity instanceof Player) continue;
             entity.close();
         }
 
-        for (BlockEntity blockEntity : new ArrayList<>(this.getBlockEntities().values())) {
-            blockEntity.close();
+        for (var blockEntity: new ArrayList<>(getBlockEntities().values())) {
+            blockEntity.remove();
         }
+
         this.provider = null;
         return true;
     }

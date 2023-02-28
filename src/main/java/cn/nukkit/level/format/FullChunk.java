@@ -1,16 +1,13 @@
 package cn.nukkit.level.format;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.biome.Biome;
+import ru.mc_positron.blockentity.BlockEntity;
+
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public interface FullChunk extends Cloneable {
 
     int getX();

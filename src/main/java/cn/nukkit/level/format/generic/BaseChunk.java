@@ -2,7 +2,6 @@ package cn.nukkit.level.format.generic;
 
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.level.format.Chunk;
 import cn.nukkit.level.format.ChunkSection;
 import cn.nukkit.level.format.LevelProvider;
@@ -12,11 +11,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 
 public abstract class BaseChunk extends BaseFullChunk implements Chunk {
 
@@ -37,10 +31,10 @@ public abstract class BaseChunk extends BaseFullChunk implements Chunk {
     }
 
     private void removeInvalidTile(int x, int y, int z) {
-        BlockEntity entity = getTile(x, y, z);
-        if (entity != null && !entity.isBlockEntityValid()) {
-            removeBlockEntity(entity);
-        }
+        var blockEntity = getTile(x, y, z);
+
+        if (blockEntity == null || !blockEntity.isRemoved()) return;
+        removeBlockEntity(blockEntity);
     }
 
     @Override

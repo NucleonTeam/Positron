@@ -2,7 +2,6 @@ package cn.nukkit.level;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.event.block.BlockUpdateEvent;
@@ -19,6 +18,7 @@ import cn.nukkit.math.*;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.utils.Hash;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
+import ru.mc_positron.blockentity.BlockEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -166,6 +166,7 @@ public class Explosion {
         ItemBlock air = new ItemBlock(Block.get(BlockID.AIR));
         BlockEntity container;
 
+        /* TODO
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlocks) {
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
@@ -198,6 +199,7 @@ public class Explosion {
             }
             send.add(new Vector3(block.x - source.x, block.y - source.y, block.z - source.z));
         }
+        */
 
         this.level.addParticle(new HugeExplodeSeedParticle(this.source));
         this.level.addLevelSoundEvent(source, LevelSoundEventPacket.SOUND_EXPLODE);

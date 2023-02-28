@@ -53,13 +53,23 @@ public final class BlockEntity {
         }
     }
 
+    public void destroy() {
+        type.onBreak(world, pos);
+        remove();
+    }
+
     public void remove() {
         synchronized (mutex) {
             if (removed || !placed) return;
             removed = true;
         }
+    }
 
-        type.onBreak(world, pos);
+    public boolean update() {
+        if (isRemoved()) return false;
+
+        type.onUpdate();
+        return true;
     }
 
     public void interactByPlayer(@NonNull Player player) {

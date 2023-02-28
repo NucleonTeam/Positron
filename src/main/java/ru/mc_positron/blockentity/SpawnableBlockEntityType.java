@@ -41,4 +41,8 @@ public abstract class SpawnableBlockEntityType extends BlockEntityType {
 
         player.dataPacket(pk);
     }
+
+    public boolean tryUpdateNbtByPlayer(@NonNull Player player, @NonNull CompoundTag tag) {
+        return false;
+    }
 }

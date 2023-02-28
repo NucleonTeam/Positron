@@ -4,7 +4,6 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.weather.EntityLightning;
@@ -54,6 +53,7 @@ import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
+import ru.mc_positron.blockentity.BlockEntity;
 import ru.mc_positron.world.loader.WorldLoader;
 
 import java.lang.ref.SoftReference;
@@ -765,7 +765,7 @@ public class Level implements ChunkManager, Metadatable {
             }
         }
 
-        this.updateBlockEntities.removeIf(blockEntity -> !blockEntity.isValid() || !blockEntity.onUpdate());
+        this.updateBlockEntities.removeIf(blockEntity -> !blockEntity.update());
 
         this.tickChunks();
 
@@ -1888,8 +1888,7 @@ public class Level implements ChunkManager, Metadatable {
         // Close BlockEntity before we check onBreak
         BlockEntity blockEntity = this.getBlockEntity(target);
         if (blockEntity != null) {
-            blockEntity.onBreak();
-            blockEntity.close();
+            blockEntity.destroy();
 
             this.updateComparatorOutputLevel(target);
         }
@@ -2420,11 +2419,8 @@ public class Level implements ChunkManager, Metadatable {
                         Map.Entry<Long, BlockEntity> entry = iter.next();
                         BlockEntity blockEntity = entry.getValue();
                         chunk.addBlockEntity(blockEntity);
-                        if (oldChunk != null) {
-                            iter.remove();
-                            oldChunk.removeBlockEntity(blockEntity);
-                            blockEntity.chunk = chunk;
-                        }
+                        iter.remove();
+                        oldChunk.removeBlockEntity(blockEntity);
                     }
                 }
 
@@ -2596,7 +2592,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void addBlockEntity(BlockEntity blockEntity) {
-        if (blockEntity.getLevel() != this) {
+        if (blockEntity.getWorld() != this) {
             throw new LevelException("Invalid Block Entity level");
         }
         blockEntities.put(blockEntity.getId(), blockEntity);
@@ -2604,7 +2600,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public void scheduleBlockEntityUpdate(BlockEntity entity) {
         Preconditions.checkNotNull(entity, "entity");
-        Preconditions.checkArgument(entity.getLevel() == this, "BlockEntity is not in this level");
+        Preconditions.checkArgument(entity.getWorld() == this, "BlockEntity is not in this level");
         if (!updateBlockEntities.contains(entity)) {
             updateBlockEntities.add(entity);
         }
@@ -2612,7 +2608,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public void removeBlockEntity(BlockEntity entity) {
         Preconditions.checkNotNull(entity, "entity");
-        Preconditions.checkArgument(entity.getLevel() == this, "BlockEntity is not in this level");
+        Preconditions.checkArgument(entity.getWorld() == this, "BlockEntity is not in this level");
         blockEntities.remove(entity.getId());
         updateBlockEntities.remove(entity);
     }
@@ -2935,9 +2931,9 @@ public class Level implements ChunkManager, Metadatable {
             while (iter.hasNext()) {
                 BlockEntity blockEntity = iter.next();
                 if (blockEntity != null) {
-                    if (!blockEntity.isValid()) {
+                    if (blockEntity.isRemoved()) {
                         iter.remove();
-                        blockEntity.close();
+                        blockEntity.remove();
                     }
                 } else {
                     iter.remove();

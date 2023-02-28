@@ -4,7 +4,6 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityInventoryChangeEvent;
 import cn.nukkit.entity.mob.inventory.InventoryOpenEvent;
@@ -12,13 +11,10 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.network.protocol.InventoryContentPacket;
 import cn.nukkit.network.protocol.InventorySlotPacket;
+import ru.mc_positron.blockentity.BlockEntity;
 
 import java.util.*;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BaseInventory implements Inventory {
 
     protected final InventoryType type;
@@ -157,9 +153,11 @@ public abstract class BaseInventory implements Inventory {
             item = ev.getNewItem();
         }
 
+        /* TODO
         if (holder instanceof BlockEntity) {
             ((BlockEntity) holder).setDirty();
         }
+        */
 
         Item old = this.getItem(index);
         this.slots.put(index, item.clone());
@@ -376,9 +374,11 @@ public abstract class BaseInventory implements Inventory {
                 }
                 item = ev.getNewItem();
             }
+            /* TODO
             if (holder instanceof BlockEntity) {
                 ((BlockEntity) holder).setDirty();
             }
+             */
 
             if (item.getId() != Item.AIR) {
                 this.slots.put(index, item.clone());

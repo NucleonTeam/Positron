@@ -45,4 +45,8 @@ public abstract class BlockEntityType {
     public void onInteract(@NonNull Player player) {
 
     }
+
+    public void onUpdate() {
+
+    }
 }

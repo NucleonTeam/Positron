@@ -13,6 +13,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
+import ru.mc_positron.network.packet.BlockEntityDataPacket;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

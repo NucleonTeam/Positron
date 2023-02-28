@@ -1,7 +1,5 @@
 package cn.nukkit.level.format.generic.serializer;
 
-import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.level.DimensionData;
 import cn.nukkit.level.biome.Biome;
 import cn.nukkit.level.format.ChunkSection;
@@ -13,6 +11,7 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.ThreadCache;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import ru.mc_positron.blockentity.SpawnableBlockEntityType;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -79,9 +78,9 @@ public class NetworkChunkSerializer {
 
     private static byte[] serializeEntities(BaseChunk chunk) {
         List<CompoundTag> tagList = new ObjectArrayList<>();
-        for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
-            if (blockEntity instanceof BlockEntitySpawnable) {
-                tagList.add(((BlockEntitySpawnable) blockEntity).getSpawnCompound());
+        for (var blockEntity: chunk.getBlockEntities().values()) {
+            if (blockEntity.getType() instanceof SpawnableBlockEntityType type) {
+                tagList.add(type.getSpawnNbt());
             }
         }
 

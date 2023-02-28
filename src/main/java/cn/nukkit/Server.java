@@ -77,6 +77,7 @@ import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 import ru.mc_positron.player.PlayerManager;
 import ru.mc_positron.player.PositronPlayerManager;
+import ru.mc_positron.registry.Registry;
 
 import java.io.File;
 import java.io.IOException;
@@ -228,6 +229,8 @@ public class Server {
     }
 
     private Server(final String filePath, String dataPath, String pluginPath, String predefinedLanguage) {
+        var completeInitialization = Registry.init();
+
         Preconditions.checkState(instance == null, "Already initialized!");
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
         instance = this;
@@ -461,6 +464,8 @@ public class Server {
 
         Generator.addGenerator(Flat.class, "flat", Generator.TYPE_FLAT);
         //todo: add old generator and hell generator
+
+        completeInitialization.accept(this);
 
         for (String name : this.getConfig("worlds", new HashMap<String, Object>()).keySet()) {
             if (!this.loadLevel(name)) {

@@ -3,7 +3,6 @@ package cn.nukkit.level.format.anvil;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
-import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.format.LevelProvider;
 import cn.nukkit.level.format.anvil.palette.BiomePalette;
@@ -23,10 +22,6 @@ import java.lang.reflect.Constructor;
 import java.nio.ByteOrder;
 import java.util.*;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Chunk extends BaseChunk {
 
     protected long inhabitedTime;
@@ -296,10 +291,10 @@ public class Chunk extends BaseChunk {
         nbt.putList(entityListTag);
 
         ArrayList<CompoundTag> tiles = new ArrayList<>();
-        for (BlockEntity blockEntity : this.getBlockEntities().values()) {
-            blockEntity.saveNBT();
-            tiles.add(blockEntity.namedTag);
+        for (var blockEntity : getBlockEntities().values()) {
+            tiles.add(blockEntity.getSaveData());
         }
+
         ListTag<CompoundTag> tileListTag = new ListTag<>("TileEntities");
         tileListTag.setAll(tiles);
         nbt.putList(tileListTag);
@@ -388,9 +383,8 @@ public class Chunk extends BaseChunk {
         nbt.putList(entityListTag);
 
         ArrayList<CompoundTag> tiles = new ArrayList<>();
-        for (BlockEntity blockEntity : this.getBlockEntities().values()) {
-            blockEntity.saveNBT();
-            tiles.add(blockEntity.namedTag);
+        for (var blockEntity: getBlockEntities().values()) {
+            tiles.add(blockEntity.getSaveData());
         }
         ListTag<CompoundTag> tileListTag = new ListTag<>("TileEntities");
         tileListTag.setAll(tiles);

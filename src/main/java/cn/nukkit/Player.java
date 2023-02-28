@@ -2,8 +2,6 @@ package cn.nukkit;
 
 import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.block.*;
-import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.*;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.entity.item.*;
@@ -67,6 +65,9 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
+import ru.mc_positron.blockentity.BlockEntity;
+import ru.mc_positron.blockentity.SpawnableBlockEntityType;
+import ru.mc_positron.network.packet.BlockEntityDataPacket;
 
 import java.io.File;
 import java.io.IOException;
@@ -2403,13 +2404,16 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 item = block.toItem();
 
                 if (pickRequestPacket.addUserData) {
-                    BlockEntity blockEntity = this.getLevel().getBlockEntity(new Vector3(pickRequestPacket.x, pickRequestPacket.y, pickRequestPacket.z));
+                    var blockEntity = this.getLevel().getBlockEntity(new Vector3(pickRequestPacket.x, pickRequestPacket.y, pickRequestPacket.z));
                     if (blockEntity != null) {
-                        CompoundTag nbt = blockEntity.getCleanedNBT();
-                        if (nbt != null) {
-                            item.setCustomBlockData(nbt);
-                            item.setLore("+(DATA)");
-                        }
+                        CompoundTag nbt = blockEntity.getSaveData()
+                                .remove("id")
+                                .remove("x")
+                                .remove("y")
+                                .remove("z");
+
+                        item.setCustomBlockData(nbt);
+                        item.setLore("+(DATA)");
                     }
                 }
 
@@ -2600,22 +2604,23 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 this.craftingType = CRAFTING_SMALL;
                 this.resetCraftingGridType();
 
-                Vector3 pos = new Vector3(blockEntityDataPacket.x, blockEntityDataPacket.y, blockEntityDataPacket.z);
+                var vec = blockEntityDataPacket.position;
+                Vector3 pos = new Vector3(vec.x(), vec.y(), vec.z());
                 if (pos.distanceSquared(this) > 10000) {
                     break;
                 }
 
-                BlockEntity t = this.level.getBlockEntity(pos);
-                if (t instanceof BlockEntitySpawnable) {
+                var t = level.getBlockEntity(pos);
+                if (t.getType() instanceof SpawnableBlockEntityType type) {
                     CompoundTag nbt;
                     try {
-                        nbt = NBTIO.read(blockEntityDataPacket.namedTag, ByteOrder.LITTLE_ENDIAN, true);
+                        nbt = NBTIO.read(blockEntityDataPacket.nbt, ByteOrder.LITTLE_ENDIAN, true);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
 
-                    if (!((BlockEntitySpawnable) t).updateCompoundTag(nbt, this)) {
-                        ((BlockEntitySpawnable) t).spawnTo(this);
+                    if (!type.tryUpdateNbtByPlayer(this, nbt)) {
+                        type.spawnTo(this);
                     }
                 }
                 break;
@@ -2867,9 +2872,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                     target = this.level.getBlock(blockVector.asVector3());
                                     this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                                    BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
-                                    if (blockEntity instanceof BlockEntitySpawnable) {
-                                        ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+                                    var blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+                                    if (blockEntity.getType() instanceof SpawnableBlockEntityType $type) {
+                                        $type.spawnTo(this);
                                     }
                                 }
 
@@ -3214,9 +3219,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             Block target = this.level.getBlock(blockPos.asVector3());
             this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-            BlockEntity blockEntity = this.level.getBlockEntity(blockPos.asVector3());
-            if (blockEntity instanceof BlockEntitySpawnable) {
-                ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+            var blockEntity = this.level.getBlockEntity(blockPos.asVector3());
+            if (blockEntity.getType() instanceof SpawnableBlockEntityType type) {
+                type.spawnTo(this);
             }
         }
     }
