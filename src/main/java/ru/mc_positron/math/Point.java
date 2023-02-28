@@ -1,4 +1,4 @@
-package ru.mc_positron.util;
+package ru.mc_positron.math;
 
 import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
