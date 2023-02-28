@@ -1,7 +1,6 @@
 package cn.nukkit.entity;
 
 import cn.nukkit.Player;
-import cn.nukkit.entity.data.Vector3iEntityData;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -12,6 +11,8 @@ import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityLinkPacket;
 import cn.nukkit.utils.*;
 import lombok.Getter;
+import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.entity.data.Vector3iEntityData;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -93,7 +94,7 @@ public class EntityHuman extends EntityHumanType {
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY);
 
-        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, 0, 0, 0), false);
+        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO), false);
 
         if (!(this instanceof Player)) {
             if (this.namedTag.contains("NameTag")) {

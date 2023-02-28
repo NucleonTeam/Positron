@@ -1,13 +1,13 @@
 package cn.nukkit.network.protocol;
 
 import cn.nukkit.entity.Attribute;
-import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.item.*;
 import cn.nukkit.entity.weather.EntityLightning;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.utils.Binary;
 import com.google.common.collect.ImmutableMap;
 import lombok.ToString;
+import ru.mc_positron.entity.data.EntityMetadata;
 
 /**
  * author: MagicDroidX

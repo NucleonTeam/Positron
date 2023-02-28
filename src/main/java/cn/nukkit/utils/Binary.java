@@ -1,11 +1,13 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.data.*;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
+import org.spongepowered.math.vector.Vector3f;
+import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.entity.data.*;
 import ru.mc_positron.math.FastMath;
 
 import java.io.IOException;
@@ -100,85 +102,40 @@ public class Binary {
     }
 
     public static byte[] writeMetadata(EntityMetadata metadata) {
-        BinaryStream stream = new BinaryStream();
-        Map<Integer, EntityData> map = metadata.getMap();
+        var stream = new BinaryStream();
+        var map = metadata.getMap();
+
         stream.putUnsignedVarInt(map.size());
-        for (int id : map.keySet()) {
-            EntityData d = map.get(id);
+
+        for (var id: map.keySet()) {
+            var entityData = map.get(id);
+
             stream.putUnsignedVarInt(id);
-            stream.putUnsignedVarInt(d.getType());
-            switch (d.getType()) {
-                case Entity.DATA_TYPE_BYTE:
-                    stream.putByte(((ByteEntityData) d).getData().byteValue());
-                    break;
-                case Entity.DATA_TYPE_SHORT:
-                    stream.putLShort(((ShortEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_INT:
-                    stream.putVarInt(((IntEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_FLOAT:
-                    stream.putLFloat(((FloatEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_STRING:
-                    String s = ((StringEntityData) d).getData();
-                    stream.putUnsignedVarInt(s.getBytes(StandardCharsets.UTF_8).length);
-                    stream.put(s.getBytes(StandardCharsets.UTF_8));
-                    break;
-                case Entity.DATA_TYPE_NBT:
-                    NBTEntityData slot = (NBTEntityData) d;
-                    try {
-                        stream.put(NBTIO.write(slot.getData(), ByteOrder.LITTLE_ENDIAN, true));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    break;
-                case Entity.DATA_TYPE_POS:
-                    Vector3iEntityData pos = (Vector3iEntityData) d;
-                    stream.putVarInt(pos.x);
-                    stream.putVarInt(pos.y);
-                    stream.putVarInt(pos.z);
-                    break;
-                case Entity.DATA_TYPE_LONG:
-                    stream.putVarLong(((LongEntityData) d).getData());
-                    break;
-                case Entity.DATA_TYPE_VECTOR3F:
-                    Vector3fEntityData v3data = (Vector3fEntityData) d;
-                    stream.putLFloat(v3data.x);
-                    stream.putLFloat(v3data.y);
-                    stream.putLFloat(v3data.z);
-                    break;
-            }
+            stream.putUnsignedVarInt(entityData.getType().getCode());
+            entityData.writeTo(stream);
         }
+
         return stream.getBuffer();
     }
 
     public static EntityMetadata readMetadata(byte[] payload) {
-        BinaryStream stream = new BinaryStream();
+        var stream = new BinaryStream();
         stream.setBuffer(payload);
         long count = stream.getUnsignedVarInt();
-        EntityMetadata m = new EntityMetadata();
+        var m = new EntityMetadata();
+
         for (int i = 0; i < count; i++) {
             int key = (int) stream.getUnsignedVarInt();
             int type = (int) stream.getUnsignedVarInt();
-            EntityData value = null;
+            EntityData<?> value = null;
+
             switch (type) {
-                case Entity.DATA_TYPE_BYTE:
-                    value = new ByteEntityData(key, stream.getByte());
-                    break;
-                case Entity.DATA_TYPE_SHORT:
-                    value = new ShortEntityData(key, stream.getLShort());
-                    break;
-                case Entity.DATA_TYPE_INT:
-                    value = new IntEntityData(key, stream.getVarInt());
-                    break;
-                case Entity.DATA_TYPE_FLOAT:
-                    value = new FloatEntityData(key, stream.getLFloat());
-                    break;
-                case Entity.DATA_TYPE_STRING:
-                    value = new StringEntityData(key, stream.getString());
-                    break;
-                case Entity.DATA_TYPE_NBT:
+                case Entity.DATA_TYPE_BYTE -> value = new ByteEntityData(key, stream.getByte());
+                case Entity.DATA_TYPE_SHORT -> value = new ShortEntityData(key, stream.getLShort());
+                case Entity.DATA_TYPE_INT -> value = new IntEntityData(key, stream.getVarInt());
+                case Entity.DATA_TYPE_FLOAT -> value = new FloatEntityData(key, stream.getLFloat());
+                case Entity.DATA_TYPE_STRING -> value = new StringEntityData(key, stream.getString());
+                case Entity.DATA_TYPE_NBT -> {
                     int offset = stream.getOffset();
                     FastByteArrayInputStream fbais = new FastByteArrayInputStream(stream.get());
                     try {
@@ -188,17 +145,16 @@ public class Binary {
                         throw new RuntimeException(e);
                     }
                     stream.setOffset(offset + (int) fbais.position());
-                    break;
-                case Entity.DATA_TYPE_POS:
-                    BlockVector3 v3 = stream.getSignedBlockPosition();
-                    value = new Vector3iEntityData(key, v3.x, v3.y, v3.z);
-                    break;
-                case Entity.DATA_TYPE_LONG:
-                    value = new LongEntityData(key, stream.getVarLong());
-                    break;
-                case Entity.DATA_TYPE_VECTOR3F:
-                    value = new Vector3fEntityData(key, stream.getVector3f());
-                    break;
+                }
+                case Entity.DATA_TYPE_POS -> {
+                    var v3 = stream.getSignedBlockPosition();
+                    value = new Vector3iEntityData(key, new Vector3i(v3.x, v3.y, v3.z));
+                }
+                case Entity.DATA_TYPE_LONG -> value = new LongEntityData(key, stream.getVarLong());
+                case Entity.DATA_TYPE_VECTOR3F -> {
+                    var v3 = stream.getVector3f();
+                    value = new Vector3fEntityData(key, new Vector3f(v3.x, v3.y, v3.z));
+                }
             }
             if (value != null) m.put(value);
         }

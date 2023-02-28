@@ -3,16 +3,11 @@ package cn.nukkit.entity;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.*;
-import cn.nukkit.entity.data.*;
-import cn.nukkit.event.Event;
 import cn.nukkit.event.entity.*;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityPortalEnterEvent.PortalType;
-import cn.nukkit.event.player.PlayerInteractEvent;
-import cn.nukkit.event.player.PlayerInteractEvent.Action;
 import cn.nukkit.event.player.PlayerTeleportEvent;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemID;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.*;
 import cn.nukkit.level.format.FullChunk;
@@ -27,10 +22,11 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.potion.Effect;
-import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
+import org.spongepowered.math.vector.Vector3d;
+import ru.mc_positron.entity.data.*;
 import ru.mc_positron.math.FastMath;
 
 import java.lang.reflect.Constructor;
@@ -39,9 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static cn.nukkit.network.protocol.SetEntityLinkPacket.*;
 
-/**
- * @author MagicDroidX
- */
 public abstract class Entity extends Location implements Metadatable {
 
     public static final int NETWORK_ID = -1;
@@ -1602,7 +1595,7 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setSeatPosition(Vector3f pos) {
-        this.setDataProperty(new Vector3fEntityData(DATA_RIDER_SEAT_POSITION, pos));
+        this.setDataProperty(new Vector3fEntityData(DATA_RIDER_SEAT_POSITION, pos.toNewVector()));
     }
 
     public Vector3f getSeatPosition() {
@@ -2293,11 +2286,11 @@ public abstract class Entity extends Location implements Metadatable {
         }
     }
 
-    public boolean setDataProperty(EntityData data) {
+    public boolean setDataProperty(EntityData<?> data) {
         return setDataProperty(data, true);
     }
 
-    public boolean setDataProperty(EntityData data, boolean send) {
+    public boolean setDataProperty(EntityData<?> data, boolean send) {
         if (Objects.equals(data, this.dataProperties.get(data.getId()))) {
             return false;
         }
@@ -2318,7 +2311,7 @@ public abstract class Entity extends Location implements Metadatable {
         return this.dataProperties;
     }
 
-    public EntityData getDataProperty(int id) {
+    public EntityData<?> getDataProperty(int id) {
         return this.getDataProperties().get(id);
     }
 
@@ -2355,15 +2348,15 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public Vector3 getDataPropertyPos(int id) {
-        return this.getDataProperties().getPosition(id);
+        return new Vector3(this.getDataProperties().getPosition(id).toDouble());
     }
 
     public Vector3f getDataPropertyVector3f(int id) {
-        return this.getDataProperties().getFloatPosition(id);
+        return new Vector3f(this.getDataProperties().getFloatPosition(id));
     }
 
     public int getDataPropertyType(int id) {
-        return this.getDataProperties().exists(id) ? this.getDataProperty(id).getType() : -1;
+        return this.getDataProperties().exists(id) ? this.getDataProperty(id).getType().getCode() : -1;
     }
 
     public void setDataFlag(int propertyId, int id) {

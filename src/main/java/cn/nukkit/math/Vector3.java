@@ -1,5 +1,8 @@
 package cn.nukkit.math;
 
+import lombok.NonNull;
+import org.spongepowered.math.vector.Vector3d;
+
 /**
  * author: MagicDroidX
  * Nukkit Project
@@ -26,6 +29,14 @@ public class Vector3 implements Cloneable {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public Vector3(@NonNull Vector3d vec) {
+        this(vec.x(), vec.y(), vec.z());
+    }
+
+    public @NonNull Vector3d toNewVector() {
+        return new Vector3d(x, y, z);
     }
 
     public double getX() {

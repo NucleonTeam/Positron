@@ -3,18 +3,11 @@ package cn.nukkit.utils;
 import cn.nukkit.Player;
 import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.*;
+import ru.mc_positron.entity.data.EntityMetadata;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * DummyBossBar
- * ===============
- * author: boybook
- * Nukkit Project
- * ===============
- */
 public class DummyBossBar {
 
     private final Player player;
@@ -199,7 +192,7 @@ public class DummyBossBar {
     }
 
     private void updateBossEntityNameTag() {
-        SetEntityDataPacket pk = new SetEntityDataPacket();
+        var pk = new SetEntityDataPacket();
         pk.eid = this.bossBarId;
         pk.metadata = new EntityMetadata().putString(Entity.DATA_NAMETAG, this.text);
         player.dataPacket(pk);

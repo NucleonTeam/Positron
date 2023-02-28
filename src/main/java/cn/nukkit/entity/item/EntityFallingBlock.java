@@ -1,26 +1,16 @@
 package cn.nukkit.entity.item;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockID;
-import cn.nukkit.block.BlockLiquid;
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.EntityLiving;
-import cn.nukkit.entity.data.IntEntityData;
 import cn.nukkit.event.entity.EntityBlockChangeEvent;
-import cn.nukkit.event.entity.EntityDamageByBlockEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
-import cn.nukkit.item.Item;
-import cn.nukkit.level.GameRule;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.network.protocol.LevelEventPacket;
+import ru.mc_positron.entity.data.IntEntityData;
 
-/**
- * @author MagicDroidX
- */
 public class EntityFallingBlock extends Entity {
 
     public static final int NETWORK_ID = 66;

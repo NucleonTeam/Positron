@@ -1,9 +1,9 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.item.Item;
 import cn.nukkit.utils.Binary;
 import lombok.ToString;
+import ru.mc_positron.entity.data.EntityMetadata;
 
 /**
  * author: MagicDroidX

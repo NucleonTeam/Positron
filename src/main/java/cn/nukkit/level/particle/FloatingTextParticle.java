@@ -1,7 +1,6 @@
 package cn.nukkit.level.particle;
 
 import cn.nukkit.entity.Entity;
-import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
@@ -10,6 +9,7 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.utils.SerializedImage;
 import com.google.common.base.Strings;
+import ru.mc_positron.entity.data.EntityMetadata;
 
 import java.util.ArrayList;
 import java.util.UUID;

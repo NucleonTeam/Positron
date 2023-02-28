@@ -65,8 +65,12 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.blockentity.BlockEntity;
 import ru.mc_positron.blockentity.SpawnableBlockEntityType;
+import ru.mc_positron.entity.data.ShortEntityData;
+import ru.mc_positron.entity.data.StringEntityData;
+import ru.mc_positron.entity.data.Vector3iEntityData;
 import ru.mc_positron.math.FastMath;
 import ru.mc_positron.network.packet.BlockEntityDataPacket;
 
@@ -917,7 +921,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.sleeping = pos.clone();
         this.teleport(new Location(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, this.yaw, this.pitch, this.level), null);
 
-        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, (int) pos.x, (int) pos.y, (int) pos.z));
+        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, new Vector3i((int) pos.x, (int) pos.y, (int) pos.z)));
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, true);
 
         this.setSpawn(pos);
@@ -950,7 +954,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.level.getBlock(this.sleeping)));
 
             this.sleeping = null;
-            this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, 0, 0, 0));
+            this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO));
             this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
 
 

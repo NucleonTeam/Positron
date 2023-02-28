@@ -1,5 +1,6 @@
 package cn.nukkit.math;
 
+import lombok.NonNull;
 import ru.mc_positron.math.FastMath;
 
 public class Vector3f implements Cloneable {
@@ -30,6 +31,14 @@ public class Vector3f implements Cloneable {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public Vector3f(org.spongepowered.math.vector.Vector3f vec) {
+        this(vec.x(), vec.y(), vec.z());
+    }
+
+    public @NonNull org.spongepowered.math.vector.Vector3f toNewVector() {
+        return new org.spongepowered.math.vector.Vector3f(x, y, z);
     }
 
     public float getX() {

@@ -1,15 +1,12 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.utils.Binary;
 import lombok.ToString;
+import ru.mc_positron.entity.data.EntityMetadata;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @ToString
 public class SetEntityDataPacket extends DataPacket {
+
     public static final byte NETWORK_ID = ProtocolInfo.SET_ENTITY_DATA_PACKET;
 
     @Override

@@ -2,7 +2,6 @@ package cn.nukkit.entity.projectile;
 
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityLiving;
-import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.event.entity.*;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.MovingObjectPosition;
@@ -10,6 +9,7 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import ru.mc_positron.entity.data.LongEntityData;
 import ru.mc_positron.math.FastMath;
 
 public abstract class EntityProjectile extends Entity {

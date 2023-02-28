@@ -1,10 +1,10 @@
-package cn.nukkit.entity.data;
+package ru.mc_positron.entity.data;
 
 import cn.nukkit.item.Item;
-import cn.nukkit.math.Vector3;
-import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.tag.CompoundTag;
 import lombok.extern.log4j.Log4j2;
+import org.spongepowered.math.vector.Vector3f;
+import org.spongepowered.math.vector.Vector3i;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,13 +12,13 @@ import java.util.Map;
 @Log4j2
 public class EntityMetadata {
 
-    private final Map<Integer, EntityData> map = new HashMap<>();
+    private final Map<Integer, EntityData<?>> map = new HashMap<>();
 
-    public EntityData get(int id) {
+    public EntityData<?> get(int id) {
         return this.getOrDefault(id, null);
     }
 
-    public EntityData getOrDefault(int id, EntityData defaultValue) {
+    public EntityData<?> getOrDefault(int id, EntityData<?> defaultValue) {
         try {
             return this.map.getOrDefault(id, defaultValue).setId(id);
         } catch (Exception e) {
@@ -71,12 +71,12 @@ public class EntityMetadata {
         return (String) this.getOrDefault(id, new StringEntityData(id, "")).getData();
     }
 
-    public Vector3 getPosition(int id) {
-        return (Vector3) this.getOrDefault(id, new Vector3iEntityData(id, new Vector3())).getData();
+    public Vector3i getPosition(int id) {
+        return (Vector3i) this.getOrDefault(id, new Vector3iEntityData(id, Vector3i.ZERO)).getData();
     }
 
     public Vector3f getFloatPosition(int id) {
-        return (Vector3f) this.getOrDefault(id, new Vector3fEntityData(id, new Vector3f())).getData();
+        return (Vector3f) this.getOrDefault(id, new Vector3fEntityData(id, Vector3f.ZERO)).getData();
     }
 
     public EntityMetadata putByte(int id, int value) {
@@ -116,7 +116,7 @@ public class EntityMetadata {
         return this.put(new StringEntityData(id, value));
     }
 
-    public Map<Integer, EntityData> getMap() {
+    public Map<Integer, EntityData<?>> getMap() {
         return new HashMap<>(map);
     }
 
