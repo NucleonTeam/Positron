@@ -9,10 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @Log4j2
 public class EntityMetadata {
 
@@ -76,7 +72,7 @@ public class EntityMetadata {
     }
 
     public Vector3 getPosition(int id) {
-        return (Vector3) this.getOrDefault(id, new IntPositionEntityData(id, new Vector3())).getData();
+        return (Vector3) this.getOrDefault(id, new Vector3iEntityData(id, new Vector3())).getData();
     }
 
     public Vector3f getFloatPosition(int id) {

@@ -2,10 +2,6 @@ package cn.nukkit.entity.data;
 
 import cn.nukkit.entity.Entity;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class LongEntityData extends EntityData<Long> {
     public long data;
 

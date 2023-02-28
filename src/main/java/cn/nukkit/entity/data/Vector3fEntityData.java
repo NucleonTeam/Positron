@@ -3,10 +3,6 @@ package cn.nukkit.entity.data;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.math.Vector3f;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Vector3fEntityData extends EntityData<Vector3f> {
     public float x;
     public float y;

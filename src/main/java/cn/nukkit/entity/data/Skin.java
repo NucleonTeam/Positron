@@ -15,10 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @ToString(exclude = {"geometryData", "animationData"})
 public class Skin {
     private static final int PIXEL_SIZE = 4;

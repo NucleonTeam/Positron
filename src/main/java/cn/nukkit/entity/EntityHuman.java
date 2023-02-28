@@ -1,7 +1,7 @@
 package cn.nukkit.entity;
 
 import cn.nukkit.Player;
-import cn.nukkit.entity.data.IntPositionEntityData;
+import cn.nukkit.entity.data.Vector3iEntityData;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -93,7 +93,7 @@ public class EntityHuman extends EntityHumanType {
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY);
 
-        this.setDataProperty(new IntPositionEntityData(DATA_PLAYER_BED_POSITION, 0, 0, 0), false);
+        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, 0, 0, 0), false);
 
         if (!(this instanceof Player)) {
             if (this.namedTag.contains("NameTag")) {

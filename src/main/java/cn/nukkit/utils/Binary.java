@@ -134,7 +134,7 @@ public class Binary {
                     }
                     break;
                 case Entity.DATA_TYPE_POS:
-                    IntPositionEntityData pos = (IntPositionEntityData) d;
+                    Vector3iEntityData pos = (Vector3iEntityData) d;
                     stream.putVarInt(pos.x);
                     stream.putVarInt(pos.y);
                     stream.putVarInt(pos.z);
@@ -191,7 +191,7 @@ public class Binary {
                     break;
                 case Entity.DATA_TYPE_POS:
                     BlockVector3 v3 = stream.getSignedBlockPosition();
-                    value = new IntPositionEntityData(key, v3.x, v3.y, v3.z);
+                    value = new Vector3iEntityData(key, v3.x, v3.y, v3.z);
                     break;
                 case Entity.DATA_TYPE_LONG:
                     value = new LongEntityData(key, stream.getVarLong());

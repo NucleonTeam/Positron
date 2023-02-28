@@ -917,7 +917,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.sleeping = pos.clone();
         this.teleport(new Location(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, this.yaw, this.pitch, this.level), null);
 
-        this.setDataProperty(new IntPositionEntityData(DATA_PLAYER_BED_POSITION, (int) pos.x, (int) pos.y, (int) pos.z));
+        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, (int) pos.x, (int) pos.y, (int) pos.z));
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, true);
 
         this.setSpawn(pos);
@@ -950,7 +950,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.level.getBlock(this.sleeping)));
 
             this.sleeping = null;
-            this.setDataProperty(new IntPositionEntityData(DATA_PLAYER_BED_POSITION, 0, 0, 0));
+            this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, 0, 0, 0));
             this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
 
 
