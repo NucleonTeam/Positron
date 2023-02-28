@@ -1,7 +1,6 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.item.*;
 import cn.nukkit.item.RuntimeItemMapping.LegacyEntry;
@@ -22,6 +21,8 @@ import cn.nukkit.network.protocol.types.EntityLink;
 import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import ru.mc_positron.entity.attribute.Attribute;
+import ru.mc_positron.registry.Registry;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -220,41 +221,35 @@ public class BinaryStream {
         this.put(new byte[]{b});
     }
 
-    /**
-     * Reads a list of Attributes from the stream.
-     *
-     * @return Attribute[]
-     */
-    public Attribute[] getAttributeList() throws Exception {
-        List<Attribute> list = new ArrayList<>();
+    public Attribute.Entry[] getAttributeList() {
+        List<Attribute.Entry> list = new ArrayList<>();
         long count = this.getUnsignedVarInt();
 
         for (int i = 0; i < count; ++i) {
-            String name = this.getString();
-            Attribute attr = Attribute.getAttributeByName(name);
-            if (attr != null) {
-                attr.setMinValue(this.getLFloat());
-                attr.setValue(this.getLFloat());
-                attr.setMaxValue(this.getLFloat());
-                list.add(attr);
-            } else {
-                throw new Exception("Unknown attribute type \"" + name + "\"");
-            }
+            var identifier = getString();
+            var attribute = Registry.entities().getAttributeByIdentifier(identifier);
+            var entry = new Attribute.Entry(attribute);
+
+            getLFloat(); // reading min value
+            entry.setValue(getLFloat());
+            getLFloat(); // reading max value
+
+            list.add(entry);
         }
 
-        return list.toArray(new Attribute[0]);
+        return list.toArray(new Attribute.Entry[0]);
     }
 
-    /**
-     * Writes a list of Attributes to the packet buffer using the standard format.
-     */
-    public void putAttributeList(Attribute[] attributes) {
+    public void putAttributeList(Attribute.Entry[] attributes) {
         this.putUnsignedVarInt(attributes.length);
-        for (Attribute attribute : attributes) {
-            this.putString(attribute.getName());
-            this.putLFloat(attribute.getMinValue());
-            this.putLFloat(attribute.getValue());
-            this.putLFloat(attribute.getMaxValue());
+
+        for (var entry: attributes) {
+            var attribute = entry.getAttribute();
+
+            putString(attribute.getIdentifier());
+            putLFloat(attribute.getMinValue());
+            putLFloat(entry.getValue());
+            putLFloat(attribute.getMaxValue());
         }
     }
 

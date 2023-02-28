@@ -68,6 +68,8 @@ import lombok.extern.log4j.Log4j2;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.blockentity.BlockEntity;
 import ru.mc_positron.blockentity.SpawnableBlockEntityType;
+import ru.mc_positron.entity.attribute.Attribute;
+import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.ShortEntityData;
 import ru.mc_positron.entity.data.StringEntityData;
 import ru.mc_positron.entity.data.Vector3iEntityData;
@@ -1409,14 +1411,15 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     public void sendAttributes() {
         UpdateAttributesPacket pk = new UpdateAttributesPacket();
         pk.entityId = this.getId();
-        pk.entries = new Attribute[]{
-                Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0),
-                Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel()),
-                Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed()),
-                Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel()),
-                Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))
+        pk.entries = new Attribute.Entry[]{
+                Attributes.MAX_HEALTH.withValue(getMaxHealth()),
+                Attributes.HUNGER.withValue(getFoodData().getLevel()),
+                Attributes.MOVEMENT_SPEED.withValue(getMovementSpeed()),
+                Attributes.EXPERIENCE_LEVEL.withValue(getExperienceLevel()),
+                Attributes.EXPERIENCE.withValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))
         };
-        this.dataPacket(pk);
+
+        dataPacket(pk);
     }
 
     @Override
@@ -3828,26 +3831,35 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         super.setHealth(health);
         //TODO: Remove it in future! This a hack to solve the client-side absorption bug! WFT Mojang (Half a yellow heart cannot be shown, we can test it in local gaming)
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
-        if (this.spawned) {
-            UpdateAttributesPacket pk = new UpdateAttributesPacket();
-            pk.entries = new Attribute[]{attr};
-            pk.entityId = this.id;
-            this.dataPacket(pk);
-        }
+        var attribute = Attributes.MAX_HEALTH.withValue(
+                health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0,
+                getAbsorption() % 2 != 0 ? getMaxHealth() + 1 : getMaxHealth()
+        );
+
+        if (!spawned) return;
+
+        var pk = new UpdateAttributesPacket();
+        pk.entries = new Attribute.Entry[]{ attribute };
+        pk.entityId = id;
+        dataPacket(pk);
+
     }
 
     @Override
     public void setMaxHealth(int maxHealth) {
         super.setMaxHealth(maxHealth);
 
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
-        if (this.spawned) {
-            UpdateAttributesPacket pk = new UpdateAttributesPacket();
-            pk.entries = new Attribute[]{attr};
-            pk.entityId = this.id;
-            this.dataPacket(pk);
-        }
+        if (!spawned) return;
+
+        var attribute = Attributes.MAX_HEALTH.withValue(
+                health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0,
+                getAbsorption() % 2 != 0 ? getMaxHealth() + 1 : getMaxHealth()
+        );
+
+        var pk = new UpdateAttributesPacket();
+        pk.entries = new Attribute.Entry[]{ attribute };
+        pk.entityId = id;
+        dataPacket(pk);
     }
 
     public int getExperience() {
@@ -3908,11 +3920,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public void sendExperience(int exp) {
-        if (this.spawned) {
-            float percent = ((float) exp) / calculateRequireExperience(this.getExperienceLevel());
-            percent = Math.max(0f, Math.min(1f, percent));
-            this.setAttribute(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(percent));
-        }
+        if (!spawned) return;
+
+        float percent = ((float) exp) / calculateRequireExperience(this.getExperienceLevel());
+        percent = Math.max(0f, Math.min(1f, percent));
+
+        setAttribute(Attributes.EXPERIENCE, percent);
     }
 
     public void sendExperienceLevel() {
@@ -3920,16 +3933,17 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public void sendExperienceLevel(int level) {
-        if (this.spawned) {
-            this.setAttribute(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(level));
-        }
+        if (!spawned) return;
+
+        setAttribute(Attributes.EXPERIENCE_LEVEL, level);
     }
 
-    public void setAttribute(Attribute attribute) {
-        UpdateAttributesPacket pk = new UpdateAttributesPacket();
-        pk.entries = new Attribute[]{attribute};
-        pk.entityId = this.id;
-        this.dataPacket(pk);
+    public void setAttribute(Attribute attribute, float value) {
+        var pk = new UpdateAttributesPacket();
+        pk.entries = new Attribute.Entry[]{ new Attribute.Entry(attribute, value) };
+        pk.entityId = id;
+
+        dataPacket(pk);
     }
 
     @Override
@@ -3945,8 +3959,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public void sendMovementSpeed(float speed){
-        Attribute attribute = Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(speed);
-        this.setAttribute(attribute);
+        setAttribute(Attributes.MOVEMENT_SPEED, speed);
     }
 
     public Entity getKiller() {

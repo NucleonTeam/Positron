@@ -1,11 +1,12 @@
 package cn.nukkit;
 
-import cn.nukkit.entity.Attribute;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityRegainHealthEvent;
 import cn.nukkit.event.player.PlayerFoodLevelChangeEvent;
 import cn.nukkit.potion.Effect;
+import ru.mc_positron.entity.attribute.Attribute;
+import ru.mc_positron.entity.attribute.Attributes;
 
 public class PlayerFood {
 
@@ -121,8 +122,8 @@ public class PlayerFood {
     }
 
     public void sendFoodLevel(int foodLevel) {
-        if (this.getPlayer().spawned) {
-            this.getPlayer().setAttribute(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(foodLevel));
+        if (getPlayer().spawned) {
+            getPlayer().setAttribute(Attributes.HUNGER, foodLevel);
         }
     }
 

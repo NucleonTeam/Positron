@@ -25,7 +25,7 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
-import org.spongepowered.math.vector.Vector3d;
+import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.*;
 import ru.mc_positron.math.FastMath;
 
@@ -343,16 +343,10 @@ public abstract class Entity extends Location implements Metadatable {
     public double lastYaw;
     public double lastHeadYaw;
 
-    public double pitchDelta;
-    public double yawDelta;
-    public double headYawDelta;
-
     public double entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
     public AxisAlignedBB boundingBox;
     public boolean onGround;
-    public boolean inBlock = false;
-    public boolean positionChanged;
-    public boolean motionChanged;
+
     public int deadTicks = 0;
     protected int age = 0;
 
@@ -1629,7 +1623,7 @@ public abstract class Entity extends Location implements Metadatable {
         if (absorption != this.absorption) {
             this.absorption = absorption;
             if (this instanceof Player)
-                ((Player) this).setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
+                ((Player) this).setAttribute(Attributes.ABSORPTION, absorption);
         }
     }
 

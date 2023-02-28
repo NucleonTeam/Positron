@@ -1,12 +1,12 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.item.*;
 import cn.nukkit.entity.weather.EntityLightning;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.utils.Binary;
 import com.google.common.collect.ImmutableMap;
 import lombok.ToString;
+import ru.mc_positron.entity.attribute.Attribute;
 import ru.mc_positron.entity.data.EntityMetadata;
 
 /**
@@ -66,7 +66,7 @@ public class AddEntityPacket extends DataPacket {
     public float headYaw;
     public float bodyYaw = -1;
     public EntityMetadata metadata = new EntityMetadata();
-    public Attribute[] attributes = new Attribute[0];
+    public Attribute.Entry[] attributes = new Attribute.Entry[0];
     public EntityLink[] links = new EntityLink[0];
 
     @Override

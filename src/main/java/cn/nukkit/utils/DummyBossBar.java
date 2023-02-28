@@ -1,9 +1,10 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.Player;
-import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.network.protocol.*;
+import ru.mc_positron.entity.attribute.Attribute;
+import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.EntityMetadata;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -125,13 +126,14 @@ public class DummyBossBar {
     }
 
     private void sendAttributes() {
-        UpdateAttributesPacket pkAttributes = new UpdateAttributesPacket();
-        pkAttributes.entityId = bossBarId;
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH);
-        attr.setMaxValue(100); // Max value - We need to change the max value first, or else the "setValue" will return a IllegalArgumentException
-        attr.setValue(length); // Entity health
-        pkAttributes.entries = new Attribute[]{attr};
-        player.dataPacket(pkAttributes);
+        var pk = new UpdateAttributesPacket();
+        pk.entityId = bossBarId;
+
+        var attribute = Attributes.MAX_HEALTH;
+        var entry = new Attribute.Entry(attribute.with(1f, 100f, 100f));
+
+        pk.entries = new Attribute.Entry[]{ entry };
+        player.dataPacket(pk);
     }
 
     private void sendShowBossBar() {

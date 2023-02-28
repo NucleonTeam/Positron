@@ -1,17 +1,14 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.entity.Attribute;
 import lombok.ToString;
+import ru.mc_positron.entity.attribute.Attribute;
 
-/**
- * @author Nukkit Project Team
- */
 @ToString
 public class UpdateAttributesPacket extends DataPacket {
 
     public static final byte NETWORK_ID = ProtocolInfo.UPDATE_ATTRIBUTES_PACKET;
 
-    public Attribute[] entries;
+    public Attribute.Entry[] entries;
     public long entityId;
     public long frame;
 
@@ -25,24 +22,26 @@ public class UpdateAttributesPacket extends DataPacket {
     }
 
     public void encode() {
-        this.reset();
+        reset();
 
-        this.putEntityRuntimeId(this.entityId);
+        putEntityRuntimeId(entityId);
 
-        if (this.entries == null) {
-            this.putUnsignedVarInt(0);
+        if (entries == null) {
+            putUnsignedVarInt(0);
         } else {
-            this.putUnsignedVarInt(this.entries.length);
-            for (Attribute entry : this.entries) {
-                this.putLFloat(entry.getMinValue());
-                this.putLFloat(entry.getMaxValue());
-                this.putLFloat(entry.getValue());
-                this.putLFloat(entry.getDefaultValue());
-                this.putString(entry.getName());
-                this.putUnsignedVarInt(0); // Modifiers
+            putUnsignedVarInt(entries.length);
+            for (var entry: entries) {
+                var attribute = entry.getAttribute();
+
+                putLFloat(attribute.getMinValue());
+                putLFloat(attribute.getMaxValue());
+                putLFloat(entry.getValue());
+                putLFloat(attribute.getDefaultValue());
+                putString(attribute.getIdentifier());
+                putUnsignedVarInt(0); // Modifiers
             }
         }
-        this.putUnsignedVarInt(this.frame);
-    }
 
+        putUnsignedVarInt(frame);
+    }
 }

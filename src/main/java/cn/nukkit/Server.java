@@ -2,7 +2,6 @@ package cn.nukkit;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.console.NukkitConsole;
-import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.entity.data.Skin;
@@ -433,7 +432,6 @@ public class Server {
         EnumBiome.values(); //load class, this also registers biomes
         Effect.init();
         Potion.init();
-        Attribute.init();
         GlobalBlockPalette.getOrCreateRuntimeId(0, 0); //Force it to load
 
         // Convert legacy data before plugins get the chance to mess with it.
