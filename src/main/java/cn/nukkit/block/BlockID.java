@@ -7,5 +7,4 @@ public interface BlockID {
     int BEDROCK = 7;
 
     int INFO_UPDATE = 248;
-    int INFO_UPDATE2 = 249;
 }
