@@ -33,10 +33,8 @@ import cn.nukkit.level.particle.DestroyBlockParticle;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.math.*;
 import org.spongepowered.math.vector.Vector2d;
-import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
-import ru.mc_positron.math.BlockFace.Plane;
 import cn.nukkit.metadata.BlockMetadataStore;
 import cn.nukkit.metadata.MetadataValue;
 import cn.nukkit.metadata.Metadatable;
@@ -65,9 +63,6 @@ import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * author: MagicDroidX Nukkit Project
- */
 public class Level implements ChunkManager, Metadatable {
 
     @Getter private final UUID uuid = UUID.randomUUID();
@@ -194,7 +189,7 @@ public class Level implements ChunkManager, Metadatable {
         public Generator initialValue() {
             try {
                 Generator generator = generatorClass.getConstructor(Map.class).newInstance(provider.getGeneratorOptions());
-                NukkitRandom rand = new NukkitRandom(getSeed());
+                var rand = new Random(getSeed());
                 ChunkManager manager;
                 if (Server.getInstance().isPrimaryThread()) {
                     generator.init(Level.this, rand);

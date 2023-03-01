@@ -3,18 +3,16 @@ package cn.nukkit.level.generator.populator.type;
 import cn.nukkit.level.ChunkManager;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.level.generator.populator.helper.PopulatorHelpers;
-import cn.nukkit.math.NukkitRandom;
 
-/**
- * @author DaPorkchop_
- *
- * A populator that populates a single block type.
- */
+import java.util.Random;
+
+
 public abstract class PopulatorSurfaceBlock extends PopulatorCount {
+
     @Override
-    protected void populateCount(ChunkManager level, int chunkX, int chunkZ, NukkitRandom random, FullChunk chunk) {
-        int x = random.nextBoundedInt(16);
-        int z = random.nextBoundedInt(16);
+    protected void populateCount(ChunkManager level, int chunkX, int chunkZ, Random random, FullChunk chunk) {
+        int x = random.nextInt(16);
+        int z = random.nextInt(16);
         int y = getHighestWorkableBlock(level, x, z, chunk);
         if (y > 0 && canStay(x, y, z, chunk)) {
             placeBlock(x, y, z, getBlockId(x, z, random, chunk), chunk, random);
@@ -23,7 +21,7 @@ public abstract class PopulatorSurfaceBlock extends PopulatorCount {
 
     protected abstract boolean canStay(int x, int y, int z, FullChunk chunk);
 
-    protected abstract int getBlockId(int x, int z, NukkitRandom random, FullChunk chunk);
+    protected abstract int getBlockId(int x, int z, Random random, FullChunk chunk);
 
     @Override
     protected int getHighestWorkableBlock(ChunkManager level, int x, int z, FullChunk chunk) {
@@ -38,7 +36,7 @@ public abstract class PopulatorSurfaceBlock extends PopulatorCount {
         return y == 0 ? -1 : ++y;
     }
 
-    protected void placeBlock(int x, int y, int z, int id, FullChunk chunk, NukkitRandom random) {
+    protected void placeBlock(int x, int y, int z, int id, FullChunk chunk, Random random) {
         chunk.setFullBlockId(x, y, z, id);
     }
 }
