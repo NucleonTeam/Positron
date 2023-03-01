@@ -15,6 +15,7 @@ import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
 import org.spongepowered.math.vector.Vector3d;
+import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.math.FastMath;
 
 /**
@@ -104,7 +105,7 @@ public class EntityItem extends Entity {
         }
 
         this.item = NBTIO.getItemHelper(this.namedTag.getCompound("Item"));
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY, true);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.GRAVITY, true);
 
         int id = this.item.getId();
 

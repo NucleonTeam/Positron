@@ -9,6 +9,7 @@ import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.IntEntityData;
 
 public class EntityFallingBlock extends Entity {
@@ -80,7 +81,7 @@ public class EntityFallingBlock extends Entity {
         }
 
         this.fireProof = true;
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_FIRE_IMMUNE, true);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.FIRE_IMMUNE, true);
 
         setDataProperty(new IntEntityData(DATA_VARIANT, GlobalBlockPalette.getOrCreateRuntimeId(this.getBlock(), this.getDamage())));
     }

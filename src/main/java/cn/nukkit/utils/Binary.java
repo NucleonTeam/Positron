@@ -119,16 +119,16 @@ public class Binary {
 
         for (int i = 0; i < count; i++) {
             int key = (int) stream.getUnsignedVarInt();
-            int type = (int) stream.getUnsignedVarInt();
+            int typeId = (int) stream.getUnsignedVarInt();
             EntityData<?> value = null;
 
-            switch (type) {
-                case Entity.DATA_TYPE_BYTE -> value = new ByteEntityData(key, stream.getByte());
-                case Entity.DATA_TYPE_SHORT -> value = new ShortEntityData(key, stream.getLShort());
-                case Entity.DATA_TYPE_INT -> value = new IntEntityData(key, stream.getVarInt());
-                case Entity.DATA_TYPE_FLOAT -> value = new FloatEntityData(key, stream.getLFloat());
-                case Entity.DATA_TYPE_STRING -> value = new StringEntityData(key, stream.getString());
-                case Entity.DATA_TYPE_NBT -> {
+            switch (EntityData.Type.of(typeId)) {
+                case BYTE -> value = new ByteEntityData(key, stream.getByte());
+                case SHORT -> value = new ShortEntityData(key, stream.getLShort());
+                case INT -> value = new IntEntityData(key, stream.getVarInt());
+                case FLOAT -> value = new FloatEntityData(key, stream.getLFloat());
+                case STRING -> value = new StringEntityData(key, stream.getString());
+                case NBT -> {
                     int offset = stream.getOffset();
                     FastByteArrayInputStream fbais = new FastByteArrayInputStream(stream.get());
                     try {
@@ -139,11 +139,9 @@ public class Binary {
                     }
                     stream.setOffset(offset + (int) fbais.position());
                 }
-                case Entity.DATA_TYPE_POS -> {
-                    value = new Vector3iEntityData(key, stream.getSignedBlockPosition());
-                }
-                case Entity.DATA_TYPE_LONG -> value = new LongEntityData(key, stream.getVarLong());
-                case Entity.DATA_TYPE_VECTOR3F -> {
+                case POS -> value = new Vector3iEntityData(key, stream.getSignedBlockPosition());
+                case LONG -> value = new LongEntityData(key, stream.getVarLong());
+                case VECTOR -> {
                     var v3 = stream.getVector3f();
                     value = new Vector3fEntityData(key, new Vector3f(v3.x, v3.y, v3.z));
                 }

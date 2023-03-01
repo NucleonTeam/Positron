@@ -9,6 +9,7 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.utils.SerializedImage;
 import com.google.common.base.Strings;
+import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.EntityMetadata;
 
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class FloatingTextParticle extends Particle {
         this.level = level;
 
         long flags = (
-                1L << Entity.DATA_FLAG_NO_AI
+                1L << EntityFlags.NO_AI
         );
         metadata.putLong(Entity.DATA_FLAGS, flags)
                 .putLong(Entity.DATA_LEAD_HOLDER_EID,-1)

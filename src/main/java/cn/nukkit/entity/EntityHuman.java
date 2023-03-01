@@ -12,6 +12,7 @@ import cn.nukkit.network.protocol.SetEntityLinkPacket;
 import cn.nukkit.utils.*;
 import lombok.Getter;
 import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.Vector3iEntityData;
 
 import java.nio.charset.StandardCharsets;
@@ -92,7 +93,7 @@ public class EntityHuman extends EntityHumanType {
     @Override
     protected void initEntity() {
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.GRAVITY);
 
         this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO), false);
 

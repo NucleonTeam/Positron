@@ -27,6 +27,7 @@ import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
 import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.*;
 import ru.mc_positron.math.BlockFace;
@@ -43,16 +44,6 @@ public abstract class Entity extends Location implements Metadatable {
     public static final int NETWORK_ID = -1;
 
     public abstract int getNetworkId();
-
-    public static final int DATA_TYPE_BYTE = 0;
-    public static final int DATA_TYPE_SHORT = 1;
-    public static final int DATA_TYPE_INT = 2;
-    public static final int DATA_TYPE_FLOAT = 3;
-    public static final int DATA_TYPE_STRING = 4;
-    public static final int DATA_TYPE_NBT = 5;
-    public static final int DATA_TYPE_POS = 6;
-    public static final int DATA_TYPE_LONG = 7;
-    public static final int DATA_TYPE_VECTOR3F = 8;
 
     public static final int DATA_FLAGS = 0;
     public static final int DATA_HEALTH = 1; //int (minecart/boat)
@@ -185,116 +176,7 @@ public abstract class Entity extends Location implements Metadatable {
     public static final int DATA_PLAYER_HAS_DIED = 129;
 
     // Flags
-    public static final int DATA_FLAG_ONFIRE = 0;
-    public static final int DATA_FLAG_SNEAKING = 1;
-    public static final int DATA_FLAG_RIDING = 2;
-    public static final int DATA_FLAG_SPRINTING = 3;
-    public static final int DATA_FLAG_ACTION = 4;
-    public static final int DATA_FLAG_INVISIBLE = 5;
-    public static final int DATA_FLAG_TEMPTED = 6;
-    public static final int DATA_FLAG_INLOVE = 7;
-    public static final int DATA_FLAG_SADDLED = 8;
-    public static final int DATA_FLAG_POWERED = 9;
-    public static final int DATA_FLAG_IGNITED = 10;
-    public static final int DATA_FLAG_BABY = 11; //disable head scaling
-    public static final int DATA_FLAG_CONVERTING = 12;
-    public static final int DATA_FLAG_CRITICAL = 13;
-    public static final int DATA_FLAG_CAN_SHOW_NAMETAG = 14;
-    public static final int DATA_FLAG_ALWAYS_SHOW_NAMETAG = 15;
-    public static final int DATA_FLAG_IMMOBILE = 16, DATA_FLAG_NO_AI = 16;
-    public static final int DATA_FLAG_SILENT = 17;
-    public static final int DATA_FLAG_WALLCLIMBING = 18;
-    public static final int DATA_FLAG_CAN_CLIMB = 19;
-    public static final int DATA_FLAG_SWIMMER = 20;
-    public static final int DATA_FLAG_CAN_FLY = 21;
-    public static final int DATA_FLAG_WALKER = 22;
-    public static final int DATA_FLAG_RESTING = 23;
-    public static final int DATA_FLAG_SITTING = 24;
-    public static final int DATA_FLAG_ANGRY = 25;
-    public static final int DATA_FLAG_INTERESTED = 26;
-    public static final int DATA_FLAG_CHARGED = 27;
-    public static final int DATA_FLAG_TAMED = 28;
-    public static final int DATA_FLAG_ORPHANED = 29;
-    public static final int DATA_FLAG_LEASHED = 30;
-    public static final int DATA_FLAG_SHEARED = 31;
-    public static final int DATA_FLAG_GLIDING = 32;
-    public static final int DATA_FLAG_ELDER = 33;
-    public static final int DATA_FLAG_MOVING = 34;
-    public static final int DATA_FLAG_BREATHING = 35;
-    public static final int DATA_FLAG_CHESTED = 36;
-    public static final int DATA_FLAG_STACKABLE = 37;
-    public static final int DATA_FLAG_SHOWBASE = 38;
-    public static final int DATA_FLAG_REARING = 39;
-    public static final int DATA_FLAG_VIBRATING = 40;
-    public static final int DATA_FLAG_IDLING = 41;
-    public static final int DATA_FLAG_EVOKER_SPELL = 42;
-    public static final int DATA_FLAG_CHARGE_ATTACK = 43;
-    public static final int DATA_FLAG_WASD_CONTROLLED = 44;
-    public static final int DATA_FLAG_CAN_POWER_JUMP = 45;
-    public static final int DATA_FLAG_CAN_DASH = 46;
-    public static final int DATA_FLAG_LINGER = 47;
-    public static final int DATA_FLAG_HAS_COLLISION = 48;
-    public static final int DATA_FLAG_GRAVITY = 49;
-    public static final int DATA_FLAG_FIRE_IMMUNE = 50;
-    public static final int DATA_FLAG_DANCING = 51;
-    public static final int DATA_FLAG_ENCHANTED = 52;
-    public static final int DATA_FLAG_SHOW_TRIDENT_ROPE = 53; // tridents show an animated rope when enchanted with loyalty after they are thrown and return to their owner. To be combined with DATA_OWNER_EID
-    public static final int DATA_FLAG_CONTAINER_PRIVATE = 54; //inventory is private, doesn't drop contents when killed if true
-    public static final int DATA_FLAG_IS_TRANSFORMING = 55;
-    public static final int DATA_FLAG_SPIN_ATTACK = 56;
-    public static final int DATA_FLAG_SWIMMING = 57;
-    public static final int DATA_FLAG_BRIBED = 58; //dolphins have this set when they go to find treasure for the player
-    public static final int DATA_FLAG_PREGNANT = 59;
-    public static final int DATA_FLAG_LAYING_EGG = 60;
-    public static final int DATA_FLAG_RIDER_CAN_PICK = 61;
-    public static final int DATA_FLAG_TRANSITION_SETTING = 62;
-    public static final int DATA_FLAG_EATING = 63;
-    public static final int DATA_FLAG_LAYING_DOWN = 64;
-    public static final int DATA_FLAG_SNEEZING = 65;
-    public static final int DATA_FLAG_TRUSTING = 66;
-    public static final int DATA_FLAG_ROLLING = 67;
-    public static final int DATA_FLAG_SCARED = 68;
-    public static final int DATA_FLAG_IN_SCAFFOLDING = 69;
-    public static final int DATA_FLAG_OVER_SCAFFOLDING = 70;
-    public static final int DATA_FLAG_FALL_THROUGH_SCAFFOLDING = 71;
-    public static final int DATA_FLAG_BLOCKING = 72;
-    public static final int DATA_FLAG_TRANSITION_BLOCKING = 73;
-    public static final int DATA_FLAG_BLOCKED_USING_SHIELD = 74;
-    public static final int DATA_FLAG_BLOCKED_USING_DAMAGED_SHIELD = 75;
-    public static final int DATA_FLAG_SLEEPING = 76;
-    public static final int DATA_FLAG_ENTITY_GROW_UP = 77;
-    public static final int DATA_FLAG_TRADE_INTEREST = 78;
-    public static final int DATA_FLAG_DOOR_BREAKER = 79;
-    public static final int DATA_FLAG_BREAKING_OBSTRUCTION = 80;
-    public static final int DATA_FLAG_DOOR_OPENER = 81;
-    public static final int DATA_FLAG_IS_ILLAGER_CAPTAIN = 82;
-    public static final int DATA_FLAG_STUNNED = 83;
-    public static final int DATA_FLAG_ROARING = 84;
-    public static final int DATA_FLAG_DELAYED_ATTACK = 85;
-    public static final int DATA_FLAG_IS_AVOIDING_MOBS = 86;
-    public static final int DATA_FLAG_IS_AVOIDING_BLOCKS = 87;
-    public static final int DATA_FLAG_FACING_TARGET_TO_RANGE_ATTACK = 88;
-    public static final int DATA_FLAG_HIDDEN_WHEN_INVISIBLE = 89;
-    public static final int DATA_FLAG_IS_IN_UI = 90;
-    public static final int DATA_FLAG_STALKING = 91;
-    public static final int DATA_FLAG_EMOTING = 92;
-    public static final int DATA_FLAG_CELEBRATING = 93;
-    public static final int DATA_FLAG_ADMIRING = 94;
-    public static final int DATA_FLAG_CELEBRATING_SPECIAL = 95;
-    public static final int DATA_FLAG_OUT_OF_CONTROL = 96;
-    public static final int DATA_FLAG_RAM_ATTACK = 97;
-    public static final int DATA_FLAG_PLAYING_DEAD = 98;
-    public static final int DATA_FLAG_IN_ASCENDABLE_BLOCK = 99;
-    public static final int DATA_FLAG_OVER_DESCENDABLE_BLOCK = 100;
-    public static final int DATA_FLAG_CROAKING = 101;
-    public static final int DATA_FLAG_EAT_MOB = 102;
-    public static final int DATA_FLAG_JUMP_GOAL_JUMP = 103;
-    public static final int DATA_FLAG_EMERGING = 104;
-    public static final int DATA_FLAG_SNIFFING = 105;
-    public static final int DATA_FLAG_DIGGING = 106;
-    public static final int DATA_FLAG_SONIC_BOOM = 107;
-    public static final int DATA_FLAG_HAS_DASH_COOLDOWN = 108;
-    public static final int DATA_FLAG_PUSH_TOWARDS_CLOSEST_SPACE = 109;
+
 
     public static long entityCount = 1;
 
@@ -462,7 +344,7 @@ public abstract class Entity extends Location implements Metadatable {
             }
         }
 
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, true);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, true);
         this.dataProperties.putFloat(DATA_BOUNDING_BOX_HEIGHT, this.getHeight());
         this.dataProperties.putFloat(DATA_BOUNDING_BOX_WIDTH, this.getWidth());
         this.dataProperties.putInt(DATA_HEALTH, (int) this.getHealth());
@@ -564,7 +446,7 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public boolean isNameTagVisible() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_CAN_SHOW_NAMETAG);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.CAN_SHOW_NAMETAG);
     }
 
     public boolean isNameTagAlwaysVisible() {
@@ -580,7 +462,7 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setNameTagVisible(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_SHOW_NAMETAG, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.CAN_SHOW_NAMETAG, value);
     }
 
     public void setNameTagAlwaysVisible() {
@@ -600,7 +482,7 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public boolean isSneaking() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_SNEAKING);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.SNEAKING);
     }
 
     public void setSneaking() {
@@ -608,11 +490,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setSneaking(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_SNEAKING, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.SNEAKING, value);
     }
 
     public boolean isSwimming() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_SWIMMING);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.SWIMMING);
     }
 
     public void setSwimming() {
@@ -620,11 +502,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setSwimming(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_SWIMMING, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.SWIMMING, value);
     }
 
     public boolean isSprinting() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_SPRINTING);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.SPRINTING);
     }
 
     public void setSprinting() {
@@ -632,11 +514,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setSprinting(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_SPRINTING, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.SPRINTING, value);
     }
 
     public boolean isGliding() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_GLIDING);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.GLIDING);
     }
 
     public void setGliding() {
@@ -644,11 +526,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setGliding(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_GLIDING, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.GLIDING, value);
     }
 
     public boolean isImmobile() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_IMMOBILE);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.IMMOBILE);
     }
 
     public void setImmobile() {
@@ -656,11 +538,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setImmobile(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_IMMOBILE, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.IMMOBILE, value);
     }
 
     public boolean canClimb() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_CAN_CLIMB);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.CAN_CLIMB);
     }
 
     public void setCanClimb() {
@@ -668,11 +550,11 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setCanClimb(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_CLIMB, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.CAN_CLIMB, value);
     }
 
     public boolean canClimbWalls() {
-        return this.getDataFlag(DATA_FLAGS, DATA_FLAG_WALLCLIMBING);
+        return this.getDataFlag(DATA_FLAGS, EntityFlags.WALLCLIMBING);
     }
 
     public void setCanClimbWalls() {
@@ -680,7 +562,7 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public void setCanClimbWalls(boolean value) {
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_WALLCLIMBING, value);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.WALLCLIMBING, value);
     }
 
     public void setScale(float scale) {
@@ -1370,7 +1252,7 @@ public abstract class Entity extends Location implements Metadatable {
             if (this.fireTicks <= 0) {
                 this.extinguish();
             } else if (!this.fireProof && (!(this instanceof Player) || !((Player) this).isSpectator())) {
-                this.setDataFlag(DATA_FLAGS, DATA_FLAG_ONFIRE, true);
+                this.setDataFlag(DATA_FLAGS, EntityFlags.ONFIRE, true);
                 hasUpdate = true;
             }
         }
@@ -1522,7 +1404,7 @@ public abstract class Entity extends Location implements Metadatable {
 
         // Add variables to entity
         entity.riding = this;
-        entity.setDataFlag(DATA_FLAGS, DATA_FLAG_RIDING, true);
+        entity.setDataFlag(DATA_FLAGS, EntityFlags.RIDING, true);
         passengers.add(entity);
 
         entity.setSeatPosition(getMountedOffset(entity));
@@ -1554,7 +1436,7 @@ public abstract class Entity extends Location implements Metadatable {
 
         // Refurbish the entity
         entity.riding = null;
-        entity.setDataFlag(DATA_FLAGS, DATA_FLAG_RIDING, false);
+        entity.setDataFlag(DATA_FLAGS, EntityFlags.RIDING, false);
         passengers.remove(entity);
 
         entity.setSeatPosition(new Vector3f());
@@ -1650,7 +1532,7 @@ public abstract class Entity extends Location implements Metadatable {
 
     public void extinguish() {
         this.fireTicks = 0;
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_ONFIRE, false);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.ONFIRE, false);
     }
 
     public boolean canTriggerWalking() {

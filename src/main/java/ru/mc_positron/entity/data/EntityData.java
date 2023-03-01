@@ -188,7 +188,8 @@ public abstract class EntityData<T> {
             for (Type type: values()) {
                 if (code == type.code) return type;
             }
-            return null;
+
+            throw new IllegalArgumentException();
         }
     }
 

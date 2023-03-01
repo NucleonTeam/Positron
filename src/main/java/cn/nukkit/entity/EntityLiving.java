@@ -19,6 +19,7 @@ import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.BlockIterator;
+import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.ShortEntityData;
 
 import java.util.ArrayList;
@@ -211,7 +212,7 @@ public abstract class EntityLiving extends Entity {
             }
         }
         
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_BREATHING, isBreathing);
+        this.setDataFlag(DATA_FLAGS, EntityFlags.BREATHING, isBreathing);
 
         boolean hasUpdate = super.entityBaseTick(tickDiff);
 
