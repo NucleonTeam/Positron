@@ -1,6 +1,6 @@
 package cn.nukkit.utils;
 
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 
 public interface Faceable {
 

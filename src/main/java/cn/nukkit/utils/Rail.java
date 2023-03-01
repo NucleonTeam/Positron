@@ -1,7 +1,7 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static cn.nukkit.math.BlockFace.*;
+import static ru.mc_positron.math.BlockFace.*;
 import static cn.nukkit.utils.Rail.Orientation.State.*;
 
 public final class Rail {

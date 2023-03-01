@@ -2,6 +2,7 @@ package cn.nukkit.math;
 
 import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
+import ru.mc_positron.math.BlockFace;
 
 /**
  * author: MagicDroidX

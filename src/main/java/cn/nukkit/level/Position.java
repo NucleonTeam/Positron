@@ -2,7 +2,7 @@ package cn.nukkit.level;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.LevelException;
 

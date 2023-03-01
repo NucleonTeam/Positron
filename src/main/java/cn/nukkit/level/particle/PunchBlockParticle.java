@@ -2,7 +2,7 @@ package cn.nukkit.level.particle;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.level.GlobalBlockPalette;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;

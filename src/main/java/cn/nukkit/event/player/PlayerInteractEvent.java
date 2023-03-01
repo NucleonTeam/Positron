@@ -6,7 +6,7 @@ import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 import cn.nukkit.math.Vector3;
 
 /**

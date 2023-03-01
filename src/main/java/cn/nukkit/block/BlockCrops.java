@@ -5,8 +5,7 @@ import cn.nukkit.Server;
 import cn.nukkit.event.block.BlockGrowEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
-import cn.nukkit.level.particle.BoneMealParticle;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;

@@ -27,6 +27,7 @@ import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.*;
+import ru.mc_positron.math.BlockFace;
 import ru.mc_positron.math.FastMath;
 
 import java.lang.reflect.Constructor;

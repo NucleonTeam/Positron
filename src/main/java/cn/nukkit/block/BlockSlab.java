@@ -3,7 +3,7 @@ package cn.nukkit.block;
 import cn.nukkit.Player;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemTool;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 
 public abstract class BlockSlab extends BlockTransparentMeta {
 

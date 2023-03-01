@@ -73,6 +73,7 @@ import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.ShortEntityData;
 import ru.mc_positron.entity.data.StringEntityData;
 import ru.mc_positron.entity.data.Vector3iEntityData;
+import ru.mc_positron.math.BlockFace;
 import ru.mc_positron.math.FastMath;
 import ru.mc_positron.network.packet.BlockEntityDataPacket;
 

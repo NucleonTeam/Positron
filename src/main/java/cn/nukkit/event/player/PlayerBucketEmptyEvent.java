@@ -4,7 +4,7 @@ import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.item.Item;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 
 public class PlayerBucketEmptyEvent extends PlayerBucketEvent {
 

@@ -5,7 +5,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.item.Item;
-import cn.nukkit.math.BlockFace;
+import ru.mc_positron.math.BlockFace;
 
 /**
  * author: MagicDroidX

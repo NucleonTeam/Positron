@@ -1,5 +1,7 @@
 package cn.nukkit.math;
 
+import ru.mc_positron.math.BlockFace;
+
 public class BlockVector3 implements Cloneable {
     public int x;
     public int y;
