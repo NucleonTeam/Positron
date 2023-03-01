@@ -51,15 +51,11 @@ public abstract class BlockButton extends BlockFlowable implements Faceable {
             return false;
         }
 
-        this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
-        this.setDamage(this.getDamage() ^ 0x08);
-        this.level.setBlock(this, this, true, false);
-        this.level.addLevelSoundEvent(this.add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_POWER_ON, GlobalBlockPalette.getOrCreateRuntimeId(this.getId(), this.getDamage()));
-        this.level.scheduleUpdate(this, 30);
-        Vector3 pos = getLocation();
-
-        level.updateAroundRedstone(pos, null);
-        level.updateAroundRedstone(pos.getSide(getFacing().getOpposite()), null);
+        level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
+        setDamage(getDamage() ^ 0x08);
+        level.setBlock(this, this, true, false);
+        level.addLevelSoundEvent(this.add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_POWER_ON, GlobalBlockPalette.getOrCreateRuntimeId(this.getId(), this.getDamage()));
+        level.scheduleUpdate(this, 30);
         return true;
     }
 

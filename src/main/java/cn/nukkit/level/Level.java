@@ -32,6 +32,8 @@ import cn.nukkit.level.generator.task.PopulationTask;
 import cn.nukkit.level.particle.DestroyBlockParticle;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.math.*;
+import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
 import ru.mc_positron.math.BlockFace.Plane;
 import cn.nukkit.metadata.BlockMetadataStore;
@@ -314,14 +316,6 @@ public class Level implements ChunkManager, Metadatable {
 
     public static int getHashZ(long hash) {
         return (int) hash;
-    }
-
-    public static Vector3 getBlockXYZ(BlockVector3 hash) {
-        return new Vector3(hash.x, hash.y, hash.z);
-    }
-
-    public static Chunk.Entry getChunkXZ(long hash) {
-        return new Chunk.Entry(getHashX(hash), getHashZ(hash));
     }
 
     public static int generateChunkLoaderId(ChunkLoader loader) {
@@ -1122,27 +1116,6 @@ public class Level implements ChunkManager, Metadatable {
         provider.saveChunks();
     }
 
-    public void updateAroundRedstone(Vector3 pos, BlockFace face) {
-        for (BlockFace side : BlockFace.values()) {
-            if (face != null && side == face) {
-                continue;
-            }
-
-            this.getBlock(pos.getSideVec(side)).onUpdate(BLOCK_UPDATE_REDSTONE);
-        }
-    }
-
-    public void updateComparatorOutputLevel(Vector3 v) {
-        for (BlockFace face : Plane.HORIZONTAL) {
-            Vector3 pos = v.getSideVec(face);
-
-            if (this.isChunkLoaded((int) pos.x >> 4, (int) pos.z >> 4)) {
-                Block block1 = this.getBlock(pos);
-
-            }
-        }
-    }
-
     public void updateAround(Vector3 pos) {
         updateAround((int) pos.x, (int) pos.y, (int) pos.z);
     }
@@ -1253,7 +1226,7 @@ public class Level implements ChunkManager, Metadatable {
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.getBlock(this.temporalVector.setComponents(x, y, z), false);
+                        Block block = this.getBlock(new Vector3i(x, y, z), false);
                         if (block != null && block.getId() != 0 && block.collidesWithBB(bb)) {
                             return new Block[]{block};
                         }
@@ -1264,7 +1237,7 @@ public class Level implements ChunkManager, Metadatable {
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.getBlock(this.temporalVector.setComponents(x, y, z), false);
+                        Block block = this.getBlock(new Vector3i(x, y, z), false);
                         if (block != null && block.getId() != 0 && block.collidesWithBB(bb)) {
                             collides.add(block);
                         }
@@ -1284,7 +1257,7 @@ public class Level implements ChunkManager, Metadatable {
             }
             bb = ((Block) pos).getBoundingBox();
         } else {
-            bb = this.getBlock(pos).getBoundingBox();
+            bb = this.getBlock(pos.asBlockVector3()).getBoundingBox();
         }
 
         return bb != null && bb.getAverageEdgeLength() >= 1;
@@ -1311,7 +1284,7 @@ public class Level implements ChunkManager, Metadatable {
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
-                    Block block = this.getBlock(this.temporalVector.setComponents(x, y, z), false);
+                    Block block = this.getBlock(new Vector3i(x, y, z), false);
                     if (!block.canPassThrough() && block.collidesWithBB(bb)) {
                         collides.add(block.getBoundingBox());
                     }
@@ -1341,7 +1314,7 @@ public class Level implements ChunkManager, Metadatable {
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
-                    Block block = this.getBlock(this.temporalVector.setComponents(x, y, z));
+                    Block block = this.getBlock(new Vector3i(x, y, z));
                     if (!block.canPassThrough() && block.collidesWithBB(bb)) {
                         return true;
                     }
@@ -1406,12 +1379,12 @@ public class Level implements ChunkManager, Metadatable {
         return this.getChunk(x >> 4, z >> 4, false).getFullBlock(x & 0x0f, y & 0xff, z & 0x0f);
     }
 
-    public synchronized Block getBlock(Vector3 pos) {
-        return this.getBlock(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ());
+    public synchronized Block getBlock(Vector3i pos) {
+        return this.getBlock(pos.x(), pos.y(), pos.z());
     }
 
-    public synchronized Block getBlock(Vector3 pos, boolean load) {
-        return this.getBlock(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ(), load);
+    public synchronized Block getBlock(Vector3i pos, boolean load) {
+        return this.getBlock(pos.x(), pos.y(), pos.z(), load);
     }
 
     public synchronized Block getBlock(int x, int y, int z) {
@@ -1765,23 +1738,23 @@ public class Level implements ChunkManager, Metadatable {
         return itemEntity;
     }
 
-    public Item useBreakOn(Vector3 vector) {
+    public Item useBreakOn(Vector3i vector) {
         return this.useBreakOn(vector, null);
     }
 
-    public Item useBreakOn(Vector3 vector, Item item) {
+    public Item useBreakOn(Vector3i vector, Item item) {
         return this.useBreakOn(vector, item, null);
     }
 
-    public Item useBreakOn(Vector3 vector, Item item, Player player) {
+    public Item useBreakOn(Vector3i vector, Item item, Player player) {
         return this.useBreakOn(vector, item, player, false);
     }
 
-    public Item useBreakOn(Vector3 vector, Item item, Player player, boolean createParticles) {
+    public Item useBreakOn(Vector3i vector, Item item, Player player, boolean createParticles) {
         return useBreakOn(vector, null, item, player, createParticles);
     }
 
-    public Item useBreakOn(Vector3 vector, BlockFace face, Item item, Player player, boolean createParticles) {
+    public Item useBreakOn(Vector3i vector, BlockFace face, Item item, Player player, boolean createParticles) {
         if (player != null && player.getGamemode() > 2) {
             return null;
         }
@@ -1875,8 +1848,6 @@ public class Level implements ChunkManager, Metadatable {
             drops = target.getDrops(item);
         }
 
-        Block above = this.getBlock(new Vector3(target.x, target.y + 1, target.z));
-
         if (createParticles) {
             Map<Integer, Player> players = this.getChunkPlayers((int) target.x >> 4, (int) target.z >> 4);
 
@@ -1888,11 +1859,9 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         // Close BlockEntity before we check onBreak
-        BlockEntity blockEntity = this.getBlockEntity(target);
+        var blockEntity = this.getBlockEntity(target.asBlockVector3());
         if (blockEntity != null) {
             blockEntity.destroy();
-
-            this.updateComparatorOutputLevel(target);
         }
 
         target.onBreak(item);
@@ -1905,13 +1874,13 @@ public class Level implements ChunkManager, Metadatable {
         if (this.gameRules.getBoolean(GameRule.DO_TILE_DROPS)) {
 
             if (!isSilkTouch && player != null && player.isSurvival() && dropExp > 0 && drops.length != 0) {
-                this.dropExpOrb(vector.add(0.5, 0.5, 0.5), dropExp);
+                this.dropExpOrb(new Vector3(vector.toDouble().add(0.5, 0.5, 0.5)), dropExp);
             }
 
             if (player == null || player.isSurvival()) {
                 for (Item drop : drops) {
                     if (drop.getCount() > 0) {
-                        this.dropItem(vector.add(0.5, 0.5, 0.5), drop);
+                        this.dropItem(new Vector3(vector.toDouble().add(0.5, 0.5, 0.5)), drop);
                     }
                 }
             }
@@ -1932,16 +1901,16 @@ public class Level implements ChunkManager, Metadatable {
         Random rand = ThreadLocalRandom.current();
     }
 
-    public Item useItemOn(Vector3 vector, Item item, BlockFace face, float fx, float fy, float fz) {
+    public Item useItemOn(Vector3i vector, Item item, BlockFace face, float fx, float fy, float fz) {
         return this.useItemOn(vector, item, face, fx, fy, fz, null);
     }
 
-    public Item useItemOn(Vector3 vector, Item item, BlockFace face, float fx, float fy, float fz, Player player) {
+    public Item useItemOn(Vector3i vector, Item item, BlockFace face, float fx, float fy, float fz, Player player) {
         return this.useItemOn(vector, item, face, fx, fy, fz, player, true);
     }
 
 
-    public Item useItemOn(Vector3 vector, Item item, BlockFace face, float fx, float fy, float fz, Player player, boolean playSound) {
+    public Item useItemOn(Vector3i vector, Item item, BlockFace face, float fx, float fy, float fz, Player player, boolean playSound) {
         Block target = this.getBlock(vector);
         Block block = target.getSide(face);
 
@@ -2197,11 +2166,11 @@ public class Level implements ChunkManager, Metadatable {
         return loaders;
     }
 
-    public BlockEntity getBlockEntity(Vector3 pos) {
-        FullChunk chunk = this.getChunk((int) pos.x >> 4, (int) pos.z >> 4, false);
+    public BlockEntity getBlockEntity(@NonNull Vector3i pos) {
+        var chunk = this.getChunk(pos.x() >> 4, pos.z() >> 4, false);
 
         if (chunk != null) {
-            return chunk.getTile((int) pos.x & 0x0f, (int) pos.y & 0xff, (int) pos.z & 0x0f);
+            return chunk.getTile(pos.x() & 0x0f, pos.y() & 0xff, pos.z() & 0x0f);
         }
 
         return null;
@@ -2448,7 +2417,7 @@ public class Level implements ChunkManager, Metadatable {
     public BlockColor getMapColorAt(int x, int z) {
         int y = getHighestBlockAt(x, z);
         while (y > 1) {
-            Block block = getBlock(new Vector3(x, y, z));
+            Block block = getBlock(new Vector3i(x, y, z));
             BlockColor blockColor = block.getColor();
             if (blockColor.getAlpha() == 0x00) {
                 y--;
@@ -3263,7 +3232,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public int getStrongPower(Vector3 pos, BlockFace direction) {
-        return this.getBlock(pos).getStrongPower(direction);
+        return this.getBlock(pos.asBlockVector3()).getStrongPower(direction);
     }
 
     public int getStrongPower(Vector3 pos) {
@@ -3317,7 +3286,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public int getRedstonePower(Vector3 pos, BlockFace face) {
-        Block block = this.getBlock(pos);
+        Block block = this.getBlock(pos.asBlockVector3());
         return block.isNormalBlock() ? this.getStrongPower(pos) : block.getWeakPower(face);
     }
 

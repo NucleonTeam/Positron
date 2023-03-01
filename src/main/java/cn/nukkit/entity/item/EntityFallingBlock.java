@@ -125,10 +125,8 @@ public class EntityFallingBlock extends Entity {
 
             if (onGround) {
                 close();
-                Block block = level.getBlock(pos);
+                Block block = level.getBlock(pos.asBlockVector3());
 
-                Vector3 floorPos = (new Vector3(x - 0.5, y, z - 0.5)).floor();
-                Block floorBlock = this.level.getBlock(floorPos);
                 EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
                 server.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {

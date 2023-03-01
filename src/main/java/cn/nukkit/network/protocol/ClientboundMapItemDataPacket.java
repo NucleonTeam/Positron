@@ -1,15 +1,12 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.BlockVector3;
 import cn.nukkit.utils.Utils;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3i;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-/**
- * Created by CreeperFace on 5.3.2017.
- */
 @ToString
 public class ClientboundMapItemDataPacket extends DataPacket {
 
@@ -27,7 +24,7 @@ public class ClientboundMapItemDataPacket extends DataPacket {
     public int offsetZ;
 
     public byte dimensionId;
-    public BlockVector3 origin = new BlockVector3();
+    public Vector3i origin = Vector3i.ZERO;
 
     public MapDecorator[] decorators = new MapDecorator[0];
     public MapTrackedObject[] trackedEntities = new MapTrackedObject[0];
@@ -65,10 +62,10 @@ public class ClientboundMapItemDataPacket extends DataPacket {
             update |= TEXTURE_UPDATE;
         }
 
-        this.putUnsignedVarInt(update);
-        this.putByte(this.dimensionId);
-        this.putBoolean(this.isLocked);
-        this.putBlockVector3(this.origin);
+        putUnsignedVarInt(update);
+        putByte(dimensionId);
+        putBoolean(isLocked);
+        putBlockVector3(origin);
 
         if ((update & ENTITIES_UPDATE) != 0) {
             this.putUnsignedVarInt(eids.length);

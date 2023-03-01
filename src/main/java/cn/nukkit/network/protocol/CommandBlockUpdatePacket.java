@@ -1,15 +1,13 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.BlockVector3;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3i;
 
 @ToString
 public class CommandBlockUpdatePacket extends DataPacket {
 
     public boolean isBlock;
-    public int x;
-    public int y;
-    public int z;
+    public Vector3i position;
     public int commandBlockMode;
     public boolean isRedstoneMode;
     public boolean isConditional;
@@ -26,39 +24,37 @@ public class CommandBlockUpdatePacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.isBlock = this.getBoolean();
-        if (this.isBlock) {
-            BlockVector3 v = this.getBlockVector3();
-            this.x = v.x;
-            this.y = v.y;
-            this.z = v.z;
-            this.commandBlockMode = (int) this.getUnsignedVarInt();
-            this.isRedstoneMode = this.getBoolean();
-            this.isConditional = this.getBoolean();
+        isBlock = getBoolean();
+        if (isBlock) {
+            position = getBlockVector3();
+            commandBlockMode = (int) getUnsignedVarInt();
+            isRedstoneMode = getBoolean();
+            isConditional = getBoolean();
         } else {
-            this.minecartEid = this.getEntityRuntimeId();
+            minecartEid = getEntityRuntimeId();
         }
-        this.command = this.getString();
-        this.lastOutput = this.getString();
-        this.name = this.getString();
-        this.shouldTrackOutput = this.getBoolean();
+        command = getString();
+        lastOutput = getString();
+        name = getString();
+        shouldTrackOutput = getBoolean();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putBoolean(this.isBlock);
-        if (this.isBlock) {
-            this.putBlockVector3(this.x, this.y, this.z);
-            this.putUnsignedVarInt(this.commandBlockMode);
-            this.putBoolean(this.isRedstoneMode);
-            this.putBoolean(this.isConditional);
+        reset();
+        putBoolean(this.isBlock);
+        if (isBlock) {
+            putBlockVector3(position);
+            putUnsignedVarInt(commandBlockMode);
+            putBoolean(isRedstoneMode);
+            putBoolean(isConditional);
         } else {
-            this.putEntityRuntimeId(this.minecartEid);
+            putEntityRuntimeId(minecartEid);
         }
-        this.putString(this.command);
-        this.putString(this.lastOutput);
-        this.putString(this.name);
-        this.putBoolean(this.shouldTrackOutput);
+
+        putString(command);
+        putString(lastOutput);
+        putString(name);
+        putBoolean(shouldTrackOutput);
     }
 }

@@ -111,6 +111,62 @@ public enum BlockFace {
         };
     }
 
+    public @NonNull Vector3i moveFrom(@NonNull Vector3i vec) {
+        return vec.add(unitVector);
+    }
+
+    public @NonNull Vector3i moveFrom(@NonNull Vector3i vec, int steps) {
+        return vec.add(unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveUp(@NonNull Vector3i vec, int steps) {
+        return vec.add(BlockFace.UP.unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveUp(@NonNull Vector3i vec) {
+        return vec.add(BlockFace.UP.unitVector);
+    }
+
+    public static @NonNull Vector3i moveDown(@NonNull Vector3i vec, int steps) {
+        return vec.add(BlockFace.DOWN.unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveDown(@NonNull Vector3i vec) {
+        return vec.add(BlockFace.DOWN.unitVector);
+    }
+
+    public static @NonNull Vector3i moveNorth(@NonNull Vector3i vec, int steps) {
+        return vec.add(BlockFace.NORTH.unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveNorth(@NonNull Vector3i vec) {
+        return vec.add(BlockFace.NORTH.unitVector);
+    }
+
+    public static @NonNull Vector3i moveSouth(@NonNull Vector3i vec, int steps) {
+        return vec.add(BlockFace.SOUTH.unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveSouth(@NonNull Vector3i vec) {
+        return vec.add(BlockFace.SOUTH.unitVector);
+    }
+
+    public static @NonNull Vector3i moveWest(@NonNull Vector3i vec, int steps) {
+        return vec.add(BlockFace.WEST.unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveWest(@NonNull Vector3i vec) {
+        return vec.add(BlockFace.WEST.unitVector);
+    }
+
+    public static @NonNull Vector3i moveEast(@NonNull Vector3i vec, int steps) {
+        return vec.add(BlockFace.EAST.unitVector.mul(steps));
+    }
+
+    public static @NonNull Vector3i moveEast(@NonNull Vector3i vec) {
+        return vec.add(BlockFace.EAST.unitVector);
+    }
+
     public enum Axis implements Predicate<BlockFace> {
         X("x"),
         Y("y"),

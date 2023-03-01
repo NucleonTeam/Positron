@@ -51,7 +51,7 @@ public class BlockUpdateScheduler {
                 for (BlockUpdateEntry entry : updates) {
                     Vector3 pos = entry.pos;
                     if (level.isChunkLoaded(FastMath.floorDouble(pos.x) >> 4, FastMath.floorDouble(pos.z) >> 4)) {
-                        Block block = level.getBlock(entry.pos);
+                        Block block = level.getBlock(entry.pos.asBlockVector3());
 
                         if (Block.equals(block, entry.block, false)) {
                             block.onUpdate(Level.BLOCK_UPDATE_SCHEDULED);

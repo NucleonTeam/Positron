@@ -1,13 +1,14 @@
 package cn.nukkit.network.protocol.types;
 
-import cn.nukkit.math.BlockVector3;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.spongepowered.math.vector.Vector3i;
 
 @Data
 @AllArgsConstructor
 public class PlayerBlockActionData {
+
     private PlayerActionType action;
-    private BlockVector3 position;
+    private Vector3i position;
     private int facing;
 }

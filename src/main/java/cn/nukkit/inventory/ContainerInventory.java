@@ -6,6 +6,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.ContainerClosePacket;
 import cn.nukkit.network.protocol.ContainerOpenPacket;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.FastMath;
 
 import java.util.Map;
@@ -34,15 +35,13 @@ public abstract class ContainerInventory extends BaseInventory {
         pk.windowId = who.getWindowId(this);
         pk.type = this.getType().getNetworkType();
         InventoryHolder holder = this.getHolder();
-        if (holder instanceof Vector3) {
-            pk.x = (int) ((Vector3) holder).getX();
-            pk.y = (int) ((Vector3) holder).getY();
-            pk.z = (int) ((Vector3) holder).getZ();
+        if (holder instanceof Vector3 vec) {
+            pk.position = vec.asBlockVector3();
         } else {
-            pk.x = pk.y = pk.z = 0;
+            pk.position = Vector3i.ZERO;
         }
-        if (holder instanceof Entity) {
-            pk.entityId = ((Entity) holder).getId();
+        if (holder instanceof Entity en) {
+            pk.entityId = en.getId();
         }
 
         who.dataPacket(pk);

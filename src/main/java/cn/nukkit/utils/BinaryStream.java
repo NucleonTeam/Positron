@@ -8,8 +8,8 @@ import cn.nukkit.item.RuntimeItemMapping.RuntimeEntry;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.GlobalBlockPalette;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
-import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -688,22 +688,22 @@ public class BinaryStream {
         VarInt.writeUnsignedVarLong(this, v);
     }
 
-    public BlockVector3 getBlockVector3() {
-        return new BlockVector3(this.getVarInt(), (int) this.getUnsignedVarInt(), this.getVarInt());
+    public Vector3i getBlockVector3() {
+        return new Vector3i(getVarInt(), (int) getUnsignedVarInt(), getVarInt());
     }
 
-    public BlockVector3 getSignedBlockPosition() {
-        return new BlockVector3(getVarInt(), getVarInt(), getVarInt());
+    public Vector3i getSignedBlockPosition() {
+        return new Vector3i(getVarInt(), getVarInt(), getVarInt());
     }
 
-    public void putSignedBlockPosition(BlockVector3 v) {
-        putVarInt(v.x);
-        putVarInt(v.y);
-        putVarInt(v.z);
+    public void putSignedBlockPosition(Vector3i v) {
+        putVarInt(v.x());
+        putVarInt(v.y());
+        putVarInt(v.z());
     }
 
-    public void putBlockVector3(BlockVector3 v) {
-        this.putBlockVector3(v.x, v.y, v.z);
+    public void putBlockVector3(Vector3i v) {
+        this.putBlockVector3(v.x(), v.y(), v.z());
     }
 
     public void putBlockVector3(int x, int y, int z) {

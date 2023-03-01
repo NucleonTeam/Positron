@@ -1,12 +1,12 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.BlockVector3;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3i;
 
 @ToString
 public class NetworkChunkPublisherUpdatePacket extends DataPacket {
 
-    public BlockVector3 position;
+    public Vector3i position;
     public int radius;
 
     @Override
@@ -16,15 +16,15 @@ public class NetworkChunkPublisherUpdatePacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.position = this.getSignedBlockPosition();
-        this.radius = (int) this.getUnsignedVarInt();
+        position = getSignedBlockPosition();
+        radius = (int) getUnsignedVarInt();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putSignedBlockPosition(position);
-        this.putUnsignedVarInt(radius);
-        this.putInt(0); // Saved chunks
+        reset();
+        putSignedBlockPosition(position);
+        putUnsignedVarInt(radius);
+        putInt(0); // Saved chunks
     }
 }

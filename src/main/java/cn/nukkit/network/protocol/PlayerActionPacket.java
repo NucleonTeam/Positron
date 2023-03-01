@@ -1,11 +1,8 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.BlockVector3;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3i;
 
-/**
- * @author Nukkit Project Team
- */
 @ToString
 public class PlayerActionPacket extends DataPacket {
 
@@ -43,32 +40,27 @@ public class PlayerActionPacket extends DataPacket {
 
     public long entityId;
     public int action;
-    public int x;
-    public int y;
-    public int z;
-    public BlockVector3 resultPosition;
+    public Vector3i position;
+    public Vector3i resultPosition;
     public int face;
 
     @Override
     public void decode() {
-        this.entityId = this.getEntityRuntimeId();
-        this.action = this.getVarInt();
-        BlockVector3 v = this.getBlockVector3();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.resultPosition = this.getBlockVector3();
-        this.face = this.getVarInt();
+        entityId = getEntityRuntimeId();
+        action = getVarInt();
+        position = getBlockVector3();
+        resultPosition = getBlockVector3();
+        face = getVarInt();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putEntityRuntimeId(this.entityId);
-        this.putVarInt(this.action);
-        this.putBlockVector3(this.x, this.y, this.z);
-        this.putBlockVector3(this.resultPosition);
-        this.putVarInt(this.face);
+        reset();
+        putEntityRuntimeId(entityId);
+        putVarInt(action);
+        putBlockVector3(position);
+        putBlockVector3(resultPosition);
+        putVarInt(face);
     }
 
     @Override

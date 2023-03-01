@@ -25,6 +25,7 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.*;
 import ru.mc_positron.math.BlockFace;
@@ -1682,7 +1683,7 @@ public abstract class Entity extends Location implements Metadatable {
             return;
         }
 
-        Block down = this.level.getBlock(this.floor().down());
+        Block down = this.level.getBlock(BlockFace.moveDown(this.asBlockVector3()));
 
         if (!this.isPlayer || level.getGameRules().getBoolean(GameRule.FALL_DAMAGE)) {
             float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(Effect.JUMP) ? this.getEffect(Effect.JUMP).getAmplifier() + 1 : 0));
@@ -1800,20 +1801,15 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     public boolean isInsideOfWater() {
-        double y = this.y + this.getEyeHeight();
-        Block block = this.level.getBlock(this.temporalVector.setComponents(FastMath.floorDouble(this.x), FastMath.floorDouble(y), FastMath.floorDouble(this.z)));
+        double y = this.y + getEyeHeight();
+        var block = level.getBlock(new Vector3(x, y, z).asBlockVector3());
 
         return false;
     }
 
     public boolean isInsideOfSolid() {
-        double y = this.y + this.getEyeHeight();
-        Block block = this.level.getBlock(
-                this.temporalVector.setComponents(
-                        FastMath.floorDouble(this.x),
-                        FastMath.floorDouble(y),
-                        FastMath.floorDouble(this.z))
-        );
+        double y = this.y + getEyeHeight();
+        var block = level.getBlock(new Vector3(x, y, z).asBlockVector3());
 
         AxisAlignedBB bb = block.getBoundingBox();
 
@@ -1991,7 +1987,7 @@ public abstract class Entity extends Location implements Metadatable {
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.level.getBlock(this.temporalVector.setComponents(x, y, z));
+                        Block block = this.level.getBlock(new Vector3i(x, y, z));
                         this.blocksAround.add(block);
                     }
                 }

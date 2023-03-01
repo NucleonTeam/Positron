@@ -2,9 +2,9 @@ package cn.nukkit.level.generator.object;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.level.ChunkManager;
-import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.NukkitRandom;
 import cn.nukkit.math.Vector3;
+import org.spongepowered.math.vector.Vector3i;
 
 public abstract class BasicGenerator {
 
@@ -14,8 +14,8 @@ public abstract class BasicGenerator {
     public void setDecorationDefaults() {
     }
 
-    protected void setBlockAndNotifyAdequately(ChunkManager level, BlockVector3 pos, Block state) {
-        setBlock(level, new Vector3(pos.x, pos.y, pos.z), state);
+    protected void setBlockAndNotifyAdequately(ChunkManager level, Vector3i pos, Block state) {
+        setBlock(level, new Vector3(pos.x(), pos.y(), pos.z()), state);
     }
 
     protected void setBlockAndNotifyAdequately(ChunkManager level, Vector3 pos, Block state) {

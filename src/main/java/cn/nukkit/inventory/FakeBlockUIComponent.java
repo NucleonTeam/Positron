@@ -7,6 +7,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.ContainerClosePacket;
 import cn.nukkit.network.protocol.ContainerOpenPacket;
+import org.spongepowered.math.vector.Vector3i;
 
 public class FakeBlockUIComponent extends PlayerUIComponent {
     private final InventoryType type;
@@ -51,11 +52,9 @@ public class FakeBlockUIComponent extends PlayerUIComponent {
         pk.type = type.getNetworkType();
         InventoryHolder holder = this.getHolder();
         if (holder != null) {
-            pk.x = (int) ((Vector3) holder).getX();
-            pk.y = (int) ((Vector3) holder).getY();
-            pk.z = (int) ((Vector3) holder).getZ();
+            pk.position = ((Vector3) holder).asBlockVector3();
         } else {
-            pk.x = pk.y = pk.z = 0;
+            pk.position = Vector3i.ZERO;
         }
 
         who.dataPacket(pk);

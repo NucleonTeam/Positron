@@ -494,9 +494,7 @@ public class PlayerInventory extends BaseInventory {
         ContainerOpenPacket pk = new ContainerOpenPacket();
         pk.windowId = who.getWindowId(this);
         pk.type = this.getType().getNetworkType();
-        pk.x = who.getFloorX();
-        pk.y = who.getFloorY();
-        pk.z = who.getFloorZ();
+        pk.position = who.asBlockVector3();
         pk.entityId = who.getId();
         who.dataPacket(pk);
     }

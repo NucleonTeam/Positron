@@ -10,6 +10,8 @@ import cn.nukkit.math.NukkitRandom;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.BlockColor;
 
+import java.util.Random;
+
 public class BlockGrass extends BlockDirt {
 
     public BlockGrass() {
@@ -48,30 +50,6 @@ public class BlockGrass extends BlockDirt {
 
     @Override
     public int onUpdate(int type) {
-        if (type == Level.BLOCK_UPDATE_RANDOM) {
-            NukkitRandom random = new NukkitRandom();
-            x = random.nextRange((int) x - 1, (int) x + 1);
-            y = random.nextRange((int) y - 2, (int) y + 2);
-            z = random.nextRange((int) z - 1, (int) z + 1);
-            Block block = this.getLevel().getBlock(new Vector3(x, y, z));
-            if (block.getId() == Block.DIRT && block.getDamage() == 0) {
-                if (block.up() instanceof BlockAir) {
-                    BlockSpreadEvent ev = new BlockSpreadEvent(block, this, Block.get(BlockID.GRASS));
-                    Server.getInstance().getPluginManager().callEvent(ev);
-                    if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(block, ev.getNewState());
-                    }
-                }
-             } else if (block.getId() == Block.GRASS) {
-                if (block.up() instanceof BlockSolid) {
-                    BlockSpreadEvent ev = new BlockSpreadEvent(block, this, Block.get(BlockID.DIRT));
-                    Server.getInstance().getPluginManager().callEvent(ev);
-                    if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(block, ev.getNewState());
-                    }
-                }   
-            }
-        }
         return 0;
     }
 

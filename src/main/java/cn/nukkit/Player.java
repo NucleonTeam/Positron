@@ -135,7 +135,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     private int unverifiedPackets;
     public int gamemode;
     public long lastBreak;
-    private BlockVector3 lastBreakPosition = new BlockVector3();
+    private Vector3i lastBreakPosition = Vector3i.ZERO;
 
     protected int windowCnt = 4;
 
@@ -834,7 +834,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         if (!loadQueue.isEmpty()) {
             NetworkChunkPublisherUpdatePacket packet = new NetworkChunkPublisherUpdatePacket();
-            packet.position = this.asBlockVector3();
+            packet.position = toNewVector().toInt();
             packet.radius = viewDistance << 4;
             this.dataPacket(packet);
         }
@@ -902,14 +902,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return this.interfaz.getNetworkLatency(this);
     }
 
-    public boolean sleepOn(Vector3 pos) {
+    public boolean sleepOn(Vector3i pos) {
         if (!this.isOnline()) {
             return false;
         }
 
         for (Entity p : this.level.getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
-            if (p instanceof Player) {
-                if (((Player) p).sleeping != null && pos.distance(((Player) p).sleeping) <= 0.1) {
+            if (p instanceof Player pl) {
+                if (pl.sleeping != null && pos.toDouble().distance(pl.sleeping.toNewVector()) <= 0.1) {
                     return false;
                 }
             }
@@ -921,13 +921,13 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return false;
         }
 
-        this.sleeping = pos.clone();
-        this.teleport(new Location(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, this.yaw, this.pitch, this.level), null);
+        this.sleeping = new Vector3(pos.toDouble());
+        this.teleport(new Location(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5, this.yaw, this.pitch, this.level), null);
 
-        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, new Vector3i((int) pos.x, (int) pos.y, (int) pos.z)));
+        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, pos));
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, true);
 
-        this.setSpawn(pos);
+        this.setSpawn(new Vector3(pos.toDouble()));
 
         this.level.sleepTicks = 60;
 
@@ -954,7 +954,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     public void stopSleep() {
         if (this.sleeping != null) {
-            this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.level.getBlock(this.sleeping)));
+            this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.level.getBlock(this.sleeping.toNewVector().toInt())));
 
             this.sleeping = null;
             this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO));
@@ -1155,7 +1155,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.level.getBlock(this.temporalVector.setComponents(x, y, z));
+                        Block block = this.level.getBlock(x, y, z);
 
                         if (!block.canPassThrough() && block.collidesWithBB(realBB)) {
                             onGround = true;
@@ -2082,35 +2082,30 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                 if (!authPacket.getBlockActionData().isEmpty()) {
                     for (PlayerBlockActionData action : authPacket.getBlockActionData().values()) {
-                        BlockVector3 blockPos = action.getPosition();
-                        BlockFace blockFace = BlockFace.fromIndex(action.getFacing());
+                        var blockPos = action.getPosition();
+                        var blockFace = BlockFace.fromIndex(action.getFacing());
+
                         if (this.lastBlockAction != null && this.lastBlockAction.getAction() == PlayerActionType.PREDICT_DESTROY_BLOCK &&
                                 action.getAction() == PlayerActionType.CONTINUE_DESTROY_BLOCK) {
-                            this.onBlockBreakStart(blockPos.asVector3(), blockFace);
+                            this.onBlockBreakStart(blockPos, blockFace);
                         }
 
-                        BlockVector3 lastBreakPos = this.lastBlockAction == null ? null : this.lastBlockAction.getPosition();
-                        if (lastBreakPos != null && (lastBreakPos.getX() != blockPos.getX() ||
-                                lastBreakPos.getY() != blockPos.getY() || lastBreakPos.getZ() != blockPos.getZ())) {
-                            this.onBlockBreakAbort(lastBreakPos.asVector3(), BlockFace.DOWN);
-                            this.onBlockBreakStart(blockPos.asVector3(), blockFace);
+                        var lastBreakPos = this.lastBlockAction == null ? null : this.lastBlockAction.getPosition();
+                        if (lastBreakPos != null && (lastBreakPos.x() != blockPos.x() ||
+                                lastBreakPos.y() != blockPos.y() || lastBreakPos.z() != blockPos.z())) {
+                            this.onBlockBreakAbort(lastBreakPos, BlockFace.DOWN);
+                            this.onBlockBreakStart(blockPos, blockFace);
                         }
 
                         switch (action.getAction()) {
-                            case START_DESTROY_BLOCK:
-                                this.onBlockBreakStart(blockPos.asVector3(), blockFace);
-                                break;
-                            case ABORT_DESTROY_BLOCK:
-                            case STOP_DESTROY_BLOCK:
-                                this.onBlockBreakAbort(blockPos.asVector3(), blockFace);
-                                break;
-                            case CONTINUE_DESTROY_BLOCK:
-                                this.onBlockBreakContinue(blockPos.asVector3(), blockFace);
-                                break;
-                            case PREDICT_DESTROY_BLOCK:
-                                this.onBlockBreakAbort(blockPos.asVector3(), blockFace);
-                                this.onBlockBreakComplete(blockPos, blockFace);
-                                break;
+                            case START_DESTROY_BLOCK -> onBlockBreakStart(blockPos, blockFace);
+                            case ABORT_DESTROY_BLOCK, STOP_DESTROY_BLOCK -> onBlockBreakAbort(blockPos, blockFace);
+                            case CONTINUE_DESTROY_BLOCK -> onBlockBreakContinue(blockPos, blockFace);
+                            case PREDICT_DESTROY_BLOCK -> {
+
+                                onBlockBreakAbort(blockPos, blockFace);
+                                onBlockBreakComplete(blockPos , blockFace);
+                            }
                         }
                         this.lastBlockAction = action;
                     }
@@ -2404,8 +2399,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
                 break;
             case ProtocolInfo.BLOCK_PICK_REQUEST_PACKET:
-                BlockPickRequestPacket pickRequestPacket = (BlockPickRequestPacket) packet;
-                Block block = this.level.getBlock(pickRequestPacket.x, pickRequestPacket.y, pickRequestPacket.z, false);
+                var pickRequestPacket = (BlockPickRequestPacket) packet;
+                var pos = pickRequestPacket.position;
+                Block block = this.level.getBlock(pos.x(), pos.y(), pos.z(), false);
                 if (block.distanceSquared(this) > 1000) {
                     this.getServer().getLogger().debug(username + ": Block pick request for a block too far away");
                     return;
@@ -2413,7 +2409,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 item = block.toItem();
 
                 if (pickRequestPacket.addUserData) {
-                    var blockEntity = this.getLevel().getBlockEntity(new Vector3(pickRequestPacket.x, pickRequestPacket.y, pickRequestPacket.z));
+                    var blockEntity = this.getLevel().getBlockEntity(pickRequestPacket.position);
                     if (blockEntity != null) {
                         CompoundTag nbt = blockEntity.getSaveData()
                                 .remove("id")
@@ -2614,12 +2610,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 this.resetCraftingGridType();
 
                 var vec = blockEntityDataPacket.position;
-                Vector3 pos = new Vector3(vec.x(), vec.y(), vec.z());
-                if (pos.distanceSquared(this) > 10000) {
+                if (vec.toDouble().distanceSquared(this.toNewVector()) > 10000) {
                     break;
                 }
 
-                var t = level.getBlockEntity(pos);
+                var t = level.getBlockEntity(vec);
                 if (t.getType() instanceof SpawnableBlockEntityType type) {
                     CompoundTag nbt;
                     try {
@@ -2648,21 +2643,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 break;
             case ProtocolInfo.ITEM_FRAME_DROP_ITEM_PACKET:
                 ItemFrameDropItemPacket itemFrameDropItemPacket = (ItemFrameDropItemPacket) packet;
-                Vector3 vector3 = this.temporalVector.setComponents(itemFrameDropItemPacket.x, itemFrameDropItemPacket.y, itemFrameDropItemPacket.z);
-                if (vector3.distanceSquared(this) < 1000) {
-                    BlockEntity itemFrame = this.level.getBlockEntity(vector3);
+                var vector3 = itemFrameDropItemPacket.position;
+                if (vector3.toDouble().distanceSquared(this.toNewVector()) < 1000) {
+                    level.getBlockEntity(vector3);
                 }
                 break;
             case ProtocolInfo.MAP_INFO_REQUEST_PACKET:
-                MapInfoRequestPacket pk = (MapInfoRequestPacket) packet;
-                Item mapItem = null;
-
-
-                if (mapItem != null) {
-                    PlayerMapInfoRequestEvent event;
-                    getServer().getPluginManager().callEvent(event = new PlayerMapInfoRequestEvent(this, mapItem));
-                }
-
                 break;
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V1:
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
@@ -2795,15 +2781,15 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     case InventoryTransactionPacket.TYPE_USE_ITEM:
                         UseItemData useItemData = (UseItemData) transactionPacket.transactionData;
 
-                        BlockVector3 blockVector = useItemData.blockPos;
+                        var blockVector = useItemData.blockPos;
                         face = useItemData.face;
 
                         int type = useItemData.actionType;
                         switch (type) {
                             case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
                                 // Remove if client bug is ever fixed
-                                boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
-                                lastRightClickPos = blockVector.asVector3();
+                                boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.toDouble().distanceSquared(lastRightClickPos.toNewVector()) < 0.00001);
+                                lastRightClickPos = new Vector3(blockVector.toDouble());
                                 lastRightClickTime = System.currentTimeMillis();
                                 if (spamBug) {
                                     return;
@@ -2811,17 +2797,17 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
 
-                                if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
+                                if (this.canInteract(new Vector3(blockVector.toDouble().add(0.5, 0.5, 0.5)), this.isCreative() ? 13 : 7)) {
                                     if (this.isCreative()) {
                                         Item i = inventory.getItemInHand();
-                                        if (this.level.useItemOn(blockVector.asVector3(), i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this) != null) {
+                                        if (this.level.useItemOn(blockVector, i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this) != null) {
                                             break packetswitch;
                                         }
                                     } else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
                                         Item i = inventory.getItemInHand();
                                         Item oldItem = i.clone();
                                         //TODO: Implement adventure mode checks
-                                        if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this)) != null) {
+                                        if ((i = this.level.useItemOn(blockVector, i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this)) != null) {
                                             if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
                                                 if (oldItem.getId() == i.getId() || i.getId() == 0) {
                                                     inventory.setItemInHand(i);
@@ -2837,11 +2823,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 inventory.sendHeldItem(this);
 
-                                if (blockVector.distanceSquared(this) > 10000) {
+                                if (blockVector.toDouble().distanceSquared(this.toNewVector()) > 10000) {
                                     break packetswitch;
                                 }
 
-                                Block target = this.level.getBlock(blockVector.asVector3());
+                                Block target = level.getBlock(blockVector);
                                 block = target.getSide(face);
 
                                 this.level.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
@@ -2859,7 +2845,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 Item oldItem = i.clone();
 
-                                if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+                                if (this.canInteract(new Vector3(blockVector.toDouble().add(0.5, 0.5, 0.5)), this.isCreative() ? 13 : 7) && (i = this.level.useBreakOn(blockVector, face, i, this, true)) != null) {
                                     if (this.isSurvival()) {
                                         this.getFoodData().updateFoodExpLevel(0.005);
                                         if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -2877,11 +2863,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                 inventory.sendContents(this);
                                 inventory.sendHeldItem(this);
 
-                                if (blockVector.distanceSquared(this) < 10000) {
-                                    target = this.level.getBlock(blockVector.asVector3());
+                                if (blockVector.toDouble().distanceSquared(this.toNewVector()) < 10000) {
+                                    target = this.level.getBlock(blockVector);
                                     this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                                    var blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+                                    var blockEntity = this.level.getBlockEntity(blockVector);
                                     if (blockEntity.getType() instanceof SpawnableBlockEntityType $type) {
                                         $type.spawnTo(this);
                                     }
@@ -3135,24 +3121,22 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     }
 
-    private void onBlockBreakContinue(Vector3 pos, BlockFace face) {
+    private void onBlockBreakContinue(Vector3i pos, BlockFace face) {
         if (this.isBreakingBlock()) {
             Block block = this.level.getBlock(pos, false);
-            this.level.addParticle(new PunchBlockParticle(pos, block, face));
+            this.level.addParticle(new PunchBlockParticle(new Vector3(pos.toDouble()), block, face));
         }
     }
 
-    private void onBlockBreakStart(Vector3 pos, BlockFace face) {
-        BlockVector3 blockPos = pos.asBlockVector3();
+    private void onBlockBreakStart(Vector3i pos, BlockFace face) {
         long currentBreak = System.currentTimeMillis();
         // HACK: Client spams multiple left clicks so we need to skip them.
-        if ((this.lastBreakPosition.equals(blockPos) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
+        if ((this.lastBreakPosition.equals(pos) && (currentBreak - this.lastBreak) < 10) || pos.toDouble().distanceSquared(this.toNewVector()) > 100) {
             return;
         }
 
         Block target = this.level.getBlock(pos);
-        PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face,
-                target.getId() == 0 ? Action.LEFT_CLICK_AIR : Action.LEFT_CLICK_BLOCK);
+        var playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == 0 ? Action.LEFT_CLICK_AIR : Action.LEFT_CLICK_BLOCK);
         this.getServer().getPluginManager().callEvent(playerInteractEvent);
         if (playerInteractEvent.isCancelled()) {
             this.inventory.sendHeldItem(this);
@@ -3166,33 +3150,34 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             if (breakTime > 0) {
                 LevelEventPacket pk = new LevelEventPacket();
                 pk.evid = LevelEventPacket.EVENT_BLOCK_START_BREAK;
-                pk.x = (float) pos.x;
-                pk.y = (float) pos.y;
-                pk.z = (float) pos.z;
+                pk.x = (float) pos.x();
+                pk.y = (float) pos.y();
+                pk.z = (float) pos.z();
                 pk.data = (int) (65535 / breakTime);
-                this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+                this.getLevel().addChunkPacket(pos.x() >> 4, pos.z() >> 4, pk);
             }
         }
 
         this.breakingBlock = target;
         this.lastBreak = currentBreak;
-        this.lastBreakPosition = blockPos;
+        this.lastBreakPosition = pos;
     }
 
-    private void onBlockBreakAbort(Vector3 pos, BlockFace face) {
-        if (pos.distanceSquared(this) < 100) {
+    private void onBlockBreakAbort(Vector3i pos, BlockFace face) {
+        if (pos.toDouble().distanceSquared(this.toNewVector()) < 100) {
             LevelEventPacket pk = new LevelEventPacket();
             pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
-            pk.x = (float) pos.x;
-            pk.y = (float) pos.y;
-            pk.z = (float) pos.z;
+            pk.x = (float) pos.x();
+            pk.y = (float) pos.y();
+            pk.z = (float) pos.z();
             pk.data = 0;
-            this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+            getLevel().addChunkPacket(pos.x() >> 4, pos.z() >> 4, pk);
         }
-        this.breakingBlock = null;
+
+        breakingBlock = null;
     }
 
-    private void onBlockBreakComplete(BlockVector3 blockPos, BlockFace face) {
+    private void onBlockBreakComplete(Vector3i blockPos, BlockFace face) {
         if (!this.spawned || !this.isAlive()) {
             return;
         }
@@ -3202,9 +3187,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         Item handItem = this.getInventory().getItemInHand();
         Item clone = handItem.clone();
 
-        boolean canInteract = this.canInteract(blockPos.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7);
+        boolean canInteract = this.canInteract(new Vector3(blockPos.toDouble().add(0.5, 0.5, 0.5)), this.isCreative() ? 13 : 7);
         if (canInteract) {
-            handItem = this.level.useBreakOn(blockPos.asVector3(), face, handItem, this, true);
+            handItem = this.level.useBreakOn(blockPos, face, handItem, this, true);
             if (handItem != null && this.isSurvival()) {
                 this.getFoodData().updateFoodExpLevel(0.005);
                 if (handItem.equals(clone) && handItem.getCount() == clone.getCount()) {
@@ -3224,11 +3209,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         inventory.sendContents(this);
         inventory.sendHeldItem(this);
 
-        if (blockPos.distanceSquared(this) < 100) {
-            Block target = this.level.getBlock(blockPos.asVector3());
+        if (blockPos.toDouble().distanceSquared(this.toNewVector()) < 100) {
+            Block target = this.level.getBlock(blockPos);
             this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-            var blockEntity = this.level.getBlockEntity(blockPos.asVector3());
+            var blockEntity = this.level.getBlockEntity(blockPos);
             if (blockEntity.getType() instanceof SpawnableBlockEntityType type) {
                 type.spawnTo(this);
             }
@@ -3682,7 +3667,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     break;
 
                 case LAVA:
-                    Block block = this.level.getBlock(new Vector3(this.x, this.y - 1, this.z));
                     message = "death.attack.lava";
                     break;
 

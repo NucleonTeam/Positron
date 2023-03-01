@@ -1,7 +1,6 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.entity.Entity;
-import cn.nukkit.math.BlockVector3;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
@@ -13,15 +12,9 @@ import ru.mc_positron.math.FastMath;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.UUID;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Binary {
 
     public static int signByte(int value) {
@@ -147,8 +140,7 @@ public class Binary {
                     stream.setOffset(offset + (int) fbais.position());
                 }
                 case Entity.DATA_TYPE_POS -> {
-                    var v3 = stream.getSignedBlockPosition();
-                    value = new Vector3iEntityData(key, new Vector3i(v3.x, v3.y, v3.z));
+                    value = new Vector3iEntityData(key, stream.getSignedBlockPosition());
                 }
                 case Entity.DATA_TYPE_LONG -> value = new LongEntityData(key, stream.getVarLong());
                 case Entity.DATA_TYPE_VECTOR3F -> {

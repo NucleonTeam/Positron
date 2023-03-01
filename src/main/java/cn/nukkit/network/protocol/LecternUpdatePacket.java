@@ -1,7 +1,7 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.BlockVector3;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3i;
 
 @ToString
 public class LecternUpdatePacket extends DataPacket {
@@ -10,7 +10,7 @@ public class LecternUpdatePacket extends DataPacket {
 
     public int page;
     public int totalPages;
-    public BlockVector3 blockPosition;
+    public Vector3i blockPosition;
     public boolean dropBook;
 
     @Override
@@ -20,10 +20,10 @@ public class LecternUpdatePacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.page = this.getByte();
-        this.totalPages = this.getByte();
-        this.blockPosition = this.getBlockVector3();
-        this.dropBook = this.getBoolean();
+        page = getByte();
+        totalPages = getByte();
+        blockPosition = getBlockVector3();
+        dropBook = getBoolean();
     }
 
     @Override

@@ -14,6 +14,7 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.math.FastMath;
 
 /**
@@ -218,7 +219,7 @@ public class EntityItem extends Entity {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motionX) > 0.00001 || Math.abs(this.motionZ) > 0.00001)) {
-                friction *= this.getLevel().getBlock(this.temporalVector.setComponents((int) Math.floor(this.x), (int) Math.floor(this.y - 1), (int) Math.floor(this.z) - 1)).getFrictionFactor();
+                friction *= getLevel().getBlock(new Vector3d(x, y - 1, z - 1).toInt()).getFrictionFactor();
             }
 
             this.motionX *= friction;

@@ -7,7 +7,7 @@ import org.spongepowered.math.vector.Vector3i;
 
 import java.util.Objects;
 
-@ToString(exclude = "namedTag")
+@ToString(exclude = "nbt")
 public class BlockEntityDataPacket extends DataPacket {
 
     public static final byte NETWORK_ID = ProtocolInfo.BLOCK_ENTITY_DATA_PACKET;
@@ -22,9 +22,7 @@ public class BlockEntityDataPacket extends DataPacket {
 
     @Override
     public void decode() {
-        var vec = getBlockVector3();
-
-        position = new Vector3i(vec.x, vec.y, vec.z);
+        position = getBlockVector3();
         nbt = get();
     }
 

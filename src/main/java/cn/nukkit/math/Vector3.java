@@ -2,6 +2,7 @@ package cn.nukkit.math;
 
 import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
 
 /**
@@ -426,7 +427,7 @@ public class Vector3 implements Cloneable {
         return new Vector3f((float) this.x, (float) this.y, (float) this.z);
     }
 
-    public BlockVector3 asBlockVector3() {
-        return new BlockVector3(this.getFloorX(), this.getFloorY(), this.getFloorZ());
+    public Vector3i asBlockVector3() {
+        return new Vector3i(this.getFloorX(), this.getFloorY(), this.getFloorZ());
     }
 }

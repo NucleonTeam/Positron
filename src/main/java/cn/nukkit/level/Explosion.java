@@ -89,7 +89,7 @@ public class Explosion {
                             if (vBlock.y < 0 || vBlock.y > 255) {
                                 break;
                             }
-                            Block block = this.level.getBlock(vBlock);
+                            Block block = this.level.getBlock(vBlock.asBlockVector3());
 
                             if (block.getId() != 0) {
                                 blastForce -= (block.getResistance() / 5 + 0.3d) * this.stepLen;
