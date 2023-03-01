@@ -65,6 +65,7 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
+import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.blockentity.BlockEntity;
 import ru.mc_positron.blockentity.SpawnableBlockEntityType;
@@ -1559,9 +1560,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return false;
         }
 
-        Vector2 dV = this.getDirectionPlane();
-        double dot = dV.dot(new Vector2(this.x, this.z));
-        double dot1 = dV.dot(new Vector2(pos.x, pos.z));
+        var dV = this.getDirectionPlane();
+        double dot = dV.dot(x, z);
+        double dot1 = dV.dot(pos.x, pos.z);
         return (dot1 - dot) >= -maxDiff;
     }
 

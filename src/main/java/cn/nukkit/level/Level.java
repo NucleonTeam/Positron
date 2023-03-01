@@ -32,6 +32,7 @@ import cn.nukkit.level.generator.task.PopulationTask;
 import cn.nukkit.level.particle.DestroyBlockParticle;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.math.*;
+import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
@@ -2055,8 +2056,8 @@ public class Level implements ChunkManager, Metadatable {
     public boolean isInSpawnRadius(Vector3 vector3) {
         int distance = this.server.getSpawnRadius();
         if (distance > -1) {
-            Vector2 t = new Vector2(vector3.x, vector3.z);
-            Vector2 s = new Vector2(this.getSpawnLocation().x, this.getSpawnLocation().z);
+            var t = new Vector2d(vector3.x, vector3.z);
+            var s = new Vector2d(getSpawnLocation().x, getSpawnLocation().z);
             return t.distance(s) <= distance;
         }
         return false;

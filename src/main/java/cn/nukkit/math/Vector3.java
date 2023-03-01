@@ -1,6 +1,7 @@
 package cn.nukkit.math;
 
 import lombok.NonNull;
+import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
@@ -250,8 +251,8 @@ public class Vector3 implements Cloneable {
         return Math.max(Math.abs(this.x - x), Math.abs(this.z - z));
     }
 
-    public double maxPlainDistance(Vector2 vector) {
-        return this.maxPlainDistance(vector.x, vector.y);
+    public double maxPlainDistance(Vector2d vector) {
+        return this.maxPlainDistance(vector.x(), vector.y());
     }
 
     public double maxPlainDistance(Vector3 x) {

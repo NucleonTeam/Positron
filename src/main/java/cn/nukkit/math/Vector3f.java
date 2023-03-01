@@ -223,10 +223,6 @@ public class Vector3f implements Cloneable {
         return Math.max(Math.abs(this.x - x), Math.abs(this.z - z));
     }
 
-    public float maxPlainDistance(Vector2f vector) {
-        return this.maxPlainDistance(vector.x, vector.y);
-    }
-
     public float maxPlainDistance(Vector3f x) {
         return this.maxPlainDistance(x.x, x.z);
     }

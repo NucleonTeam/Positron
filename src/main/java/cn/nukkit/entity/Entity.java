@@ -25,6 +25,7 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
+import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.*;
@@ -1454,8 +1455,8 @@ public abstract class Entity extends Location implements Metadatable {
         return this.temporalVector.setComponents(vector.x, vector.y, vector.z);
     }
 
-    public Vector2 getDirectionPlane() {
-        return (new Vector2((float) (-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2)), (float) (-Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)))).normalize();
+    public Vector2d getDirectionPlane() {
+        return new Vector2d(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
     }
 
     public BlockFace getHorizontalFacing() {

@@ -1,10 +1,10 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.Vector2;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.types.*;
 import lombok.Getter;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector2d;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -20,7 +20,7 @@ public class PlayerAuthInputPacket extends DataPacket {
     private float pitch;
     private float headYaw;
     private Vector3f position;
-    private Vector2 motion;
+    private Vector2d motion;
     private Set<AuthInputAction> inputData = EnumSet.noneOf(AuthInputAction.class);
     private InputMode inputMode;
     private ClientPlayMode playMode;
@@ -38,11 +38,11 @@ public class PlayerAuthInputPacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.pitch = this.getLFloat();
-        this.yaw = this.getLFloat();
-        this.position = this.getVector3f();
-        this.motion = new Vector2(this.getLFloat(), this.getLFloat());
-        this.headYaw = this.getLFloat();
+        pitch = getLFloat();
+        yaw = getLFloat();
+        position = getVector3f();
+        motion = new Vector2d(getLFloat(), getLFloat());
+        headYaw = getLFloat();
 
         long inputData = this.getUnsignedVarLong();
         for (int i = 0; i < AuthInputAction.size(); i++) {
@@ -79,6 +79,7 @@ public class PlayerAuthInputPacket extends DataPacket {
                     case CONTINUE_DESTROY_BLOCK:
                         this.blockActionData.put(type, new PlayerBlockActionData(type, this.getSignedBlockPosition(), this.getVarInt()));
                         break;
+
                     default:
                         this.blockActionData.put(type, new PlayerBlockActionData(type, null, -1));
                 }
