@@ -355,7 +355,7 @@ public abstract class EntityLiving extends Entity {
     }
 
     public int getAirTicks() {
-        return this.getDataPropertyShort(DATA_AIR);
+        return this.getDataProperties().getShort(DATA_AIR);
     }
 
     public void setAirTicks(int ticks) {
