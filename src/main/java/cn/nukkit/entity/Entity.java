@@ -246,15 +246,12 @@ public abstract class Entity extends Location implements Metadatable {
     public float fallDistance = 0;
     public int ticksLived = 0;
     public int lastUpdate;
-    public int maxFireTicks;
     public int fireTicks = 0;
     public int inPortalTicks = 0;
 
     public float scale = 1;
 
     public CompoundTag namedTag;
-
-    protected boolean isStatic = false;
 
     public boolean isCollided = false;
     public boolean isCollidedHorizontally = false;
