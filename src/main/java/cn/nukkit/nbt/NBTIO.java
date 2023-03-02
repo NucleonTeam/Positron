@@ -11,16 +11,9 @@ import cn.nukkit.utils.ThreadCache;
 
 import java.io.*;
 import java.nio.ByteOrder;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Collection;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 
-/**
- * A Named Binary Tag library for Nukkit Project
- */
 public class NBTIO {
 
     public static CompoundTag putItemHelper(Item item) {
@@ -118,30 +111,6 @@ public class NBTIO {
         return read(new BufferedInputStream(new GZIPInputStream(inputStream)), endianness);
     }
 
-    public static CompoundTag readCompressed(byte[] data) throws IOException {
-        return readCompressed(data, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static CompoundTag readCompressed(byte[] data, ByteOrder endianness) throws IOException {
-        return read(new BufferedInputStream(new GZIPInputStream(new ByteArrayInputStream(data))), endianness, true);
-    }
-
-    public static CompoundTag readNetworkCompressed(InputStream inputStream) throws IOException {
-        return readNetworkCompressed(inputStream, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static CompoundTag readNetworkCompressed(InputStream inputStream, ByteOrder endianness) throws IOException {
-        return read(new BufferedInputStream(new GZIPInputStream(inputStream)), endianness);
-    }
-
-    public static CompoundTag readNetworkCompressed(byte[] data) throws IOException {
-        return readNetworkCompressed(data, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static CompoundTag readNetworkCompressed(byte[] data, ByteOrder endianness) throws IOException {
-        return read(new BufferedInputStream(new GZIPInputStream(new ByteArrayInputStream(data))), endianness, true);
-    }
-
     public static byte[] write(CompoundTag tag) throws IOException {
         return write(tag, ByteOrder.BIG_ENDIAN);
     }
@@ -210,64 +179,11 @@ public class NBTIO {
         return baos.toByteArray();
     }
 
-    public static byte[] writeGZIPCompressed(CompoundTag tag) throws IOException {
-        return writeGZIPCompressed(tag, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static byte[] writeGZIPCompressed(CompoundTag tag, ByteOrder endianness) throws IOException {
-        FastByteArrayOutputStream baos = ThreadCache.fbaos.get().reset();
-        writeGZIPCompressed(tag, baos, endianness);
-        return baos.toByteArray();
-    }
-
     public static void writeGZIPCompressed(CompoundTag tag, OutputStream outputStream) throws IOException {
         writeGZIPCompressed(tag, outputStream, ByteOrder.BIG_ENDIAN);
     }
 
     public static void writeGZIPCompressed(CompoundTag tag, OutputStream outputStream, ByteOrder endianness) throws IOException {
         write(tag, new PGZIPOutputStream(outputStream), endianness);
-    }
-
-    public static byte[] writeNetworkGZIPCompressed(CompoundTag tag) throws IOException {
-        return writeNetworkGZIPCompressed(tag, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static byte[] writeNetworkGZIPCompressed(CompoundTag tag, ByteOrder endianness) throws IOException {
-        FastByteArrayOutputStream baos = ThreadCache.fbaos.get().reset();
-        writeNetworkGZIPCompressed(tag, baos, endianness);
-        return baos.toByteArray();
-    }
-
-    public static void writeNetworkGZIPCompressed(CompoundTag tag, OutputStream outputStream) throws IOException {
-        writeNetworkGZIPCompressed(tag, outputStream, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static void writeNetworkGZIPCompressed(CompoundTag tag, OutputStream outputStream, ByteOrder endianness) throws IOException {
-        write(tag, new PGZIPOutputStream(outputStream), endianness, true);
-    }
-
-    public static void writeZLIBCompressed(CompoundTag tag, OutputStream outputStream) throws IOException {
-        writeZLIBCompressed(tag, outputStream, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static void writeZLIBCompressed(CompoundTag tag, OutputStream outputStream, ByteOrder endianness) throws IOException {
-        writeZLIBCompressed(tag, outputStream, Deflater.DEFAULT_COMPRESSION, endianness);
-    }
-
-    public static void writeZLIBCompressed(CompoundTag tag, OutputStream outputStream, int level) throws IOException {
-        writeZLIBCompressed(tag, outputStream, level, ByteOrder.BIG_ENDIAN);
-    }
-
-    public static void writeZLIBCompressed(CompoundTag tag, OutputStream outputStream, int level, ByteOrder endianness) throws IOException {
-        write(tag, new DeflaterOutputStream(outputStream, new Deflater(level)), endianness);
-    }
-
-    public static void safeWrite(CompoundTag tag, File file) throws IOException {
-        File tmpFile = new File(file.getAbsolutePath() + "_tmp");
-        if (tmpFile.exists()) {
-            tmpFile.delete();
-        }
-        write(tag, tmpFile);
-        Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 }
