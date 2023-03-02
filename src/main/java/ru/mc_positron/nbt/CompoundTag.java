@@ -1,4 +1,4 @@
-package ru.mc_positron.nbt.tag;
+package ru.mc_positron.nbt;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.NonNull;

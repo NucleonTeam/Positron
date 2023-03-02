@@ -1,4 +1,4 @@
-package ru.mc_positron.nbt.tag;
+package ru.mc_positron.nbt;
 
 import cn.nukkit.nbt.stream.NBTInputStream;
 import lombok.NonNull;
