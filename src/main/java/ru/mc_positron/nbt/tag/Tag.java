@@ -158,7 +158,7 @@ public final class Tag<T> {
         return new Tag<>(key, stream -> {
             try {
                 var tag = new CompoundTag();
-                Nbt.load(stream, tag);
+                Nbt.loadCompound(stream, tag);
                 return tag;
             } catch (IOException e) {
                 throw new RuntimeException(e);
