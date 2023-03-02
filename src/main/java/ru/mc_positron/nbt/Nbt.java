@@ -1,93 +1,97 @@
 package ru.mc_positron.nbt;
 
-import cn.nukkit.nbt.stream.NBTInputStream;
+import com.google.common.collect.ImmutableMap;
 import lombok.NonNull;
+import ru.mc_positron.nbt.tag.Tag;
 
-import java.io.*;
-import java.nio.ByteOrder;
-import java.util.zip.GZIPInputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Nbt {
 
-    private Nbt() {
+    private final ConcurrentHashMap<Tag<?>, Object> map = new ConcurrentHashMap<>();
+
+    public Nbt() {
 
     }
 
-    public static @NonNull CompoundTag readBytes(byte[] data) throws IOException {
-        return readBytes(data, ByteOrder.BIG_ENDIAN);
+    void init(@NonNull Tag<?> tag, Object value) {
+        map.put(tag, value);
     }
 
-    public static @NonNull CompoundTag readBytes(byte[] data, @NonNull ByteOrder endianness) throws IOException {
-        return read(new ByteArrayInputStream(data), endianness);
+    public <T> @NonNull Nbt set(@NonNull Tag<T> tag, @NonNull T value) {
+        map.put(tag, value);
+        return this;
     }
 
-    public static @NonNull CompoundTag readBytes(byte[] data, @NonNull ByteOrder endianness, boolean network) throws IOException {
-        return read(new ByteArrayInputStream(data), endianness, network);
+    public <T> @NonNull Nbt setDefault(@NonNull Tag<T> tag, @NonNull T defaultValue) {
+        return contains(tag)? this : set(tag, defaultValue);
     }
 
-    public static @NonNull CompoundTag readFile(@NonNull File file) throws IOException {
-        return readFile(file, ByteOrder.BIG_ENDIAN);
+    void initList(@NonNull Tag<?> tag, @NonNull List<?> list) {
+        map.put(tag, list);
     }
 
-    public static @NonNull CompoundTag readFile(@NonNull File file, @NonNull ByteOrder endianness) throws IOException {
-        if (!file.exists()) throw new IllegalArgumentException("File " + file + " not fount");
-
-        return read(new FileInputStream(file), endianness);
+    public <T> @NonNull Nbt setList(@NonNull Tag<T> tag, @NonNull List<T> list) {
+        map.put(tag, list);
+        return this;
     }
 
-    public static @NonNull CompoundTag readCompressed(@NonNull InputStream inputStream) throws IOException {
-        return readCompressed(inputStream, ByteOrder.BIG_ENDIAN);
+    public <T> @NonNull T get(@NonNull Tag<T> tag) throws IllegalArgumentException {
+        if (contains(tag)) return (T) map.get(tag);
+
+        throw new IllegalArgumentException("Index '" + tag.getKey() + "' not fount");
     }
 
-    public static @NonNull CompoundTag readCompressed(@NonNull InputStream inputStream, @NonNull ByteOrder endianness) throws IOException {
-        return read(new BufferedInputStream(new GZIPInputStream(inputStream)), endianness);
+    public <T> T get(@NonNull Tag<T> tag, T defaultValue) throws IllegalArgumentException {
+        return contains(tag)? get(tag) : defaultValue;
     }
 
-    public static @NonNull CompoundTag read(@NonNull InputStream inputStream) throws IOException {
-        return read(inputStream, ByteOrder.BIG_ENDIAN);
+    public <T> @NonNull List<T> getList(@NonNull Tag<T> tag) {
+        if (contains(tag)) return (List<T>) map.get(tag);
+
+        throw new IllegalArgumentException("Index '" + tag.getKey() + "' not fount");
     }
 
-    public static @NonNull CompoundTag read(@NonNull InputStream inputStream, @NonNull ByteOrder endianness) throws IOException {
-        return read(inputStream, endianness, false);
-    }
-
-    public static @NonNull CompoundTag read(@NonNull InputStream inputStream, @NonNull ByteOrder endianness, boolean network) throws IOException {
-        try (var stream = new NBTInputStream(inputStream, endianness, network)) {
-            var type = stream.readByte();
-
-            if (type != Tag.Id.COMPOUND) throw new IOException("Root tag must be a named compound tag");
-
-            var root = new CompoundTag();
-            stream.readUTF(); // skipping root key because it will empty
-            loadCompound(stream, root);
-
-            return root;
+    public @NonNull Nbt remove(@NonNull String key) {
+        for (var tag: map.keySet()) {
+            if (key.equals(tag.getKey())) {
+                map.remove(tag);
+                return this;
+            }
         }
+        return this;
     }
 
-    static void loadCompound(@NonNull NBTInputStream stream, @NonNull CompoundTag parent) throws IOException {
-        while (true) {
-            var type = stream.readByte();
-
-            if (type == Tag.Id.END) return;
-            loadTag(stream, parent, type);
-        }
+    public @NonNull Nbt remove(@NonNull Tag<?> tag) {
+        map.remove(tag);
+        return this;
     }
 
-    private static void loadTag(@NonNull NBTInputStream stream, @NonNull CompoundTag parent, int id) throws IOException {
-        var key = stream.readUTF();
-        Tag<?> tag;
+    public boolean contains(@NonNull Tag<?> tag) {
+        return map.containsKey(tag);
+    }
 
-        if (id == Tag.Id.LIST) {
-            var type = stream.readByte();
-            var len = stream.readInt();
-            tag = Tag.pickTag(type, key);
-
-            parent.initList(tag, tag.readList(stream, len));
-            return;
+    public boolean isList(@NonNull Tag<?> tag) {
+        if (contains(tag)) {
+            return map.get(tag) instanceof List<?>;
         }
 
-        tag = Tag.pickTag(id, key);
-        parent.init(tag, tag.read(stream));
+        throw new IllegalArgumentException("Index '" + tag.getKey() + "' not fount");
+    }
+
+    public @NonNull Tag<?> getTag(@NonNull String key) {
+        for (var tag: map.keySet()) {
+            if (key.equals(tag.getKey())) {
+                return tag;
+            }
+        }
+
+        throw new IllegalArgumentException("Index '" + key + "' not fount");
+    }
+
+    public @NonNull Collection<Tag<?>> keys() {
+        return ImmutableMap.copyOf(map).keySet();
     }
 }
