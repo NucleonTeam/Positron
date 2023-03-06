@@ -6,19 +6,19 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class ByteTag extends Tag<Byte> {
+public class ByteTag extends Tag<Byte, Integer> {
 
     ByteTag(String key) {
         super(key, Id.BYTE);
     }
 
     @Override
-    public @NonNull Byte read(@NonNull NBTInputStream stream) throws IOException {
-        return stream.readByte();
+    public @NonNull Integer read(@NonNull NBTInputStream stream) throws IOException {
+        return (int) stream.readByte();
     }
 
     @Override
-    public void write(@NonNull NBTOutputStream stream, @NonNull Byte value) throws IOException {
-        stream.writeByte(value);
+    public void write(@NonNull NBTOutputStream stream, @NonNull Integer value) throws IOException {
+        stream.writeByte(value.byteValue());
     }
 }

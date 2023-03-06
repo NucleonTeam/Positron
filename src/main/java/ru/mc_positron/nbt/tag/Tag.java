@@ -3,11 +3,11 @@ package ru.mc_positron.nbt.tag;
 import cn.nukkit.nbt.stream.NBTInputStream;
 import cn.nukkit.nbt.stream.NBTOutputStream;
 import lombok.NonNull;
-import ru.mc_positron.nbt.Nbt;
+import ru.mc_positron.nbt.NbtMap;
 
 import java.io.IOException;
 
-public abstract class Tag<T> {
+public abstract class Tag<T, V> {
 
     private final String key;
     private final int id;
@@ -25,11 +25,11 @@ public abstract class Tag<T> {
         return key;
     }
 
-    public abstract @NonNull T read(@NonNull NBTInputStream stream) throws IOException;
+    public abstract @NonNull V read(@NonNull NBTInputStream stream) throws IOException;
 
-    public abstract void write(@NonNull NBTOutputStream stream, @NonNull T value) throws IOException;
+    public abstract void write(@NonNull NBTOutputStream stream, @NonNull V value) throws IOException;
 
-    void writeList(@NonNull NBTOutputStream stream, @NonNull Nbt map) throws IOException {
+    void writeList(@NonNull NBTOutputStream stream, @NonNull NbtMap map) throws IOException {
         var list = map.getList(this);
         stream.writeInt(list.size());
         for (var value: list) write(stream, value);
@@ -44,54 +44,58 @@ public abstract class Tag<T> {
     public boolean equals(Object obj) {
         if (obj == null) return false;
         if (obj == this) return true;
-        if (obj instanceof Tag<?> tag) {
+        if (obj instanceof Tag tag) {
             return key.equals(tag.key);
         }
 
         return false;
     }
 
-    public static @NonNull Tag<String> String(@NonNull String key) {
+    public static @NonNull StringTag String(@NonNull String key) {
         return new StringTag(key);
     }
 
-    public static @NonNull Tag<Long> Long(@NonNull String key) {
+    public static @NonNull LongTag Long(@NonNull String key) {
         return new LongTag(key);
     }
 
-    public static @NonNull Tag<Integer> Integer(@NonNull String key) {
+    public static @NonNull IntegerTag Integer(@NonNull String key) {
         return new IntegerTag(key);
     }
 
-    public static @NonNull Tag<int[]> IntegerArray(@NonNull String key) {
+    public static @NonNull IntegerArrayTag IntegerArray(@NonNull String key) {
         return new IntegerArrayTag(key);
     }
 
-    public static @NonNull Tag<Short> Short(@NonNull String key) {
+    public static @NonNull ShortTag Short(@NonNull String key) {
         return new ShortTag(key);
     }
 
-    public static @NonNull Tag<Byte> Byte(@NonNull String key) {
+    public static @NonNull ByteTag Byte(@NonNull String key) {
         return new ByteTag(key);
     }
 
-    public static @NonNull Tag<byte[]> ByteArray(@NonNull String key) {
+    public static @NonNull ByteArrayTag ByteArray(@NonNull String key) {
         return new ByteArrayTag(key);
     }
 
-    public static @NonNull Tag<Float> Float(@NonNull String key) {
+    public static @NonNull FloatTag Float(@NonNull String key) {
         return new FloatTag(key);
     }
 
-    public static @NonNull Tag<Double> Double(@NonNull String key) {
+    public static @NonNull DoubleTag Double(@NonNull String key) {
         return new DoubleTag(key);
     }
 
-    public static @NonNull Tag<Nbt> Compound(@NonNull String key) {
+    public static @NonNull CompoundTag Compound(@NonNull String key) {
         return new CompoundTag(key);
     }
 
-    static @NonNull Tag<?> pickTag(int id, @NonNull String key) {
+    public static @NonNull BooleanTag Boolean(@NonNull String key) {
+        return new BooleanTag(key);
+    }
+
+    static @NonNull Tag<?, ?> pickTag(int id, @NonNull String key) {
         return switch (id) {
             case Tag.Id.BYTE -> Tag.Byte(key);
             case Tag.Id.SHORT -> Tag.Short(key);

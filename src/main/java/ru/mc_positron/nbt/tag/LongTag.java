@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class LongTag extends Tag<Long> {
+public class LongTag extends Tag<Long, Long> {
 
     LongTag(String key) {
         super(key, Id.LONG);

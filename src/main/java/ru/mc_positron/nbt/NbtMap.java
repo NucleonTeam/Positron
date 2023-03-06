@@ -8,53 +8,53 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class Nbt {
+public final class NbtMap {
 
-    private final ConcurrentHashMap<Tag<?>, Object> map = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Tag<?, ?>, Object> map = new ConcurrentHashMap<>();
 
-    public Nbt() {
+    public NbtMap() {
 
     }
 
-    void init(@NonNull Tag<?> tag, Object value) {
+    void init(@NonNull Tag<?, ?> tag, Object value) {
         map.put(tag, value);
     }
 
-    public <T> @NonNull Nbt set(@NonNull Tag<T> tag, @NonNull T value) {
+    public <T, V> @NonNull NbtMap set(@NonNull Tag<T, V> tag, @NonNull V value) {
         map.put(tag, value);
         return this;
     }
 
-    public <T> @NonNull Nbt setDefault(@NonNull Tag<T> tag, @NonNull T defaultValue) {
+    public <T, V> @NonNull NbtMap setDefault(@NonNull Tag<T, V> tag, @NonNull V defaultValue) {
         return contains(tag)? this : set(tag, defaultValue);
     }
 
-    void initList(@NonNull Tag<?> tag, @NonNull List<?> list) {
+    void initList(@NonNull Tag<?, ?> tag, @NonNull List<?> list) {
         map.put(tag, list);
     }
 
-    public <T> @NonNull Nbt setList(@NonNull Tag<T> tag, @NonNull List<T> list) {
+    public <T, V> @NonNull NbtMap setList(@NonNull Tag<T, V> tag, @NonNull List<V> list) {
         map.put(tag, list);
         return this;
     }
 
-    public <T> @NonNull T get(@NonNull Tag<T> tag) throws IllegalArgumentException {
-        if (contains(tag)) return (T) map.get(tag);
+    public <V> @NonNull V get(@NonNull Tag<?, V> tag) throws IllegalArgumentException {
+        if (contains(tag)) return (V) map.get(tag);
 
         throw new IllegalArgumentException("Index '" + tag.getKey() + "' not fount");
     }
 
-    public <T> T get(@NonNull Tag<T> tag, T defaultValue) throws IllegalArgumentException {
+    public <T, V> V get(@NonNull Tag<T, V> tag, V defaultValue) throws IllegalArgumentException {
         return contains(tag)? get(tag) : defaultValue;
     }
 
-    public <T> @NonNull List<T> getList(@NonNull Tag<T> tag) {
-        if (contains(tag)) return (List<T>) map.get(tag);
+    public <T, V> @NonNull List<V> getList(@NonNull Tag<T, V> tag) {
+        if (contains(tag)) return (List<V>) map.get(tag);
 
         throw new IllegalArgumentException("Index '" + tag.getKey() + "' not fount");
     }
 
-    public @NonNull Nbt remove(@NonNull String key) {
+    public @NonNull NbtMap remove(@NonNull String key) {
         for (var tag: map.keySet()) {
             if (key.equals(tag.getKey())) {
                 map.remove(tag);
@@ -64,16 +64,16 @@ public final class Nbt {
         return this;
     }
 
-    public @NonNull Nbt remove(@NonNull Tag<?> tag) {
+    public @NonNull NbtMap remove(@NonNull Tag<?, ?> tag) {
         map.remove(tag);
         return this;
     }
 
-    public boolean contains(@NonNull Tag<?> tag) {
+    public boolean contains(@NonNull Tag<?, ?> tag) {
         return map.containsKey(tag);
     }
 
-    public boolean isList(@NonNull Tag<?> tag) {
+    public boolean isList(@NonNull Tag<?, ?> tag) {
         if (contains(tag)) {
             return map.get(tag) instanceof List<?>;
         }
@@ -81,7 +81,7 @@ public final class Nbt {
         throw new IllegalArgumentException("Index '" + tag.getKey() + "' not fount");
     }
 
-    public @NonNull Tag<?> getTag(@NonNull String key) {
+    public @NonNull Tag<?, ?> getTag(@NonNull String key) {
         for (var tag: map.keySet()) {
             if (key.equals(tag.getKey())) {
                 return tag;
@@ -91,7 +91,7 @@ public final class Nbt {
         throw new IllegalArgumentException("Index '" + key + "' not fount");
     }
 
-    public @NonNull Collection<Tag<?>> keys() {
+    public @NonNull Collection<Tag<?, ?>> keys() {
         return ImmutableMap.copyOf(map).keySet();
     }
 }

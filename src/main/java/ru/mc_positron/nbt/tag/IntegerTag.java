@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class IntegerTag extends Tag<Integer> {
+public class IntegerTag extends Tag<Integer, Integer> {
 
     IntegerTag(String key) {
         super(key, Id.INT);

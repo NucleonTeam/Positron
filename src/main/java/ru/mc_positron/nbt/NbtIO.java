@@ -17,45 +17,45 @@ public final class NbtIO {
 
     }
 
-    public static @NonNull Nbt readBytes(byte[] data) throws IOException {
+    public static @NonNull NbtMap readBytes(byte[] data) throws IOException {
         return readBytes(data, ByteOrder.BIG_ENDIAN);
     }
 
-    public static @NonNull Nbt readBytes(byte[] data, @NonNull ByteOrder endianness) throws IOException {
+    public static @NonNull NbtMap readBytes(byte[] data, @NonNull ByteOrder endianness) throws IOException {
         return read(new ByteArrayInputStream(data), endianness);
     }
 
-    public static @NonNull Nbt readBytes(byte[] data, @NonNull ByteOrder endianness, boolean network) throws IOException {
+    public static @NonNull NbtMap readBytes(byte[] data, @NonNull ByteOrder endianness, boolean network) throws IOException {
         return read(new ByteArrayInputStream(data), endianness, network);
     }
 
-    public static @NonNull Nbt readFile(@NonNull File file) throws IOException {
+    public static @NonNull NbtMap readFile(@NonNull File file) throws IOException {
         return readFile(file, ByteOrder.BIG_ENDIAN);
     }
 
-    public static @NonNull Nbt readFile(@NonNull File file, @NonNull ByteOrder endianness) throws IOException {
+    public static @NonNull NbtMap readFile(@NonNull File file, @NonNull ByteOrder endianness) throws IOException {
         if (!file.exists()) throw new IllegalArgumentException("File " + file + " not fount");
 
         return read(new FileInputStream(file), endianness);
     }
 
-    public static @NonNull Nbt readCompressed(@NonNull InputStream inputStream) throws IOException {
+    public static @NonNull NbtMap readCompressed(@NonNull InputStream inputStream) throws IOException {
         return readCompressed(inputStream, ByteOrder.BIG_ENDIAN);
     }
 
-    public static @NonNull Nbt readCompressed(@NonNull InputStream inputStream, @NonNull ByteOrder endianness) throws IOException {
+    public static @NonNull NbtMap readCompressed(@NonNull InputStream inputStream, @NonNull ByteOrder endianness) throws IOException {
         return read(new BufferedInputStream(new GZIPInputStream(inputStream)), endianness);
     }
 
-    public static @NonNull Nbt read(@NonNull InputStream inputStream) throws IOException {
+    public static @NonNull NbtMap read(@NonNull InputStream inputStream) throws IOException {
         return read(inputStream, ByteOrder.BIG_ENDIAN);
     }
 
-    public static @NonNull Nbt read(@NonNull InputStream inputStream, @NonNull ByteOrder endianness) throws IOException {
+    public static @NonNull NbtMap read(@NonNull InputStream inputStream, @NonNull ByteOrder endianness) throws IOException {
         return read(inputStream, endianness, false);
     }
 
-    public static @NonNull Nbt read(@NonNull InputStream inputStream, @NonNull ByteOrder endianness, boolean network) throws IOException {
+    public static @NonNull NbtMap read(@NonNull InputStream inputStream, @NonNull ByteOrder endianness, boolean network) throws IOException {
         try (var stream = new NBTInputStream(inputStream, endianness, network)) {
             var type = stream.readByte();
 
@@ -65,15 +65,15 @@ public final class NbtIO {
         }
     }
 
-    public static byte[] write(@NonNull Nbt map) throws IOException {
+    public static byte[] write(@NonNull NbtMap map) throws IOException {
         return write(map, ByteOrder.BIG_ENDIAN);
     }
 
-    public static byte[] write(@NonNull Nbt map, @NonNull ByteOrder endianness) throws IOException {
+    public static byte[] write(@NonNull NbtMap map, @NonNull ByteOrder endianness) throws IOException {
         return write(map, endianness, false);
     }
 
-    public static byte[] write(@NonNull Nbt map, @NonNull ByteOrder endianness, boolean network) throws IOException {
+    public static byte[] write(@NonNull NbtMap map, @NonNull ByteOrder endianness, boolean network) throws IOException {
         var outputStream = ThreadCache.fbaos.get().reset();
         try (var stream = new NBTOutputStream(outputStream, endianness, network)) {
             stream.writeByte(Tag.Id.COMPOUND);
@@ -84,29 +84,29 @@ public final class NbtIO {
         }
     }
 
-    public static void writeFile(@NonNull Nbt map, @NonNull File file) throws IOException {
+    public static void writeFile(@NonNull NbtMap map, @NonNull File file) throws IOException {
         writeFile(map, file, ByteOrder.BIG_ENDIAN);
     }
 
-    public static void writeFile(@NonNull Nbt map, @NonNull File file, @NonNull ByteOrder endianness) throws IOException {
+    public static void writeFile(@NonNull NbtMap map, @NonNull File file, @NonNull ByteOrder endianness) throws IOException {
         writeStream(map, new FileOutputStream(file), endianness);
     }
 
-    public static void writeStream(@NonNull Nbt map, @NonNull OutputStream outputStream) throws IOException {
+    public static void writeStream(@NonNull NbtMap map, @NonNull OutputStream outputStream) throws IOException {
         writeStream(map, outputStream, ByteOrder.BIG_ENDIAN);
     }
 
-    public static void writeStream(@NonNull Nbt map, @NonNull OutputStream outputStream, @NonNull ByteOrder endianness) throws IOException {
+    public static void writeStream(@NonNull NbtMap map, @NonNull OutputStream outputStream, @NonNull ByteOrder endianness) throws IOException {
         writeStream(map, outputStream, endianness, false);
     }
 
-    public static void writeStream(@NonNull Nbt map, @NonNull OutputStream outputStream, @NonNull ByteOrder endianness, boolean network) throws IOException {
+    public static void writeStream(@NonNull NbtMap map, @NonNull OutputStream outputStream, @NonNull ByteOrder endianness, boolean network) throws IOException {
         try (var stream = new NBTOutputStream(outputStream, endianness, network)) {
             stream.write(write(map, endianness, network));
         }
     }
 
-    public static byte[] writeNetwork(@NonNull Nbt map) throws IOException {
+    public static byte[] writeNetwork(@NonNull NbtMap map) throws IOException {
         var outputStream = ThreadCache.fbaos.get().reset();
         try (var stream = new NBTOutputStream(outputStream, ByteOrder.LITTLE_ENDIAN, true)) {
             stream.write(write(map));
@@ -114,11 +114,11 @@ public final class NbtIO {
         return outputStream.toByteArray();
     }
 
-    public static void writeGZIPCompressed(@NonNull Nbt map, @NonNull OutputStream outputStream) throws IOException {
+    public static void writeGZIPCompressed(@NonNull NbtMap map, @NonNull OutputStream outputStream) throws IOException {
         writeGZIPCompressed(map, outputStream, ByteOrder.BIG_ENDIAN);
     }
 
-    public static void writeGZIPCompressed(@NonNull Nbt map, @NonNull OutputStream outputStream, @NonNull ByteOrder endianness) throws IOException {
+    public static void writeGZIPCompressed(@NonNull NbtMap map, @NonNull OutputStream outputStream, @NonNull ByteOrder endianness) throws IOException {
         writeStream(map, new PGZIPOutputStream(outputStream), endianness);
     }
 }

@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class ByteArrayTag extends Tag<byte[]> {
+public class ByteArrayTag extends Tag<byte[], byte[]> {
 
     ByteArrayTag(String key) {
         super(key, Id.BYTE_ARRAY);

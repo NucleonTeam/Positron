@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class IntegerArrayTag extends Tag<int[]> {
+public class IntegerArrayTag extends Tag<int[], int[]> {
 
     IntegerArrayTag(String key) {
         super(key, Id.INT_ARRAY);

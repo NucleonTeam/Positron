@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class FloatTag extends Tag<Float> {
+public class FloatTag extends Tag<Float, Float> {
 
     FloatTag(String key) {
         super(key, Id.FLOAT);

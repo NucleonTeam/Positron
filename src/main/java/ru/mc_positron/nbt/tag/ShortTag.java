@@ -6,19 +6,19 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class ShortTag extends Tag<Short> {
+public class ShortTag extends Tag<Short, Integer> {
 
     ShortTag(String key) {
         super(key, Id.SHORT);
     }
 
     @Override
-    public @NonNull Short read(@NonNull NBTInputStream stream) throws IOException {
-        return stream.readShort();
+    public @NonNull Integer read(@NonNull NBTInputStream stream) throws IOException {
+        return (int) stream.readShort();
     }
 
     @Override
-    public void write(@NonNull NBTOutputStream stream, @NonNull Short value) throws IOException {
-        stream.writeShort(value);
+    public void write(@NonNull NBTOutputStream stream, @NonNull Integer value) throws IOException {
+        stream.writeShort(value.shortValue());
     }
 }

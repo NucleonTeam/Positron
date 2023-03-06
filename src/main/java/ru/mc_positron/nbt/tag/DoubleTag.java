@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 
-public class DoubleTag extends Tag<Double> {
+public class DoubleTag extends Tag<Double, Double> {
 
     DoubleTag(String key) {
         super(key, Id.DOUBLE);
