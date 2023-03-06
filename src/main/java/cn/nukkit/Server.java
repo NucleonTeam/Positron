@@ -1217,10 +1217,6 @@ public class Server {
         return this.getPropertyBoolean("white-list", false);
     }
 
-    public int getSpawnRadius() {
-        return this.getPropertyInt("spawn-protection", 16);
-    }
-
     public boolean getAllowFlight() {
         if (getAllowFlight == null) {
             getAllowFlight = this.getPropertyBoolean("allow-flight", false);
@@ -1291,36 +1287,6 @@ public class Server {
         return tickCounter;
     }
 
-    public float getTicksPerSecond() {
-        return ((float) Math.round(this.maxTick * 100)) / 100;
-    }
-
-    public float getTicksPerSecondAverage() {
-        float sum = 0;
-        int count = this.tickAverage.length;
-        for (float aTickAverage : this.tickAverage) {
-            sum += aTickAverage;
-        }
-        return (float) FastMath.round(sum / count, 2);
-    }
-
-    public float getTickUsage() {
-        return (float) FastMath.round(this.maxUse * 100, 2);
-    }
-
-    public float getTickUsageAverage() {
-        float sum = 0;
-        int count = this.useAverage.length;
-        for (float aUseAverage : this.useAverage) {
-            sum += aUseAverage;
-        }
-        return ((float) Math.round(sum / count * 100)) / 100;
-    }
-
-    public void addRecipe(Recipe recipe) {
-        this.craftingManager.registerRecipe(recipe);
-    }
-
     public Optional<UUID> lookupName(String name) {
         byte[] nameBytes = name.toLowerCase().getBytes(StandardCharsets.UTF_8);
         byte[] uuidBytes = nameLookup.get(nameBytes);
@@ -1346,10 +1312,6 @@ public class Server {
         buffer.putLong(uuid.getLeastSignificantBits());
 
         nameLookup.put(nameBytes, buffer.array());
-    }
-
-    public CompoundTag getOfflinePlayerData(UUID uuid) {
-        return getOfflinePlayerData(uuid, false);
     }
 
     public CompoundTag getOfflinePlayerData(UUID uuid, boolean create) {
@@ -1873,18 +1835,6 @@ public class Server {
         return this.getConfig("player.skin-change-cooldown", 30);
     }
 
-    /**
-     * Checks the current thread against the expected primary thread for the
-     * server.
-     * <p>
-     * <b>Note:</b> this method should not be used to indicate the current
-     * synchronized state of the runtime. A current thread matching the main
-     * thread indicates that it is synchronized, but a mismatch does not
-     * preclude the same assumption.
-     *
-     * @return true if the current thread matches the expected primary thread,
-     * false otherwise
-     */
     public final boolean isPrimaryThread() {
         return (Thread.currentThread() == currentThread);
     }
@@ -1907,14 +1857,6 @@ public class Server {
 
     public boolean isNetherAllowed() {
         return this.allowNether;
-    }
-
-    public PlayerDataSerializer getPlayerDataSerializer() {
-        return playerDataSerializer;
-    }
-
-    public void setPlayerDataSerializer(PlayerDataSerializer playerDataSerializer) {
-        this.playerDataSerializer = Preconditions.checkNotNull(playerDataSerializer, "playerDataSerializer");
     }
 
     public boolean isIgnoredPacket(Class<? extends DataPacket> clazz) {

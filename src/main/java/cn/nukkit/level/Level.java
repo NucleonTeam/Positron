@@ -1930,10 +1930,6 @@ public class Level implements ChunkManager, Metadatable {
                 ev.setCancelled();
             }
 
-            if(isInSpawnRadius(target)) {
-                ev.setCancelled();
-            }
-
             this.server.getPluginManager().callEvent(ev);
             if (!ev.isCancelled()) {
                 target.onUpdate(BLOCK_UPDATE_TOUCH);
@@ -2018,9 +2014,6 @@ public class Level implements ChunkManager, Metadatable {
                     event.setCancelled();
                 }
             }
-            if(isInSpawnRadius(target)) {
-                event.setCancelled();
-            }
 
             this.server.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
@@ -2046,16 +2039,6 @@ public class Level implements ChunkManager, Metadatable {
             item = new ItemBlock(Block.get(BlockID.AIR), 0, 0);
         }
         return item;
-    }
-
-    public boolean isInSpawnRadius(Vector3 vector3) {
-        int distance = this.server.getSpawnRadius();
-        if (distance > -1) {
-            var t = new Vector2d(vector3.x, vector3.z);
-            var s = new Vector2d(getSpawnLocation().x, getSpawnLocation().z);
-            return t.distance(s) <= distance;
-        }
-        return false;
     }
 
     public Entity getEntity(long entityId) {

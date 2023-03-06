@@ -4758,11 +4758,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public boolean doesTriggerPressurePlate() {
-        return this.gamemode != SPECTATOR;
-    }
-
-    @Override
     public String toString() {
         return "Player(name='" + getName() +
                 "', location=" + super.toString() +

@@ -31,12 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Item implements Cloneable, BlockID, ItemID {
-    //Normal Item IDs
 
     protected static String UNKNOWN_STR = "Unknown";
     public static Class[] list = null;

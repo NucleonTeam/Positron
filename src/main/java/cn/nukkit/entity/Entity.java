@@ -175,9 +175,6 @@ public abstract class Entity extends Location implements Metadatable {
     public static final int DATA_PLAYER_LAST_DEATH_DIMENSION = 128;
     public static final int DATA_PLAYER_HAS_DIED = 129;
 
-    // Flags
-
-
     public static long entityCount = 1;
 
     private static final Map<String, Class<? extends Entity>> knownEntities = new HashMap<>();
@@ -1891,11 +1888,6 @@ public abstract class Entity extends Location implements Metadatable {
         return this.collisionBlocks;
     }
 
-    /**
-     * Returns whether this entity can be moved by currents in liquids.
-     *
-     * @return boolean
-     */
     public boolean canBeMovedByCurrents() {
         return true;
     }
@@ -1937,15 +1929,6 @@ public abstract class Entity extends Location implements Metadatable {
         return false;
     }
 
-    public boolean setPositionAndRotation(Vector3 pos, double yaw, double pitch, double headYaw) {
-        if (this.setPosition(pos)) {
-            this.setRotation(yaw, pitch, headYaw);
-            return true;
-        }
-
-        return false;
-    }
-
     public void setRotation(double yaw, double pitch) {
         this.yaw = yaw;
         this.pitch = pitch;
@@ -1957,10 +1940,6 @@ public abstract class Entity extends Location implements Metadatable {
         this.pitch = pitch;
         this.headYaw = headYaw;
         this.scheduleUpdate();
-    }
-
-    public boolean doesTriggerPressurePlate() {
-        return true;
     }
 
     public boolean canPassThrough() {
