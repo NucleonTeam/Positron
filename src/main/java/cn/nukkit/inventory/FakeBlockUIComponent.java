@@ -3,21 +3,21 @@ package cn.nukkit.inventory;
 import cn.nukkit.Player;
 import cn.nukkit.entity.mob.inventory.InventoryCloseEvent;
 import cn.nukkit.entity.mob.inventory.InventoryOpenEvent;
-import cn.nukkit.level.Position;
+import cn.nukkit.level.Level;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.ContainerClosePacket;
 import cn.nukkit.network.protocol.ContainerOpenPacket;
+import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 
 public class FakeBlockUIComponent extends PlayerUIComponent {
     private final InventoryType type;
 
-    FakeBlockUIComponent(PlayerUIInventory playerUI, InventoryType type, int offset, Position position) {
+    FakeBlockUIComponent(PlayerUIInventory playerUI, InventoryType type, int offset, Vector3d position, Level world) {
         super(playerUI, offset, type.getDefaultSize());
         this.type = type;
-        this.holder = new FakeBlockMenu(this, position);
+        this.holder = new FakeBlockMenu(this, position, world);
     }
-
 
     @Override
     public FakeBlockMenu getHolder() {

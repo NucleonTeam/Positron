@@ -4,19 +4,15 @@ import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
-import cn.nukkit.event.block.BlockUpdateEvent;
 import cn.nukkit.event.entity.EntityDamageByBlockEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityExplodeEvent;
-import cn.nukkit.inventory.InventoryHolder;
-import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.level.particle.HugeExplodeSeedParticle;
 import cn.nukkit.math.*;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
-import cn.nukkit.utils.Hash;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.blockentity.BlockEntity;
@@ -29,8 +25,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Explosion {
 
     private final int rays = 16; //Rays
-    private final Level level;
-    private final Position source;
+    private final Vector3d position;
+    private final Level world;
     private final double size;
 
     private List<Block> affectedBlocks = new ArrayList<>();
@@ -39,9 +35,9 @@ public class Explosion {
     private final Object what;
     private boolean doesDamage = true;
 
-    public Explosion(Position center, double size, Entity what) {
-        this.level = center.getLevel();
-        this.source = center;
+    public Explosion(Level world, Vector3d position, double size, Entity what) {
+        this.world = world;
+        this.position = position;
         this.size = Math.max(size, 0);
         this.what = what;
     }
@@ -76,9 +72,9 @@ public class Explosion {
                         vector.setComponents((double) i / (double) mRays * 2d - 1, (double) j / (double) mRays * 2d - 1, (double) k / (double) mRays * 2d - 1);
                         double len = vector.length();
                         vector.setComponents((vector.x / len) * this.stepLen, (vector.y / len) * this.stepLen, (vector.z / len) * this.stepLen);
-                        double pointerX = this.source.x;
-                        double pointerY = this.source.y;
-                        double pointerZ = this.source.z;
+                        double pointerX = position.x();
+                        double pointerY = position.y();
+                        double pointerZ = position.z();
 
                         for (double blastForce = this.size * (ThreadLocalRandom.current().nextInt(700, 1301)) / 1000d; blastForce > 0; blastForce -= this.stepLen * 0.75d) {
                             int x = (int) pointerX;
@@ -90,7 +86,7 @@ public class Explosion {
                             if (vBlock.y < 0 || vBlock.y > 255) {
                                 break;
                             }
-                            Block block = this.level.getBlock(vBlock.asBlockVector3());
+                            Block block = world.getBlock(vBlock.asBlockVector3());
 
                             if (block.getId() != 0) {
                                 blastForce -= (block.getResistance() / 5 + 0.3d) * this.stepLen;
@@ -117,12 +113,12 @@ public class Explosion {
         LongArraySet updateBlocks = new LongArraySet();
         List<Vector3> send = new ArrayList<>();
 
-        Vector3 source = (new Vector3(this.source.x, this.source.y, this.source.z)).floor();
+        var source = position.floor();
         double yield = (1d / this.size) * 100d;
 
         if (this.what instanceof Entity) {
-            EntityExplodeEvent ev = new EntityExplodeEvent((Entity) this.what, this.source, this.affectedBlocks, yield);
-            this.level.getServer().getPluginManager().callEvent(ev);
+            EntityExplodeEvent ev = new EntityExplodeEvent((Entity) this.what, position, this.affectedBlocks, yield);
+            world.getServer().getPluginManager().callEvent(ev);
             if (ev.isCancelled()) {
                 return false;
             } else {
@@ -132,20 +128,20 @@ public class Explosion {
         }
 
         double explosionSize = this.size * 2d;
-        double minX = FastMath.floorDouble(this.source.x - explosionSize - 1);
-        double maxX = FastMath.ceilDouble(this.source.x + explosionSize + 1);
-        double minY = FastMath.floorDouble(this.source.y - explosionSize - 1);
-        double maxY = FastMath.ceilDouble(this.source.y + explosionSize + 1);
-        double minZ = FastMath.floorDouble(this.source.z - explosionSize - 1);
-        double maxZ = FastMath.ceilDouble(this.source.z + explosionSize + 1);
+        double minX = FastMath.floorDouble(position.x() - explosionSize - 1);
+        double maxX = FastMath.ceilDouble(position.x() + explosionSize + 1);
+        double minY = FastMath.floorDouble(position.y() - explosionSize - 1);
+        double maxY = FastMath.ceilDouble(position.y() + explosionSize + 1);
+        double minZ = FastMath.floorDouble(position.z() - explosionSize - 1);
+        double maxZ = FastMath.ceilDouble(position.z() + explosionSize + 1);
 
         AxisAlignedBB explosionBB = new SimpleAxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
-        Entity[] list = this.level.getNearbyEntities(explosionBB, this.what instanceof Entity ? (Entity) this.what : null);
+        Entity[] list = world.getNearbyEntities(explosionBB, this.what instanceof Entity ? (Entity) this.what : null);
         for (Entity entity : list) {
-            double distance = entity.getPosition().distance(this.source.toNewVector()) / explosionSize;
+            double distance = entity.getPosition().distance(position) / explosionSize;
 
             if (distance <= 1) {
-                Vector3d motion = entity.getPosition().sub(this.source.toNewVector()).normalize();
+                Vector3d motion = entity.getPosition().sub(position).normalize();
                 int exposure = 1;
                 double impact = (1 - distance) * exposure;
 
@@ -203,8 +199,8 @@ public class Explosion {
         }
         */
 
-        this.level.addParticle(new HugeExplodeSeedParticle(this.source));
-        this.level.addLevelSoundEvent(source.toNewVector().toFloat(), LevelSoundEventPacket.SOUND_EXPLODE);
+        world.addParticle(new HugeExplodeSeedParticle(new Vector3(position)));
+        world.addLevelSoundEvent(position.toFloat(), LevelSoundEventPacket.SOUND_EXPLODE);
 
         return true;
     }

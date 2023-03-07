@@ -1,15 +1,14 @@
 package cn.nukkit.inventory;
 
 import cn.nukkit.Player;
-import cn.nukkit.level.Position;
+import cn.nukkit.level.Level;
+import cn.nukkit.math.Vector3;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: Rover656
- */
 public class BeaconInventory extends FakeBlockUIComponent {
 
-    public BeaconInventory(PlayerUIInventory playerUI, Position position) {
-        super(playerUI, InventoryType.BEACON, 27, position);
+    public BeaconInventory(PlayerUIInventory playerUI, Vector3d position, Level world) {
+        super(playerUI, InventoryType.BEACON, 27, position, world);
     }
 
     @Override
@@ -18,7 +17,7 @@ public class BeaconInventory extends FakeBlockUIComponent {
 
         // Drop item in slot if client doesn't automatically move it to player's inventory
         if (!who.isConnected()) {
-            this.getHolder().getLevel().dropItem(this.getHolder().add(0.5, 0.5, 0.5), this.getItem(0));
+            this.getHolder().getWorld().dropItem(new Vector3(getHolder().getPosition().add(0.5, 0.5, 0.5)), this.getItem(0));
         }
         this.clear(0);
     }

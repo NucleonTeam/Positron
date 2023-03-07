@@ -4,14 +4,10 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
-import cn.nukkit.level.Position;
+import org.spongepowered.math.vector.Vector3d;
 
 import java.util.List;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class EntityExplodeEvent extends EntityEvent implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
@@ -20,18 +16,18 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
         return handlers;
     }
 
-    protected final Position position;
+    protected final Vector3d position;
     protected List<Block> blocks;
     protected double yield;
 
-    public EntityExplodeEvent(Entity entity, Position position, List<Block> blocks, double yield) {
+    public EntityExplodeEvent(Entity entity, Vector3d position, List<Block> blocks, double yield) {
         this.entity = entity;
         this.position = position;
         this.blocks = blocks;
         this.yield = yield;
     }
 
-    public Position getPosition() {
+    public Vector3d getPosition() {
         return this.position;
     }
 

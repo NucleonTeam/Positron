@@ -2,12 +2,10 @@ package cn.nukkit.inventory;
 
 import cn.nukkit.Player;
 import cn.nukkit.item.Item;
-import cn.nukkit.level.Position;
+import cn.nukkit.level.Level;
+import cn.nukkit.math.Vector3;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class AnvilInventory extends FakeBlockUIComponent {
 
     public static final int ANVIL_INPUT_UI_SLOT = 1;
@@ -20,8 +18,8 @@ public class AnvilInventory extends FakeBlockUIComponent {
 
     private int cost;
 
-    public AnvilInventory(PlayerUIInventory playerUI, Position position) {
-        super(playerUI, InventoryType.ANVIL, 1, position);
+    public AnvilInventory(PlayerUIInventory playerUI, Vector3d position, Level world) {
+        super(playerUI, InventoryType.ANVIL, 1, position, world);
     }
 
     @Override
@@ -31,7 +29,7 @@ public class AnvilInventory extends FakeBlockUIComponent {
         who.resetCraftingGridType();
 
         for (int i = 0; i < 2; ++i) {
-            this.getHolder().getLevel().dropItem(this.getHolder().add(0.5, 0.5, 0.5), this.getItem(i));
+            this.getHolder().getWorld().dropItem(new Vector3(this.getHolder().getPosition().add(0.5, 0.5, 0.5)), this.getItem(i));
             this.clear(i);
         }
     }

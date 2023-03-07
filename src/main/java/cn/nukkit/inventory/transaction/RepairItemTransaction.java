@@ -2,8 +2,6 @@ package cn.nukkit.inventory.transaction;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
-import cn.nukkit.event.block.AnvilDamageEvent;
-import cn.nukkit.event.block.AnvilDamageEvent.DamageCause;
 import cn.nukkit.entity.mob.inventory.RepairItemEvent;
 import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.FakeBlockMenu;
@@ -12,13 +10,11 @@ import cn.nukkit.inventory.transaction.action.RepairItemAction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.enchantment.Enchantment;
-import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class RepairItemTransaction extends InventoryTransaction {
 
@@ -74,7 +70,7 @@ public class RepairItemTransaction extends InventoryTransaction {
         }
 
         FakeBlockMenu holder = inventory.getHolder();
-        Block block = this.source.getWorld().getBlock(holder.getFloorX(), holder.getFloorY(), holder.getFloorZ());
+        Block block = this.source.getWorld().getBlock(holder.getPosition().toInt());
 
         if (!this.source.isCreative()) {
             this.source.setExperience(this.source.getExperience(), this.source.getExperienceLevel() - event.getCost());

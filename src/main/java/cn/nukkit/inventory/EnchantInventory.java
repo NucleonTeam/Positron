@@ -2,20 +2,16 @@ package cn.nukkit.inventory;
 
 import cn.nukkit.Player;
 import cn.nukkit.item.Item;
-import cn.nukkit.level.Position;
+import cn.nukkit.level.Level;
+import org.spongepowered.math.vector.Vector3d;
 
-
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EnchantInventory extends FakeBlockUIComponent {
 
     public static final int ENCHANT_INPUT_ITEM_UI_SLOT = 14;
     public static final int ENCHANT_REAGENT_UI_SLOT = 15;
 
-    public EnchantInventory(PlayerUIInventory playerUI, Position position) {
-        super(playerUI, InventoryType.ENCHANT_TABLE, 14, position);
+    public EnchantInventory(PlayerUIInventory playerUI, Vector3d position, Level world) {
+        super(playerUI, InventoryType.ENCHANT_TABLE, 14, position, world);
     }
 
     @Override

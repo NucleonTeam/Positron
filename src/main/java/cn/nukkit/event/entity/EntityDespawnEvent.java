@@ -6,7 +6,6 @@ import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.projectile.EntityProjectile;
 import cn.nukkit.event.HandlerList;
-import cn.nukkit.level.Position;
 import org.spongepowered.math.vector.Vector3d;
 
 public class EntityDespawnEvent extends EntityEvent {

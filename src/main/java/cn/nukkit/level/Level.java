@@ -167,9 +167,6 @@ public class Level implements ChunkManager, Metadatable {
 
     private boolean useSections;
 
-    private Position temporalPosition;
-    private Vector3 temporalVector;
-
     public int sleepTicks = 0;
 
     private int chunkTickRadius;
@@ -271,8 +268,6 @@ public class Level implements ChunkManager, Metadatable {
         this.chunkTickList.clear();
         this.clearChunksOnTick = this.server.getConfig("chunk-ticking.clear-tick-list", true);
         this.cacheChunks = this.server.getConfig("chunk-sending.cache-chunks", false);
-        this.temporalPosition = new Position(0, 0, 0, this);
-        this.temporalVector = new Vector3(0, 0, 0);
         this.tickRate = 1;
 
         this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
@@ -374,7 +369,6 @@ public class Level implements ChunkManager, Metadatable {
         this.provider.close();
         this.provider = null;
         this.blockMetadata = null;
-        this.temporalPosition = null;
         this.server.getLevels().remove(this.levelId);
     }
 

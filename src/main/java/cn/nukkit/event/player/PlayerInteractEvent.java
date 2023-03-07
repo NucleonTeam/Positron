@@ -5,10 +5,8 @@ import cn.nukkit.block.Block;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.item.Item;
-import cn.nukkit.level.Position;
 import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.math.BlockFace;
-import cn.nukkit.math.Vector3;
 
 public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 

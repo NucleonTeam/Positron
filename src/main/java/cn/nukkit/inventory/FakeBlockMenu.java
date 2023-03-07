@@ -1,22 +1,19 @@
 package cn.nukkit.inventory;
 
-import cn.nukkit.level.Position;
+import cn.nukkit.level.Level;
+import lombok.Getter;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class FakeBlockMenu extends Position implements InventoryHolder {
+@Getter
+public class FakeBlockMenu implements InventoryHolder {
 
+    private final Vector3d position;
+    private final Level world;
     private final Inventory inventory;
 
-    public FakeBlockMenu(Inventory inventory, Position pos) {
-        super(pos.x, pos.y, pos.z, pos.level);
+    public FakeBlockMenu(Inventory inventory, Vector3d position, Level world) {
+        this.position = position;
+        this.world = world;
         this.inventory = inventory;
-    }
-
-    @Override
-    public Inventory getInventory() {
-        return inventory;
     }
 }
