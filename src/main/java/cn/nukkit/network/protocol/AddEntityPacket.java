@@ -6,13 +6,10 @@ import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.utils.Binary;
 import com.google.common.collect.ImmutableMap;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 import ru.mc_positron.entity.attribute.Attribute;
 import ru.mc_positron.entity.data.EntityMetadata;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @ToString
 public class AddEntityPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.ADD_ENTITY_PACKET;
@@ -55,12 +52,8 @@ public class AddEntityPacket extends DataPacket {
     public long entityRuntimeId;
     public int type;
     public String id;
-    public float x;
-    public float y;
-    public float z;
-    public float speedX = 0f;
-    public float speedY = 0f;
-    public float speedZ = 0f;
+    public Vector3f position;
+    public Vector3f speed = Vector3f.ZERO;
     public float yaw;
     public float pitch;
     public float headYaw;
@@ -83,8 +76,8 @@ public class AddEntityPacket extends DataPacket {
             id = LEGACY_IDS.get(type);
         }
         this.putString(this.id);
-        this.putVector3f(this.x, this.y, this.z);
-        this.putVector3f(this.speedX, this.speedY, this.speedZ);
+        this.putVector3f(position);
+        this.putVector3f(speed);
         this.putLFloat(this.pitch);
         this.putLFloat(this.yaw);
         this.putLFloat(this.headYaw);

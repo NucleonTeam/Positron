@@ -7,11 +7,8 @@ import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.projectile.EntityProjectile;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.level.Position;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EntitySpawnEvent extends EntityEvent {
     private static final HandlerList handlers = new HandlerList();
 
@@ -26,7 +23,7 @@ public class EntitySpawnEvent extends EntityEvent {
         this.entityType = entity.getNetworkId();
     }
 
-    public Position getPosition() {
+    public Vector3d getPosition() {
         return this.entity.getPosition();
     }
 

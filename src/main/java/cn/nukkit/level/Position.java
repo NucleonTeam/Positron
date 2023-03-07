@@ -5,6 +5,7 @@ import cn.nukkit.level.format.FullChunk;
 import ru.mc_positron.math.BlockFace;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.LevelException;
+import ru.mc_positron.math.Point;
 
 /**
  * author: MagicDroidX
@@ -181,5 +182,9 @@ public class Position extends Vector3 {
 
     public FullChunk getChunk() {
         return isValid() ? level.getChunk(getChunkX(), getChunkZ()) : null;
+    }
+
+    public Point toPoint() {
+        return Point.of(toNewVector(), 0, 0, 0);
     }
 }

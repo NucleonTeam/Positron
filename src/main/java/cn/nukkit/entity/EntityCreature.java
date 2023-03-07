@@ -3,21 +3,16 @@ package cn.nukkit.entity;
 import cn.nukkit.Player;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class EntityCreature extends EntityLiving {
     public EntityCreature(FullChunk chunk, CompoundTag nbt) {
         super(chunk, nbt);
     }
 
-    // Armor stands, when implemented, should also check this.
     @Override
-    public boolean onInteract(Player player, Item item, Vector3 clickedPos) {
+    public boolean onInteract(Player player, Item item, Vector3d clickedPos) {
         return false;
     }
 

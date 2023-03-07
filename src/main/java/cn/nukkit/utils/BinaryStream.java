@@ -8,9 +8,9 @@ import cn.nukkit.item.RuntimeItemMapping.RuntimeEntry;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.GlobalBlockPalette;
+import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
-import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -32,10 +32,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BinaryStream {
 
     public int offset;
@@ -717,7 +713,7 @@ public class BinaryStream {
     }
 
     public void putVector3f(Vector3f v) {
-        this.putVector3f(v.x, v.y, v.z);
+        this.putVector3f(v.x(), v.y(), v.z());
     }
 
     public void putVector3f(float x, float y, float z) {

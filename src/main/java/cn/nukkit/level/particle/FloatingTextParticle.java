@@ -9,6 +9,7 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.utils.SerializedImage;
 import com.google.common.base.Strings;
+import org.spongepowered.math.vector.Vector3f;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.EntityMetadata;
 
@@ -140,12 +141,8 @@ public class FloatingTextParticle extends Particle {
             pk.username = "";
             pk.entityUniqueId = this.entityId;
             pk.entityRuntimeId = this.entityId;
-            pk.x = (float) this.x;
-            pk.y = (float) (this.y - 0.75);
-            pk.z = (float) this.z;
-            pk.speedX = 0;
-            pk.speedY = 0;
-            pk.speedZ = 0;
+            pk.position = toNewVector().sub(0, 0.75, 0).toFloat();
+            pk.speed = Vector3f.ZERO;
             pk.yaw = 0;
             pk.pitch = 0;
             pk.metadata = this.metadata;

@@ -74,7 +74,7 @@ public class RepairItemTransaction extends InventoryTransaction {
         }
 
         FakeBlockMenu holder = inventory.getHolder();
-        Block block = this.source.level.getBlock(holder.getFloorX(), holder.getFloorY(), holder.getFloorZ());
+        Block block = this.source.getWorld().getBlock(holder.getFloorX(), holder.getFloorY(), holder.getFloorZ());
 
         if (!this.source.isCreative()) {
             this.source.setExperience(this.source.getExperience(), this.source.getExperienceLevel() - event.getCost());

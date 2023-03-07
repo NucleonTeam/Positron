@@ -1,9 +1,14 @@
 package cn.nukkit.math;
 
 import cn.nukkit.level.MovingObjectPosition;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.math.FastMath;
 
 public interface AxisAlignedBB extends Cloneable {
+
+    default AxisAlignedBB setBounds(Vector3d min, Vector3d max) {
+        return setBounds(min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+    }
 
     default AxisAlignedBB setBounds(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         this.setMinX(minX);
@@ -13,6 +18,10 @@ public interface AxisAlignedBB extends Cloneable {
         this.setMaxY(maxY);
         this.setMaxZ(maxZ);
         return this;
+    }
+
+    default AxisAlignedBB addCoord(Vector3d vec) {
+        return addCoord(vec.x(), vec.y(), vec.z());
     }
 
     default AxisAlignedBB addCoord(double x, double y, double z) {
@@ -52,6 +61,10 @@ public interface AxisAlignedBB extends Cloneable {
         return this;
     }
 
+    default AxisAlignedBB offset(Vector3d vec) {
+        return offset(vec.x(), vec.y(), vec.z());
+    }
+
     default AxisAlignedBB offset(double x, double y, double z) {
         this.setMinX(this.getMinX() + x);
         this.setMinY(this.getMinY() + y);
@@ -86,6 +99,10 @@ public interface AxisAlignedBB extends Cloneable {
         this.setMaxY(bb.getMaxY());
         this.setMaxZ(bb.getMaxZ());
         return this;
+    }
+
+    default AxisAlignedBB getOffsetBoundingBox(Vector3d position) {
+        return getOffsetBoundingBox(position.x(), position.y(), position.z());
     }
 
     default AxisAlignedBB getOffsetBoundingBox(double x, double y, double z) {
@@ -192,6 +209,10 @@ public interface AxisAlignedBB extends Cloneable {
         return vector.x >= this.getMinX() && vector.x <= this.getMaxX() && vector.y >= this.getMinY() && vector.y <= this.getMaxY();
     }
 
+    default MovingObjectPosition calculateIntercept(Vector3d pos1, Vector3d pos2) {
+        return calculateIntercept(new Vector3(pos1), new Vector3(pos2));
+    }
+
     default MovingObjectPosition calculateIntercept(Vector3 pos1, Vector3 pos2) {
         Vector3 v1 = pos1.getIntermediateWithXValue(pos2, this.getMinX());
         Vector3 v2 = pos1.getIntermediateWithXValue(pos2, this.getMaxX());
@@ -271,7 +292,7 @@ public interface AxisAlignedBB extends Cloneable {
             face = 3;
         }
 
-        return MovingObjectPosition.fromBlock(0, 0, 0, face, vector);
+        return MovingObjectPosition.fromBlock(0, 0, 0, face, vector.toNewVector());
     }
 
     default void setMinX(double minX) {

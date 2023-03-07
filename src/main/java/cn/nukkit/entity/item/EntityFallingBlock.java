@@ -9,6 +9,7 @@ import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.IntEntityData;
 
@@ -98,48 +99,38 @@ public class EntityFallingBlock extends Entity {
     @Override
     public boolean onUpdate(int currentTick) {
 
-        if (closed) {
-            return false;
-        }
+        if (closed) return false;
 
         int tickDiff = currentTick - lastUpdate;
-        if (tickDiff <= 0 && !justCreated) {
-            return true;
-        }
+        if (tickDiff <= 0 && !justCreated) return true;
 
         lastUpdate = currentTick;
 
         boolean hasUpdate = entityBaseTick(tickDiff);
 
         if (isAlive()) {
-            motionY -= getGravity();
-
-            move(motionX, motionY, motionZ);
+            motion = motion.sub(0, getGravity(), 0);
+            move(motion);
 
             float friction = 1 - getDrag();
+            motion = motion.mul(friction, 1 - getDrag(), friction);
 
-            motionX *= friction;
-            motionY *= 1 - getDrag();
-            motionZ *= friction;
-
-            Vector3 pos = (new Vector3(x - 0.5, y, z - 0.5)).round();
+            var pos = position.sub(0.5, 0, 0.5).round();
 
             if (onGround) {
                 close();
-                Block block = level.getBlock(pos.asBlockVector3());
+                Block block = world.getBlock(pos.toInt());
 
                 EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
                 server.getPluginManager().callEvent(event);
-                if (!event.isCancelled()) {
-                    getLevel().setBlock(pos, event.getTo(), true);
-                }
+                if (!event.isCancelled()) world.setBlock(new Vector3(pos), event.getTo(), true);
                 hasUpdate = true;
             }
 
             updateMovement();
         }
 
-        return hasUpdate || !onGround || Math.abs(motionX) > 0.00001 || Math.abs(motionY) > 0.00001 || Math.abs(motionZ) > 0.00001;
+        return hasUpdate || !onGround || Math.abs(motion.x()) > 0.00001 || Math.abs(motion.y()) > 0.00001 || Math.abs(motion.z()) > 0.00001;
     }
 
     public int getBlock() {
@@ -168,8 +159,8 @@ public class EntityFallingBlock extends Entity {
 
     @Override
     public void resetFallDistance() {
-        if (!this.closed) { // For falling anvil: do not reset fall distance before dealing damage to entities
-            this.highestPosition = this.y;
+        if (!closed) { // For falling anvil: do not reset fall distance before dealing damage to entities
+            highestPosition = position.y();
         }
     }
 }

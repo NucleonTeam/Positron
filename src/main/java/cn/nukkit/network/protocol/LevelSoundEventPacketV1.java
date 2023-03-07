@@ -20,10 +20,10 @@ public class LevelSoundEventPacketV1 extends LevelSoundEventPacket {
     @Override
     public void decode() {
         this.sound = this.getByte();
-        Vector3f v = this.getVector3f();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+        var v = this.getVector3f();
+        this.x = v.x();
+        this.y = v.y();
+        this.z = v.z();
         this.extraData = this.getVarInt();
         this.pitch = this.getVarInt();
         this.isBabyMob = this.getBoolean();

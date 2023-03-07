@@ -77,7 +77,7 @@ public class InventoryTransactionPacket extends DataPacket {
                 this.putBlockFace(useItemData.face);
                 this.putVarInt(useItemData.hotbarSlot);
                 this.putSlot(useItemData.itemInHand);
-                this.putVector3f(useItemData.playerPos.asVector3f());
+                this.putVector3f(useItemData.playerPos.toFloat());
                 this.putVector3f(useItemData.clickPos);
                 this.putUnsignedVarInt(useItemData.blockRuntimeId);
                 break;
@@ -88,8 +88,8 @@ public class InventoryTransactionPacket extends DataPacket {
                 this.putUnsignedVarInt(useItemOnEntityData.actionType);
                 this.putVarInt(useItemOnEntityData.hotbarSlot);
                 this.putSlot(useItemOnEntityData.itemInHand);
-                this.putVector3f(useItemOnEntityData.playerPos.asVector3f());
-                this.putVector3f(useItemOnEntityData.clickPos.asVector3f());
+                this.putVector3f(useItemOnEntityData.playerPos.toFloat());
+                this.putVector3f(useItemOnEntityData.clickPos.toFloat());
                 break;
             case TYPE_RELEASE_ITEM:
                 ReleaseItemData releaseItemData = (ReleaseItemData) this.transactionData;
@@ -97,7 +97,7 @@ public class InventoryTransactionPacket extends DataPacket {
                 this.putUnsignedVarInt(releaseItemData.actionType);
                 this.putVarInt(releaseItemData.hotbarSlot);
                 this.putSlot(releaseItemData.itemInHand);
-                this.putVector3f(releaseItemData.headRot.asVector3f());
+                this.putVector3f(releaseItemData.headRot.toFloat());
                 break;
             default:
                 throw new RuntimeException("Unknown transaction type " + this.transactionType);
@@ -139,7 +139,7 @@ public class InventoryTransactionPacket extends DataPacket {
                 itemData.face = this.getBlockFace();
                 itemData.hotbarSlot = this.getVarInt();
                 itemData.itemInHand = this.getSlot();
-                itemData.playerPos = this.getVector3f().asVector3();
+                itemData.playerPos = this.getVector3f().toDouble();
                 itemData.clickPos = this.getVector3f();
                 itemData.blockRuntimeId = (int) this.getUnsignedVarInt();
 
@@ -152,8 +152,8 @@ public class InventoryTransactionPacket extends DataPacket {
                 useItemOnEntityData.actionType = (int) this.getUnsignedVarInt();
                 useItemOnEntityData.hotbarSlot = this.getVarInt();
                 useItemOnEntityData.itemInHand = this.getSlot();
-                useItemOnEntityData.playerPos = this.getVector3f().asVector3();
-                useItemOnEntityData.clickPos = this.getVector3f().asVector3();
+                useItemOnEntityData.playerPos = this.getVector3f().toDouble();
+                useItemOnEntityData.clickPos = this.getVector3f().toDouble();
 
                 this.transactionData = useItemOnEntityData;
                 break;
@@ -163,7 +163,7 @@ public class InventoryTransactionPacket extends DataPacket {
                 releaseItemData.actionType = (int) getUnsignedVarInt();
                 releaseItemData.hotbarSlot = getVarInt();
                 releaseItemData.itemInHand = getSlot();
-                releaseItemData.headRot = this.getVector3f().asVector3();
+                releaseItemData.headRot = this.getVector3f().toDouble();
 
                 this.transactionData = releaseItemData;
                 break;

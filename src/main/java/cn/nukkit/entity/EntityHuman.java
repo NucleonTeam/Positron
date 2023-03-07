@@ -11,6 +11,7 @@ import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityLinkPacket;
 import cn.nukkit.utils.*;
 import lombok.Getter;
+import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.Vector3iEntityData;
@@ -290,8 +291,8 @@ public class EntityHuman extends EntityHumanType {
     }
 
     @Override
-    public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
-        this.level.addPlayerMovement(this, x, y, z, yaw, pitch, headYaw);
+    public void addMovement(Vector3d vec, double yaw, double pitch, double headYaw) {
+        world.addPlayerMovement(this, vec, yaw, pitch, headYaw);
     }
 
     @Override
@@ -313,12 +314,8 @@ public class EntityHuman extends EntityHumanType {
             pk.username = this.getName();
             pk.entityUniqueId = this.getId();
             pk.entityRuntimeId = this.getId();
-            pk.x = (float) this.x;
-            pk.y = (float) this.y;
-            pk.z = (float) this.z;
-            pk.speedX = (float) this.motionX;
-            pk.speedY = (float) this.motionY;
-            pk.speedZ = (float) this.motionZ;
+            pk.position = position.toFloat();
+            pk.speed = motion.toFloat();
             pk.yaw = (float) this.yaw;
             pk.pitch = (float) this.pitch;
             pk.item = this.getInventory().getItemInHand();

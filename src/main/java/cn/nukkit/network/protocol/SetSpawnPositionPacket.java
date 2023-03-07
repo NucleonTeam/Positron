@@ -1,6 +1,7 @@
 package cn.nukkit.network.protocol;
 
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3i;
 
 /**
  * @author Nukkit Project Team
@@ -14,9 +15,7 @@ public class SetSpawnPositionPacket extends DataPacket {
     public static final int TYPE_WORLD_SPAWN = 1;
 
     public int spawnType;
-    public int y;
-    public int z;
-    public int x;
+    public Vector3i position;
     public int dimension = 0;
 
     @Override
@@ -28,9 +27,9 @@ public class SetSpawnPositionPacket extends DataPacket {
     public void encode() {
         this.reset();
         this.putVarInt(this.spawnType);
-        this.putBlockVector3(this.x, this.y, this.z);
+        this.putBlockVector3(position);
         this.putVarInt(dimension);
-        this.putBlockVector3(this.x, this.y, this.z);
+        this.putBlockVector3(position);
     }
 
     @Override

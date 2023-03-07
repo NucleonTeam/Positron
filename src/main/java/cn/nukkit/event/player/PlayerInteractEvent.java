@@ -6,13 +6,10 @@ import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.math.BlockFace;
 import cn.nukkit.math.Vector3;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
@@ -21,28 +18,26 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         return handlers;
     }
 
-    protected final Block blockTouched;
-
-    protected final Vector3 touchVector;
-
+    protected Block blockTouched;
+    protected Vector3d touchVector;
     protected final BlockFace blockFace;
-
     protected final Item item;
-
     protected final Action action;
 
-    public PlayerInteractEvent(Player player, Item item, Vector3 block, BlockFace face) {
+    public PlayerInteractEvent(Player player, Item item, Vector3d block, BlockFace face) {
         this(player, item, block, face, Action.RIGHT_CLICK_BLOCK);
     }
 
-    public PlayerInteractEvent(Player player, Item item, Vector3 block, BlockFace face, Action action) {
-        if (block instanceof Block) {
-            this.blockTouched = (Block) block;
-            this.touchVector = new Vector3(0, 0, 0);
-        } else {
-            this.touchVector = block;
-            this.blockTouched = Block.get(Block.AIR, 0, new Position(0, 0, 0, player.level));
-        }
+    public PlayerInteractEvent(Player player, Item item, Block block, BlockFace face, Action action)  {
+        this(player, item, block.toNewVector(), face, Action.RIGHT_CLICK_BLOCK);
+
+        this.blockTouched = block;
+        this.touchVector = Vector3d.ZERO;
+    }
+
+    public PlayerInteractEvent(Player player, Item item, Vector3d block, BlockFace face, Action action) {
+        this.touchVector = block;
+        this.blockTouched = Block.get(Block.AIR, 0, new Position(0, 0, 0, player.getWorld()));
 
         this.player = player;
         this.item = item;
@@ -62,7 +57,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         return blockTouched;
     }
 
-    public Vector3 getTouchVector() {
+    public Vector3d getTouchVector() {
         return touchVector;
     }
 

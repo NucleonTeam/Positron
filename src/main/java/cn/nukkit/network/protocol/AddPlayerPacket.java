@@ -4,14 +4,11 @@ import cn.nukkit.Server;
 import cn.nukkit.item.Item;
 import cn.nukkit.utils.Binary;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 import ru.mc_positron.entity.data.EntityMetadata;
 
 import java.util.UUID;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @ToString
 public class AddPlayerPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.ADD_PLAYER_PACKET;
@@ -26,12 +23,8 @@ public class AddPlayerPacket extends DataPacket {
     public long entityUniqueId;
     public long entityRuntimeId;
     public String platformChatId = "";
-    public float x;
-    public float y;
-    public float z;
-    public float speedX;
-    public float speedY;
-    public float speedZ;
+    public Vector3f position;
+    public Vector3f speed;
     public float pitch;
     public float yaw;
     public Item item;
@@ -48,33 +41,33 @@ public class AddPlayerPacket extends DataPacket {
 
     @Override
     public void encode() {
-        this.reset();
-        this.putUUID(this.uuid);
-        this.putString(this.username);
+        reset();
+        putUUID(uuid);
+        putString(username);
         // this.putEntityUniqueId(this.entityUniqueId);
-        this.putEntityRuntimeId(this.entityRuntimeId);
-        this.putString(this.platformChatId);
-        this.putVector3f(this.x, this.y, this.z);
-        this.putVector3f(this.speedX, this.speedY, this.speedZ);
-        this.putLFloat(this.pitch);
-        this.putLFloat(this.yaw); //TODO headrot
-        this.putLFloat(this.yaw);
-        this.putSlot(this.item);
-        this.putVarInt(this.gameType);
-        this.put(Binary.writeMetadata(this.metadata));
-        this.putUnsignedVarInt(0); // Entity properties int
-        this.putUnsignedVarInt(0); // Entity properties float
-        this.putLLong(entityUniqueId);
-        this.putUnsignedVarInt(0); // playerPermission
-        this.putUnsignedVarInt(0); // commandPermission
-        this.putUnsignedVarInt(1); // abilitiesLayer size
-        this.putLShort(1); // BASE layer type
-        this.putLInt(262143); // abilitiesSet - all abilities
-        this.putLInt(63); // abilityValues - survival abilities
-        this.putLFloat(0.1f); // flySpeed
-        this.putLFloat(0.05f); // walkSpeed
-        this.putUnsignedVarInt(0); //TODO: Entity links
-        this.putString(deviceId);
-        this.putLInt(buildPlatform);
+        putEntityRuntimeId(entityRuntimeId);
+        putString(platformChatId);
+        putVector3f(position);
+        putVector3f(speed);
+        putLFloat(pitch);
+        putLFloat(yaw); //TODO headrot
+        putLFloat(yaw);
+        putSlot(item);
+        putVarInt(gameType);
+        put(Binary.writeMetadata(metadata));
+        putUnsignedVarInt(0); // Entity properties int
+        putUnsignedVarInt(0); // Entity properties float
+        putLLong(entityUniqueId);
+        putUnsignedVarInt(0); // playerPermission
+        putUnsignedVarInt(0); // commandPermission
+        putUnsignedVarInt(1); // abilitiesLayer size
+        putLShort(1); // BASE layer type
+        putLInt(262143); // abilitiesSet - all abilities
+        putLInt(63); // abilityValues - survival abilities
+        putLFloat(0.1f); // flySpeed
+        putLFloat(0.05f); // walkSpeed
+        putUnsignedVarInt(0); //TODO: Entity links
+        putString(deviceId);
+        putLInt(buildPlatform);
     }
 }

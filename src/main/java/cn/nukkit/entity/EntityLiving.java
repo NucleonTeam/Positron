@@ -19,6 +19,7 @@ import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.BlockIterator;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.ShortEntityData;
 
@@ -118,8 +119,8 @@ public abstract class EntityLiving extends Entity {
                     animate.action = AnimatePacket.Action.CRITICAL_HIT;
                     animate.eid = getId();
 
-                    this.getLevel().addChunkPacket(damager.getChunkX(), damager.getChunkZ(), animate);
-                    this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_STRONG);
+                    world.addChunkPacket(damager.getChunkX(), damager.getChunkZ(), animate);
+                    world.addLevelSoundEvent(new Vector3(position), LevelSoundEventPacket.SOUND_ATTACK_STRONG);
 
                     source.setDamage(source.getDamage() * 1.5f);
                 }
@@ -128,8 +129,8 @@ public abstract class EntityLiving extends Entity {
                     this.setOnFire(2 * this.server.getDifficulty());
                 }
 
-                double deltaX = this.x - damager.x;
-                double deltaZ = this.z - damager.z;
+                double deltaX = position.x() - damager.position.x();
+                double deltaZ = position.z() - damager.position.z();
                 this.knockBack(damager, source.getDamage(), deltaX, deltaZ, ((EntityDamageByEntityEvent) source).getKnockBack());
             }
 
@@ -152,47 +153,27 @@ public abstract class EntityLiving extends Entity {
 
     public void knockBack(Entity attacker, double damage, double x, double z, double base) {
         double f = Math.sqrt(x * x + z * z);
-        if (f <= 0) {
-            return;
-        }
-
+        if (f <= 0) return;
         f = 1 / f;
 
-        Vector3 motion = new Vector3(this.motionX, this.motionY, this.motionZ);
-
-        motion.x /= 2d;
-        motion.y /= 2d;
-        motion.z /= 2d;
-        motion.x += x * f * base;
-        motion.y += base;
-        motion.z += z * f * base;
-
-        if (motion.y > base) {
-            motion.y = base;
-        }
-
-        this.setMotion(motion);
+        var newMotion = motion.div(2d).add(x * f * base, base, z * f * base);
+        if (newMotion.y() > base) newMotion = new Vector3d(newMotion.x(), base, newMotion.z());
+        setMotion(newMotion);
     }
 
     @Override
     public void kill() {
-        if (!this.isAlive()) {
-            return;
-        }
+        if (!this.isAlive()) return;
         super.kill();
-        EntityDeathEvent ev = new EntityDeathEvent(this, this.getDrops());
-        this.server.getPluginManager().callEvent(ev);
 
-        if (this.level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
-            for (cn.nukkit.item.Item item : ev.getDrops()) {
-                this.getLevel().dropItem(this, item);
+        var ev = new EntityDeathEvent(this, getDrops());
+        server.getPluginManager().callEvent(ev);
+
+        if (world.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
+            for (Item item: ev.getDrops()) {
+                world.dropItem(new Vector3(position), item);
             }
         }
-    }
-
-    @Override
-    public boolean entityBaseTick() {
-        return this.entityBaseTick(1);
     }
 
     @Override
@@ -257,7 +238,7 @@ public abstract class EntityLiving extends Entity {
         }
 
         // Used to check collisions with magma blocks
-        Block block = this.level.getBlock((int) x, (int) y - 1, (int) z);
+        Block block = world.getBlock(position.toInt().sub(0, 1, 0));
         //if (block instanceof BlockMagma) block.onEntityCollide(this);
 
         return hasUpdate;
@@ -291,7 +272,7 @@ public abstract class EntityLiving extends Entity {
 
         List<Block> blocks = new ArrayList<>();
 
-        BlockIterator itr = new BlockIterator(this.level, this.getPosition(), this.getDirectionVector(), this.getEyeHeight(), maxDistance);
+        BlockIterator itr = new BlockIterator(world, new Vector3(getPosition()), new Vector3(getDirectionVector()), this.getEyeHeight(), maxDistance);
 
         while (itr.hasNext()) {
             Block block = itr.next();

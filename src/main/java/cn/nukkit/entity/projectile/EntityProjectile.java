@@ -9,6 +9,7 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.data.LongEntityData;
 import ru.mc_positron.math.FastMath;
 
@@ -16,7 +17,7 @@ public abstract class EntityProjectile extends Entity {
 
     public static final int DATA_SHOOTER_ID = 17;
 
-    public Entity shootingEntity = null;
+    public Entity shootingEntity;
 
     protected double getDamage() {
         return namedTag.contains("damage") ? namedTag.getDouble("damage") : getBaseDamage();
@@ -49,7 +50,7 @@ public abstract class EntityProjectile extends Entity {
     }
 
     public int getResultDamage() {
-        return FastMath.ceilDouble(Math.sqrt(this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ) * getDamage());
+        return FastMath.ceilDouble(motion.distance(Vector3d.ZERO) * getDamage());
     }
 
     public boolean attack(EntityDamageEvent source) {
@@ -122,32 +123,29 @@ public abstract class EntityProjectile extends Entity {
 
             MovingObjectPosition movingObjectPosition = null;
 
-            if (!this.isCollided) {
-                this.motionY -= this.getGravity();
-            }
+            if (!this.isCollided) motion = motion.sub(0, getGravity(), 0);
 
-            Vector3 moveVector = new Vector3(this.x + this.motionX, this.y + this.motionY, this.z + this.motionZ);
-
-            Entity[] list = this.getLevel().getCollidingEntities(this.boundingBox.addCoord(this.motionX, this.motionY, this.motionZ).expand(1, 1, 1), this);
+            var moveVector = position.add(motion);
+            var list = world.getCollidingEntities(boundingBox.addCoord(motion).expand(1, 1, 1), this);
 
             double nearDistance = Integer.MAX_VALUE;
             Entity nearEntity = null;
 
             for (Entity entity : list) {
                 if (/*!entity.canCollideWith(this) or */
-                        (entity == this.shootingEntity && this.ticksLived < 5)
+                        (entity == shootingEntity && ticksLived < 5)
                         ) {
                     continue;
                 }
 
                 AxisAlignedBB axisalignedbb = entity.boundingBox.grow(0.3, 0.3, 0.3);
-                MovingObjectPosition ob = axisalignedbb.calculateIntercept(this, moveVector);
+                MovingObjectPosition ob = axisalignedbb.calculateIntercept(getPosition(), moveVector);
 
                 if (ob == null) {
                     continue;
                 }
 
-                double distance = this.distanceSquared(ob.hitVector);
+                double distance = position.distanceSquared(ob.hitVector);
 
                 if (distance < nearDistance) {
                     nearDistance = distance;
@@ -166,30 +164,27 @@ public abstract class EntityProjectile extends Entity {
                 }
             }
 
-            this.move(this.motionX, this.motionY, this.motionZ);
+            move(motion);
 
-            if (this.isCollided && !this.hadCollision) { //collide with block
-                this.hadCollision = true;
+            if (isCollided && !hadCollision) { //collide with block
+                hadCollision = true;
 
-                this.motionX = 0;
-                this.motionY = 0;
-                this.motionZ = 0;
+                motion = Vector3d.ZERO;
 
-                this.server.getPluginManager().callEvent(new ProjectileHitEvent(this, MovingObjectPosition.fromBlock(this.getFloorX(), this.getFloorY(), this.getFloorZ(), -1, this)));
+                server.getPluginManager().callEvent(new ProjectileHitEvent(this, MovingObjectPosition.fromBlock(position.floorX(), position.floorX(), position.floorZ(), -1, position)));
                 return false;
-            } else if (!this.isCollided && this.hadCollision) {
-                this.hadCollision = false;
+            } else if (!isCollided && hadCollision) {
+                hadCollision = false;
             }
 
-            if (!this.hadCollision || Math.abs(this.motionX) > 0.00001 || Math.abs(this.motionY) > 0.00001 || Math.abs(this.motionZ) > 0.00001) {
-                double f = Math.sqrt((this.motionX * this.motionX) + (this.motionZ * this.motionZ));
-                this.yaw = Math.atan2(this.motionX, this.motionZ) * 180 / Math.PI;
-                this.pitch = Math.atan2(this.motionY, f) * 180 / Math.PI;
+            if (!hadCollision || Math.abs(motion.x()) > 0.00001 || Math.abs(motion.y()) > 0.00001 || Math.abs(motion.z()) > 0.00001) {
+                double f = Math.sqrt(FastMath.square(motion.x()) + FastMath.square(motion.z()));
+                yaw = Math.atan2(motion.x(), motion.z()) * 180 / Math.PI;
+                pitch = Math.atan2(motion.y(), f) * 180 / Math.PI;
                 hasUpdate = true;
             }
 
-            this.updateMovement();
-
+            updateMovement();
         }
 
         return hasUpdate;

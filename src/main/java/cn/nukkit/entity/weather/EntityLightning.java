@@ -1,21 +1,17 @@
 package cn.nukkit.entity.weather;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
-import cn.nukkit.event.block.BlockIgniteEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Created by boybook on 2016/2/27.
- */
 public class EntityLightning extends Entity implements EntityLightningStrike {
 
     public static final int NETWORK_ID = 93;
@@ -78,8 +74,8 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
         this.entityBaseTick(tickDiff);
 
         if (this.state == 2) {
-            this.level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_THUNDER);
-            this.level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_EXPLODE);
+            world.addLevelSoundEvent(new Vector3(position), LevelSoundEventPacket.SOUND_THUNDER);
+            world.addLevelSoundEvent(new Vector3(position), LevelSoundEventPacket.SOUND_EXPLODE);
         }
 
         this.state--;
@@ -92,8 +88,8 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
                 this.liveTime--;
                 this.state = 1;
 
-                if (this.isEffect && this.level.gameRules.getBoolean(GameRule.DO_FIRE_TICK)) {
-                    Block block = this.getLevelBlock();
+                if (this.isEffect && world.gameRules.getBoolean(GameRule.DO_FIRE_TICK)) {
+                    Block block = world.getBlock(position.toInt());
                 }
             }
         }
@@ -103,7 +99,7 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
                 AxisAlignedBB bb = getBoundingBox().grow(3, 3, 3);
                 bb.setMaxX(bb.getMaxX() + 6);
 
-                for (Entity entity : this.level.getCollidingEntities(bb, this)) {
+                for (Entity entity: world.getCollidingEntities(bb, this)) {
                     entity.onStruckByLightning(this);
                 }
             }

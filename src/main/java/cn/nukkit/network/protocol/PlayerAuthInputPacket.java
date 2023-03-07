@@ -1,10 +1,9 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.types.*;
-import lombok.Getter;
 import lombok.ToString;
 import org.spongepowered.math.vector.Vector2d;
+import org.spongepowered.math.vector.Vector3f;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -12,24 +11,23 @@ import java.util.Map;
 import java.util.Set;
 
 @ToString
-@Getter
 public class PlayerAuthInputPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.PLAYER_AUTH_INPUT_PACKET;
 
-    private float yaw;
-    private float pitch;
-    private float headYaw;
-    private Vector3f position;
-    private Vector2d motion;
-    private Set<AuthInputAction> inputData = EnumSet.noneOf(AuthInputAction.class);
-    private InputMode inputMode;
-    private ClientPlayMode playMode;
-    private AuthInteractionModel interactionModel;
-    private Vector3f vrGazeDirection;
-    private long tick;
-    private Vector3f delta;
+    public float yaw;
+    public float pitch;
+    public float headYaw;
+    public Vector3f position;
+    public Vector2d motion;
+    public Set<AuthInputAction> inputData = EnumSet.noneOf(AuthInputAction.class);
+    public InputMode inputMode;
+    public ClientPlayMode playMode;
+    public AuthInteractionModel interactionModel;
+    public Vector3f vrGazeDirection;
+    public long tick;
+    public Vector3f delta;
     // private ItemStackRequest itemStackRequest;
-    private Map<PlayerActionType, PlayerBlockActionData> blockActionData = new EnumMap<>(PlayerActionType.class);
+    public Map<PlayerActionType, PlayerBlockActionData> blockActionData = new EnumMap<>(PlayerActionType.class);
 
     @Override
     public byte pid() {

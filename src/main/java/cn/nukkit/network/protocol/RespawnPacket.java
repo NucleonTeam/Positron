@@ -1,7 +1,7 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.Vector3f;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 
 /**
  * @author Nukkit Project Team
@@ -15,28 +15,23 @@ public class RespawnPacket extends DataPacket {
     public static final int STATE_READY_TO_SPAWN = 1;
     public static final int STATE_CLIENT_READY_TO_SPAWN = 2;
 
-    public float x;
-    public float y;
-    public float z;
+    public Vector3f position;
     public int respawnState = STATE_SEARCHING_FOR_SPAWN;
     public long runtimeEntityId;
 
     @Override
     public void decode() {
-        Vector3f v = this.getVector3f();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.respawnState = this.getByte();
-        this.runtimeEntityId = this.getEntityRuntimeId();
+        position = getVector3f();
+        respawnState = getByte();
+        runtimeEntityId = getEntityRuntimeId();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putVector3f(this.x, this.y, this.z);
-        this.putByte((byte) respawnState);
-        this.putEntityRuntimeId(runtimeEntityId);
+        reset();
+        putVector3f(position);
+        putByte((byte) respawnState);
+        putEntityRuntimeId(runtimeEntityId);
     }
 
     @Override

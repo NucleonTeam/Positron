@@ -6,6 +6,8 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
+import org.spongepowered.math.vector.Vector3f;
+import org.spongepowered.math.vector.Vector3i;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -33,9 +35,7 @@ public class StartGamePacket extends DataPacket {
     public long entityUniqueId;
     public long entityRuntimeId;
     public int playerGamemode;
-    public float x;
-    public float y;
-    public float z;
+    public Vector3f position;
     public float yaw;
     public float pitch;
     public int seed;
@@ -43,9 +43,7 @@ public class StartGamePacket extends DataPacket {
     public int generator = 1;
     public int worldGamemode;
     public int difficulty;
-    public int spawnX;
-    public int spawnY;
-    public int spawnZ;
+    public Vector3i spawn;
     public boolean hasAchievementsDisabled = true;
     public boolean worldEditor;
     public int dayCycleStopTime = -1; //-1 = not stopped, any positive value = stopped at that time
@@ -100,7 +98,7 @@ public class StartGamePacket extends DataPacket {
         this.putEntityUniqueId(this.entityUniqueId);
         this.putEntityRuntimeId(this.entityRuntimeId);
         this.putVarInt(this.playerGamemode);
-        this.putVector3f(this.x, this.y, this.z);
+        this.putVector3f(position);
         this.putLFloat(this.yaw);
         this.putLFloat(this.pitch);
         /* Level settings start */
@@ -111,7 +109,7 @@ public class StartGamePacket extends DataPacket {
         this.putVarInt(this.generator);
         this.putVarInt(this.worldGamemode);
         this.putVarInt(this.difficulty);
-        this.putBlockVector3(this.spawnX, this.spawnY, this.spawnZ);
+        this.putBlockVector3(spawn);
         this.putBoolean(this.hasAchievementsDisabled);
         this.putBoolean(this.worldEditor);
         this.putVarInt(this.dayCycleStopTime);

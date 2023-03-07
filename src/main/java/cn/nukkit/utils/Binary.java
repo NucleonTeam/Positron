@@ -143,7 +143,7 @@ public class Binary {
                 case LONG -> value = new LongEntityData(key, stream.getVarLong());
                 case VECTOR -> {
                     var v3 = stream.getVector3f();
-                    value = new Vector3fEntityData(key, new Vector3f(v3.x, v3.y, v3.z));
+                    value = new Vector3fEntityData(key, v3);
                 }
             }
             if (value != null) m.put(value);

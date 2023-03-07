@@ -13,6 +13,7 @@ import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import org.spongepowered.math.vector.Vector3d;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -174,12 +175,10 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
     }
 
     @Override
-    public void addVelocityToEntity(Entity entity, Vector3 vector) {
+    public void addVelocityToEntity(Entity entity, Vector3d vector) {
         if (entity.canBeMovedByCurrents()) {
             Vector3 flow = this.getFlowVector();
-            vector.x += flow.x;
-            vector.y += flow.y;
-            vector.z += flow.z;
+            vector = vector.add(flow.toNewVector());
         }
     }
 

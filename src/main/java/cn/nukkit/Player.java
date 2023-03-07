@@ -14,7 +14,6 @@ import cn.nukkit.entity.mob.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.event.player.PlayerAsyncPreLoginEvent.LoginResult;
 import cn.nukkit.event.player.PlayerInteractEvent.Action;
-import cn.nukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.event.server.DataPacketSendEvent;
 import cn.nukkit.form.handler.FormResponseHandler;
@@ -65,6 +64,7 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
+import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.blockentity.SpawnableBlockEntityType;
 import ru.mc_positron.entity.EntityFlags;
@@ -75,6 +75,7 @@ import ru.mc_positron.entity.data.StringEntityData;
 import ru.mc_positron.entity.data.Vector3iEntityData;
 import ru.mc_positron.math.BlockFace;
 import ru.mc_positron.math.FastMath;
+import ru.mc_positron.math.Point;
 import ru.mc_positron.network.packet.BlockEntityDataPacket;
 
 import java.io.File;
@@ -87,10 +88,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-/**
- * @author MagicDroidX &amp; Box
- * Nukkit Project
- */
 @Log4j2
 public class Player extends EntityHuman implements InventoryHolder, ChunkLoader, Metadatable {
 
@@ -148,11 +145,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected int messageCounter = 2;
 
-    private String clientSecret;
+    public Vector3d speed = null;
 
-    public Vector3 speed = null;
-
-    private final Queue<Vector3> clientMovements = PlatformDependent.newMpscQueue(4);
+    private final Queue<Vector3d> clientMovements = PlatformDependent.newMpscQueue(4);
 
     public final HashSet<String> achievements = new HashSet<>();
 
@@ -168,9 +163,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected long randomClientId;
 
-    protected Vector3 forceMovement = null;
+    protected Vector3d forceMovement = null;
 
-    protected Vector3 teleportPosition = null;
+    protected Vector3d teleportPosition = null;
 
     protected boolean connected = true;
     protected final InetSocketAddress socketAddress;
@@ -182,7 +177,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected int startAction = -1;
 
-    protected Vector3 sleeping = null;
+    protected Vector3d sleeping = null;
     protected Long clientID = null;
 
     private int loaderId;
@@ -195,14 +190,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected final Map<UUID, Player> hiddenPlayers = new HashMap<>();
 
-    protected Vector3 newPosition = null;
+    protected Vector3d newPosition = null;
 
     protected int chunkRadius;
     protected int viewDistance;
     protected final int chunksPerTick;
     protected final int spawnThreshold;
 
-    protected Position spawnPosition = null;
+    protected Point spawnPoint = null;
 
     protected int inAirTicks = 0;
     protected int startAirTicks = 5;
@@ -226,15 +221,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     protected boolean enableClientCommand = true;
 
-    protected int lastEnderPearl = 20;
-    protected int lastChorusFruitTeleport = 20;
-
     private LoginChainData loginChainData;
 
     public Block breakingBlock = null;
     private PlayerBlockActionData lastBlockAction;
-
-    public int pickedXPOrb = 0;
 
     protected int formWindowCount = 0;
     protected Map<Integer, FormWindow> formWindows = new Int2ObjectOpenHashMap<>();
@@ -264,35 +254,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.startAction = -1;
     }
 
-    public int getLastEnderPearlThrowingTick() {
-        return lastEnderPearl;
-    }
-
-    public void onThrowEnderPearl() {
-        this.lastEnderPearl = this.server.getTick();
-    }
-
-    public int getLastChorusFruitTeleport() {
-        return lastChorusFruitTeleport;
-    }
-
-    public void onChorusFruitTeleport() {
-        this.lastChorusFruitTeleport = this.server.getTick();
-    }
-
     public TranslationContainer getLeaveMessage() {
         return new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.left", this.getDisplayName());
     }
 
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    /**
-     * This might disappear in the future.
-     * Please use getUniqueId() instead (IP + clientId + name combo, in the future it'll change to real UUID for online auth)
-     * @return random client id
-     */
     @Deprecated
     public Long getClientId() {
         return randomClientId;
@@ -300,18 +265,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     public Player getPlayer() {
         return this;
-    }
-
-    public Long getFirstPlayed() {
-        return this.namedTag != null ? this.namedTag.getLong("firstPlayed") : null;
-    }
-
-    public Long getLastPlayed() {
-        return this.namedTag != null ? this.namedTag.getLong("lastPlayed") : null;
-    }
-
-    public boolean hasPlayedBefore() {
-        return this.playedBefore;
     }
 
     public AdventureSettings getAdventureSettings() {
@@ -369,7 +322,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     @Override
     public void spawnTo(Player player) {
-        if (this.spawned && player.spawned && this.isAlive() && player.getLevel() == this.level && player.canSee(this) && !this.isSpectator()) {
+        if (spawned && player.spawned && isAlive() && player.world == world && player.canSee(this) && !isSpectator()) {
             super.spawnTo(player);
         }
     }
@@ -377,18 +330,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     @Override
     public Server getServer() {
         return this.server;
-    }
-
-    public boolean getRemoveFormat() {
-        return removeFormat;
-    }
-
-    public void setRemoveFormat() {
-        this.setRemoveFormat(true);
-    }
-
-    public void setRemoveFormat(boolean remove) {
-        this.removeFormat = remove;
     }
 
     public boolean canSee(Player player) {
@@ -421,11 +362,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     @Override
     public void resetFallDistance() {
         super.resetFallDistance();
-        if (this.inAirTicks != 0) {
-            this.startAirTicks = 5;
+        if (inAirTicks != 0) {
+            startAirTicks = 5;
         }
-        this.inAirTicks = 0;
-        this.highestPosition = this.y;
+        inAirTicks = 0;
+        highestPosition = position.y();
     }
 
     public boolean isOnline() {
@@ -446,46 +387,38 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     public Player(SourceInterface interfaz, Long clientID, InetSocketAddress socketAddress) {
         super(null, new CompoundTag());
         this.interfaz = interfaz;
-        this.networkSession = interfaz.getSession(socketAddress);
-        this.server = Server.getInstance();
-        this.lastBreak = -1;
         this.socketAddress = socketAddress;
         this.clientID = clientID;
-        this.loaderId = Level.generateChunkLoaderId(this);
-        this.chunksPerTick = this.server.getConfig("chunk-sending.per-tick", 4);
-        this.spawnThreshold = this.server.getConfig("chunk-sending.spawn-threshold", 56);
-        this.spawnPosition = null;
-        this.gamemode = this.server.getGamemode();
-        this.setLevel(this.server.getDefaultLevel());
-        this.viewDistance = this.server.getViewDistance();
-        this.chunkRadius = viewDistance;
+        networkSession = interfaz.getSession(socketAddress);
+        server = Server.getInstance();
+        lastBreak = -1;
+        loaderId = Level.generateChunkLoaderId(this);
+        chunksPerTick = server.getConfig("chunk-sending.per-tick", 4);
+        spawnThreshold = server.getConfig("chunk-sending.spawn-threshold", 56);
+        spawnPoint = null;
+        gamemode = server.getGamemode();
+        world = server.getDefaultLevel();
+        viewDistance = server.getViewDistance();
+        chunkRadius = viewDistance;
         //this.newPosition = new Vector3(0, 0, 0);
-        this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
-        this.lastSkinChange = -1;
+        boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
+        lastSkinChange = -1;
 
-        this.playerUuid = null;
-        this.rawUUID = null;
+        playerUuid = null;
+        rawUUID = null;
 
-        this.creationTime = System.currentTimeMillis();
+        creationTime = System.currentTimeMillis();
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
 
-        this.addDefaultWindows();
+        addDefaultWindows();
     }
 
     public boolean isPlayer() {
         return true;
-    }
-
-    public void removeAchievement(String achievementId) {
-        achievements.remove(achievementId);
-    }
-
-    public boolean hasAchievement(String achievementId) {
-        return achievements.contains(achievementId);
     }
 
     public boolean isConnected() {
@@ -498,16 +431,16 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-        if (this.spawned) {
-            this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getDisplayName(), this.getSkin(), this.getLoginChainData().getXUID());
+        if (spawned) {
+            server.updatePlayerListData(getUniqueId(), getId(), getDisplayName(), getSkin(), getLoginChainData().getXUID());
         }
     }
 
     @Override
     public void setSkin(Skin skin) {
         super.setSkin(skin);
-        if (this.spawned) {
-            this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getDisplayName(), skin, this.getLoginChainData().getXUID());
+        if (spawned) {
+            server.updatePlayerListData(getUniqueId(), getId(), getDisplayName(), skin, getLoginChainData().getXUID());
         }
     }
 
@@ -523,8 +456,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return this.socketAddress;
     }
 
-    public Position getNextPosition() {
-        return this.newPosition != null ? new Position(this.newPosition.x, this.newPosition.y, this.newPosition.z, this.level) : this.getPosition();
+    public Vector3d getNextPosition() {
+        return newPosition != null? newPosition : position;
     }
 
     public boolean isSleeping() {
@@ -535,11 +468,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return this.inAirTicks;
     }
 
-    /**
-     * Returns whether the player is currently using an item (right-click and hold).
-     *
-     * @return bool
-     */
     public boolean isUsingItem() {
         return this.getDataFlag(DATA_FLAGS, EntityFlags.ACTION) && this.startAction > -1;
     }
@@ -565,11 +493,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.unloadChunk(x, z, null);
     }
 
-    public void unloadChunk(int x, int z, Level level) {
-        level = level == null ? this.level : level;
+    public void unloadChunk(int x, int z, Level world) {
+        world = world == null ? this.world : world;
         long index = Level.chunkHash(x, z);
         if (this.usedChunks.containsKey(index)) {
-            for (Entity entity : level.getChunkEntities(x, z).values()) {
+            for (Entity entity : world.getChunkEntities(x, z).values()) {
                 if (entity != this) {
                     entity.despawnFrom(this);
                 }
@@ -577,16 +505,13 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
             this.usedChunks.remove(index);
         }
-        level.unregisterChunkLoader(this, x, z);
+        world.unregisterChunkLoader(this, x, z);
         this.loadQueue.remove(index);
     }
 
-    public Position getSpawn() {
-        if (this.spawnPosition != null && this.spawnPosition.getLevel() != null) {
-            return this.spawnPosition;
-        } else {
-            return this.server.getDefaultLevel().getSafeSpawn();
-        }
+    public Point getSpawn() {
+        var pos = server.getDefaultLevel().getSafeSpawn();
+        return Point.of(pos.toNewVector(), 0, 0, 0);
     }
 
     public void sendChunk(int x, int z, DataPacket packet) {
@@ -600,7 +525,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.dataPacket(packet);
 
         if (this.spawned) {
-            for (Entity entity : this.level.getChunkEntities(x, z).values()) {
+            for (Entity entity: world.getChunkEntities(x, z).values()) {
                 if (this != entity && !entity.closed && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
@@ -625,7 +550,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.dataPacket(pk);
 
         if (this.spawned) {
-            for (Entity entity : this.level.getChunkEntities(x, z).values()) {
+            for (Entity entity: world.getChunkEntities(x, z).values()) {
                 if (this != entity && !entity.closed && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
@@ -654,9 +579,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 ++count;
 
                 this.usedChunks.put(index, false);
-                this.level.registerChunkLoader(this, chunkX, chunkZ, false);
+                world.registerChunkLoader(this, chunkX, chunkZ, false);
 
-                if (!this.level.populateChunk(chunkX, chunkZ)) {
+                if (!world.populateChunk(chunkX, chunkZ)) {
                     if (this.spawned && this.teleportPosition == null) {
                         continue;
                     } else {
@@ -669,7 +594,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 PlayerChunkRequestEvent ev = new PlayerChunkRequestEvent(this, chunkX, chunkZ);
                 this.server.getPluginManager().callEvent(ev);
                 if (!ev.isCancelled()) {
-                    this.level.requestChunk(chunkX, chunkZ, this);
+                    world.requestChunk(chunkX, chunkZ, this);
                 }
             }
         }
@@ -687,16 +612,16 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.setEnableClientCommand(true);
 
         SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.time = this.level.getTime();
+        setTimePacket.time = world.getTime();
         this.dataPacket(setTimePacket);
 
-        Position pos = this.level.getSafeSpawn(this);
+        var pos = world.getSafeSpawn(new Vector3(position)).toPoint();
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, pos, true);
 
-        this.server.getPluginManager().callEvent(respawnEvent);
+        server.getPluginManager().callEvent(respawnEvent);
 
-        pos = respawnEvent.getRespawnPosition();
+        pos = respawnEvent.getRespawnPoint();
 
         this.sendPlayStatus(PlayStatusPacket.PLAYER_SPAWN);
 
@@ -716,7 +641,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         for (long index : this.usedChunks.keySet()) {
             int chunkX = Level.getHashX(index);
             int chunkZ = Level.getHashZ(index);
-            for (Entity entity : this.level.getChunkEntities(chunkX, chunkZ).values()) {
+            for (Entity entity : world.getChunkEntities(chunkX, chunkZ).values()) {
                 if (this != entity && !entity.closed && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
@@ -733,16 +658,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.sendExperienceLevel(this.getExperienceLevel());
         }
 
-        this.teleport(pos, null); // Prevent PlayerTeleportEvent during player spawn
+        teleport(pos);
 
-        if (!this.isSpectator()) {
-            this.spawnToAll();
-        }
+        if (!isSpectator()) spawnToAll();
 
-        //todo Updater
-
-        //Weather
-        this.getLevel().sendWeather(this);
+        world.sendWeather(this);
 
         //FoodLevel
         PlayerFood food = this.getFoodData();
@@ -766,8 +686,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         loadQueue.clear();
         Long2ObjectOpenHashMap<Boolean> lastChunk = new Long2ObjectOpenHashMap<>(this.usedChunks);
 
-        int centerX = (int) this.x >> 4;
-        int centerZ = (int) this.z >> 4;
+        int centerX = getChunkX();
+        int centerZ = getChunkZ();
 
         int radius = spawned ? this.chunkRadius : (int) Math.ceil(Math.sqrt(spawnThreshold));
         int radiusSqr = radius * radius;
@@ -834,7 +754,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         if (!loadQueue.isEmpty()) {
             NetworkChunkPublisherUpdatePacket packet = new NetworkChunkPublisherUpdatePacket();
-            packet.position = toNewVector().toInt();
+            packet.position = position.toInt();
             packet.radius = viewDistance << 4;
             this.dataPacket(packet);
         }
@@ -907,64 +827,56 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return false;
         }
 
-        for (Entity p : this.level.getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
+        for (Entity p : world.getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
             if (p instanceof Player pl) {
-                if (pl.sleeping != null && pos.toDouble().distance(pl.sleeping.toNewVector()) <= 0.1) {
+                if (pl.sleeping != null && pos.toDouble().distance(pl.sleeping) <= 0.1) {
                     return false;
                 }
             }
         }
 
         PlayerBedEnterEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerBedEnterEvent(this, this.level.getBlock(pos)));
+        this.server.getPluginManager().callEvent(ev = new PlayerBedEnterEvent(this, world.getBlock(pos)));
         if (ev.isCancelled()) {
             return false;
         }
 
-        this.sleeping = new Vector3(pos.toDouble());
-        this.teleport(new Location(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5, this.yaw, this.pitch, this.level), null);
+        this.sleeping = pos.toDouble();
+        this.teleport(Point.of(pos.toDouble().add(0.5, 0.5, 0.5), yaw, pitch, headYaw));
 
         this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, pos));
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, true);
 
-        this.setSpawn(new Vector3(pos.toDouble()));
-
-        this.level.sleepTicks = 60;
+        world.sleepTicks = 60;
 
         this.timeSinceRest = 0;
 
         return true;
     }
 
-    public void setSpawn(Vector3 pos) {
-        Level level;
-        if (!(pos instanceof Position)) {
-            level = this.level;
-        } else {
-            level = ((Position) pos).getLevel();
-        }
-        this.spawnPosition = new Position(pos.x, pos.y, pos.z, level);
-        SetSpawnPositionPacket pk = new SetSpawnPositionPacket();
+    public void setSpawn(Point point) {
+        this.spawnPoint = point;
+        var pos = point.getPosition();
+
+        var pk = new SetSpawnPositionPacket();
         pk.spawnType = SetSpawnPositionPacket.TYPE_PLAYER_SPAWN;
-        pk.x = (int) this.spawnPosition.x;
-        pk.y = (int) this.spawnPosition.y;
-        pk.z = (int) this.spawnPosition.z;
-        this.dataPacket(pk);
+        pk.position = pos.toInt();
+        dataPacket(pk);
     }
 
     public void stopSleep() {
         if (this.sleeping != null) {
-            this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.level.getBlock(this.sleeping.toNewVector().toInt())));
+            this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, world.getBlock(this.sleeping.toInt())));
 
             this.sleeping = null;
             this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO));
             this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
 
 
-            this.level.sleepTicks = 0;
+            world.sleepTicks = 0;
 
             AnimatePacket pk = new AnimatePacket();
-            pk.eid = this.id;
+            pk.eid = getId();
             pk.action = AnimatePacket.Action.WAKE_UP;
             this.dataPacket(pk);
         }
@@ -1045,19 +957,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.setAdventureSettings(ev.getNewAdventureSettings());
 
         if (this.isSpectator()) {
-            this.teleport(this, null);
+            this.teleport(getPoint());
             this.setDataFlag(DATA_FLAGS, EntityFlags.SILENT, true);
             this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, false);
-            /*InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
-            inventoryContentPacket.inventoryId = InventoryContentPacket.SPECIAL_CREATIVE;
-            this.dataPacket(inventoryContentPacket);*/
         } else {
             this.setDataFlag(DATA_FLAGS, EntityFlags.SILENT, false);
             this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, true);
-            /*InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
-            inventoryContentPacket.inventoryId = InventoryContentPacket.SPECIAL_CREATIVE;
-            inventoryContentPacket.slots = Item.getCreativeItems().toArray(new Item[0]);
-            this.dataPacket(inventoryContentPacket);*/
         }
 
         this.resetFallDistance();
@@ -1102,29 +1007,29 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public boolean fastMove(double dx, double dy, double dz) {
-        if (dx == 0 && dy == 0 && dz == 0) {
-            return true;
-        }
+    public boolean fastMove(Vector3d delta) {
+        if (Vector3d.ZERO.equals(delta)) return true;
 
-        AxisAlignedBB newBB = this.boundingBox.getOffsetBoundingBox(dx, dy, dz);
+        AxisAlignedBB newBB = this.boundingBox.getOffsetBoundingBox(delta);
 
-        if (this.isSpectator() || server.getAllowFlight() || !this.level.hasCollision(this, newBB.shrink(0, this.getStepHeight(), 0), false)) {
+        if (this.isSpectator() || server.getAllowFlight() || !world.hasCollision(this, newBB.shrink(0, this.getStepHeight(), 0), false)) {
             this.boundingBox = newBB;
         }
 
-        this.x = (this.boundingBox.getMinX() + this.boundingBox.getMaxX()) / 2;
-        this.y = this.boundingBox.getMinY() - this.ySize;
-        this.z = (this.boundingBox.getMinZ() + this.boundingBox.getMaxZ()) / 2;
+        position = new Vector3d(
+                (boundingBox.getMinX() + boundingBox.getMaxX()) / 2,
+                boundingBox.getMinY() - ySize,
+                (boundingBox.getMinZ() + boundingBox.getMaxZ()) / 2
+        );
 
         this.checkChunks();
 
         if (!this.isSpectator()) {
-            if (!this.onGround || dy != 0) {
+            if (!this.onGround || delta.y() != 0) {
                 AxisAlignedBB bb = this.boundingBox.clone();
                 bb.setMinY(bb.getMinY() - 0.75);
 
-                this.onGround = this.level.getCollisionBlocks(bb).length > 0;
+                this.onGround = world.getCollisionBlocks(bb).length > 0;
             }
             this.isCollided = this.onGround;
             this.updateFallState(this.onGround);
@@ -1155,7 +1060,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.level.getBlock(x, y, z);
+                        Block block = world.getBlock(x, y, z);
 
                         if (!block.canPassThrough() && block.collidesWithBB(realBB)) {
                             onGround = true;
@@ -1189,20 +1094,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
             block.onEntityCollide(this);
         }
-
-        if (portal) {
-            if (this.isCreative() && this.inPortalTicks < 80) {
-                this.inPortalTicks = 80;
-            } else {
-                this.inPortalTicks++;
-            }
-        } else {
-            this.inPortalTicks = 0;
-        }
     }
 
     protected void checkNearEntities() {
-        for (Entity entity : this.level.getNearbyEntities(this.boundingBox.grow(1, 0.5, 1), this)) {
+        for (Entity entity : world.getNearbyEntities(this.boundingBox.grow(1, 0.5, 1), this)) {
             entity.scheduleUpdate();
 
             if (!entity.isAlive() || !this.isAlive()) {
@@ -1213,83 +1108,67 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
     }
 
-    protected void handleMovement(Vector3 clientPos) {
+    protected void handleMovement(Vector3d clientPos) {
         if (!this.isAlive() || !this.spawned || this.teleportPosition != null || this.isSleeping()) {
             return;
         }
 
         boolean invalidMotion = false;
-        double distance = clientPos.distanceSquared(this);
-        if (distance > 128) {
-            invalidMotion = true;
-        } else if (!this.level.isChunkGenerated(clientPos.getChunkX(), clientPos.getChunkZ())) {
+        double distance = clientPos.distanceSquared(position);
+        if (!world.isChunkGenerated(clientPos.floorX() >> 4, clientPos.floorZ() >> 4)) {
             invalidMotion = true;
             this.nextChunkOrderRun = 0;
         }
 
         if (invalidMotion) {
-            this.revertClientMotion(this.getLocation());
+            revertClientMotion(getPoint());
             return;
         }
 
-        double diffX = clientPos.getX() - this.x;
-        double diffY = clientPos.getY() - this.y;
-        double diffZ = clientPos.getZ() - this.z;
+        Vector3d diffVec = clientPos.sub(position);
 
         // Client likes to clip into few blocks like stairs or slabs
         // This should help reduce the server mis-prediction at least a bit
-        diffY += this.ySize * (1 - 0.4D);
+        diffVec = diffVec.add(0, ySize * (1 - 0.4D), 0);
+        fastMove(diffVec);
 
-        this.fastMove(diffX, diffY, diffZ);
-
-        double corrX = this.x - clientPos.getX();
-        double corrY = this.y - clientPos.getY();
-        double corrZ = this.z - clientPos.getZ();
+        Vector3d corr = position.sub(clientPos);
 
         double yS = this.getStepHeight() + this.ySize;
-        if (corrY >= -yS || corrY <= yS) {
-            corrY = 0;
+        if (corr.y() >= -yS || corr.y() <= yS) {
+            corr = new Vector3d(corr.x(), 0, corr.z());
         }
 
-        if (this.checkMovement && (Math.abs(corrX) > 0.5 || Math.abs(corrY) > 0.5 || Math.abs(corrZ) > 0.5) &&
+        if (this.checkMovement && (Math.abs(corr.x()) > 0.5 || Math.abs(corr.y()) > 0.5 || Math.abs(corr.z()) > 0.5) &&
                 this.riding == null && !this.hasEffect(Effect.LEVITATION) && !this.hasEffect(Effect.SLOW_FALLING)) {
-            double diff = corrX * corrX + corrZ * corrZ;
-            if (diff > 0.5) {
-                PlayerInvalidMoveEvent event = new PlayerInvalidMoveEvent(this, true);
-                this.getServer().getPluginManager().callEvent(event);
-                if (!event.isCancelled() && (invalidMotion = event.isRevert())) {
-                    this.server.getLogger().warning(this.getServer().getLanguage().translateString("nukkit.player.invalidMove", this.getName()));
-                }
-            }
 
             if (!invalidMotion) {
-                this.x = clientPos.getX();
-                this.y = clientPos.getY();
-                this.z = clientPos.getZ();
+                position = clientPos;
                 double radius = this.getWidth() / 2;
-                this.boundingBox.setBounds(this.x - radius, this.y, this.z - radius, this.x + radius, this.y + this.getHeight(), this.z + radius);
+                boundingBox.setBounds(position.sub(radius, radius, radius), position.add(radius, getHeight(), radius));
             }
         }
 
         if (invalidMotion) {
-            this.revertClientMotion(this.getLocation());
+            revertClientMotion(getPoint());
             return;
         }
 
-        Location source = new Location(this.lastX, this.lastY, this.lastZ, this.lastYaw, this.lastPitch, this.level);
-        Location target = this.getLocation();
-        double delta = Math.pow(this.lastX - target.getX(), 2) + Math.pow(this.lastY - target.getY(), 2) + Math.pow(this.lastZ - target.getZ(), 2);
-        double deltaAngle = Math.abs(this.lastYaw - target.getYaw()) + Math.abs(this.lastPitch - target.getPitch());
+        var source = Point.of(lastPosition, lastYaw, lastPitch, lastHeadYaw);
+        var target = getPoint();
+        var pos = target.getPosition();
+        double delta = FastMath.square(lastPosition.x() - pos.x()) +
+                FastMath.square(lastPosition.y() - pos.y()) +
+                FastMath.square(lastPosition.y() - pos.y());
+        double deltaAngle = Math.abs(lastYaw - target.getYaw()) + Math.abs(lastPitch - target.getPitch());
 
         if (delta > 0.0005 || deltaAngle > 1) {
-            boolean isFirst = this.firstMove;
-            this.firstMove = false;
+            boolean isFirst = firstMove;
+            firstMove = false;
 
-            this.lastX = target.x;
-            this.lastY = target.y;
-            this.lastZ = target.z;
-            this.lastYaw = target.yaw;
-            this.lastPitch = target.pitch;
+            lastPosition = target.getPosition();
+            lastYaw = target.getYaw();
+            lastPitch = target.getPitch();
 
             if (!isFirst) {
                 List<Block> blocksAround = null;
@@ -1301,16 +1180,16 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     collidingBlocks = new ObjectArrayList<>(this.collisionBlocks);
                 }
 
-                PlayerMoveEvent event = new PlayerMoveEvent(this, source, target);
+                var event = new PlayerMoveEvent(this, source, target);
                 this.blocksAround = null;
-                this.collisionBlocks = null;
-                this.server.getPluginManager().callEvent(event);
+                collisionBlocks = null;
+                server.getPluginManager().callEvent(event);
 
-                if (!(invalidMotion = event.isCancelled())) {
+                if (!event.isCancelled()) {
                     if (!target.equals(event.getTo())) {
-                        this.teleport(event.getTo(), null);
+                        teleport(event.getTo());
                     } else {
-                        this.addMovement(this.x, this.y, this.z, this.yaw, this.pitch, this.yaw);
+                        addMovement(position, this.yaw, this.pitch, this.yaw);
                     }
                 } else {
                     this.blocksAround = blocksAround;
@@ -1318,14 +1197,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
             }
 
-            if (this.speed == null) {
-                this.speed = new Vector3(source.x - target.x, source.y - target.y, source.z - target.z);
-            } else {
-                this.speed.setComponents(source.x - target.x, source.y - target.y, source.z - target.z);
-            }
+            speed = source.getPosition().sub(target.getPosition());
         } else {
-            if (this.speed == null) speed = new Vector3(0, 0, 0);
-            else this.speed.setComponents(0, 0, 0);
+            speed = Vector3d.ZERO;
         }
 
         if ((this.isFoodEnabled() || this.getServer().getDifficulty() == 0) && distance >= 0.05) {
@@ -1357,22 +1231,16 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.newPosition = null;
     }
 
-    protected void revertClientMotion(Location originalPos) {
-        this.lastX = originalPos.getX();
-        this.lastY = originalPos.getY();
-        this.lastZ = originalPos.getZ();
-        this.lastYaw = originalPos.getYaw();
-        this.lastPitch = originalPos.getPitch();
+    protected void revertClientMotion(Point original) {
+        lastPosition = original.getPosition();
+        lastYaw = original.getYaw();
+        lastPitch = original.getPitch();
 
-        Vector3 syncPos = originalPos.add(0, 0.00001, 0);
-        this.sendPosition(syncPos, originalPos.getYaw(), originalPos.getPitch(), MovePlayerPacket.MODE_RESET);
-        this.forceMovement = syncPos;
+        Vector3d syncPos = original.getPosition().add(0, 0.00001, 0);
+        sendPosition(syncPos, original.getYaw(), original.getPitch(), MovePlayerPacket.MODE_RESET);
+        forceMovement = syncPos;
 
-        if (this.speed == null) {
-            this.speed = new Vector3(0, 0, 0);
-        } else {
-            this.speed.setComponents(0, 0, 0);
-        }
+        speed = Vector3d.ZERO;
     }
 
     @Override
@@ -1381,26 +1249,25 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
-        this.sendPosition(new Vector3(x, y, z), yaw, pitch, MovePlayerPacket.MODE_NORMAL, this.getViewers().values().toArray(new Player[0]));
+    public void addMovement(Vector3d vec, double yaw, double pitch, double headYaw) {
+        sendPosition(vec, yaw, pitch, MovePlayerPacket.MODE_NORMAL, this.getViewers().values().toArray(new Player[0]));
     }
 
     @Override
-    public boolean setMotion(Vector3 motion) {
+    public boolean setMotion(Vector3d motion) {
         if (super.setMotion(motion)) {
             if (this.chunk != null) {
-                this.addMotion(this.motionX, this.motionY, this.motionZ);  //Send to others
-                SetEntityMotionPacket pk = new SetEntityMotionPacket();
-                pk.eid = this.id;
-                pk.motionX = (float) motion.x;
-                pk.motionY = (float) motion.y;
-                pk.motionZ = (float) motion.z;
+                addMotion(this.motion);  //Send to others
+
+                var pk = new SetEntityMotionPacket();
+                pk.eid = getId();
+                pk.motion = motion.toFloat();
                 this.dataPacket(pk);  //Send to self
             }
 
-            if (this.motionY > 0) {
+            if (this.motion.y() > 0) {
                 //todo: check this
-                this.startAirTicks = (int) ((-(Math.log(this.getGravity() / (this.getGravity() + this.getDrag() * this.motionY))) / this.getDrag()) * 2 + 5);
+                this.startAirTicks = (int) ((-(Math.log(this.getGravity() / (this.getGravity() + this.getDrag() * this.motion.y()))) / this.getDrag()) * 2 + 5);
             }
 
             return true;
@@ -1458,7 +1325,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
             this.entityBaseTick(tickDiff);
 
-            if (this.getServer().getDifficulty() == 0 && this.level.getGameRules().getBoolean(GameRule.NATURAL_REGENERATION)) {
+            if (this.getServer().getDifficulty() == 0 && world.getGameRules().getBoolean(GameRule.NATURAL_REGENERATION)) {
                 if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
                     this.heal(1);
                 }
@@ -1473,8 +1340,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             if (this.isOnFire() && this.lastUpdate % 10 == 0) {
                 if (this.isCreative() && !this.isInsideOfFire()) {
                     this.extinguish();
-                } else if (this.getLevel().isRaining()) {
-                    if (this.getLevel().canBlockSeeSky(this)) {
+                } else if (world.isRaining()) {
+                    if (world.canBlockSeeSky(new Vector3(position))) {
                         this.extinguish();
                     }
                 }
@@ -1486,18 +1353,18 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                         this.startAirTicks = 5;
                     }
                     this.inAirTicks = 0;
-                    this.highestPosition = this.y;
+                    this.highestPosition = position.y();
                 } else {
                     if (this.checkMovement && !this.isGliding() && !server.getAllowFlight() && !this.getAdventureSettings().get(Type.ALLOW_FLIGHT) && this.inAirTicks > 20 && !this.isSleeping() && !this.isImmobile() && !this.isSwimming() && this.riding == null && !this.hasEffect(Effect.LEVITATION) && !this.hasEffect(Effect.SLOW_FALLING)) {
                         double expectedVelocity = (-this.getGravity()) / ((double) this.getDrag()) - ((-this.getGravity()) / ((double) this.getDrag())) * Math.exp(-((double) this.getDrag()) * ((double) (this.inAirTicks - this.startAirTicks)));
-                        double diff = (this.speed.y - expectedVelocity) * (this.speed.y - expectedVelocity);
+                        double diff = (this.speed.y() - expectedVelocity) * (this.speed.y() - expectedVelocity);
 
-                        int block = level.getBlockIdAt(this.getFloorX(), this.getFloorY(), this.getFloorZ());
+                        int block = world.getBlockIdAt(position.floorX(), position.floorY(), position.floorZ());
                         boolean ignore = false;
 
-                        if (!this.hasEffect(Effect.JUMP) && diff > 0.6 && expectedVelocity < this.speed.y && !ignore) {
+                        if (!this.hasEffect(Effect.JUMP) && diff > 0.6 && expectedVelocity < this.speed.y() && !ignore) {
                             if (this.inAirTicks < 150) {
-                                this.setMotion(new Vector3(0, expectedVelocity, 0));
+                                this.setMotion(new Vector3d(0, expectedVelocity, 0));
                             } else if (this.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server")) {
                                 return false;
                             }
@@ -1507,8 +1374,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                         }
                     }
 
-                    if (this.y > highestPosition) {
-                        this.highestPosition = this.y;
+                    if (position.y() > highestPosition) {
+                        this.highestPosition = position.y();
                     }
 
                     if (this.isGliding()) this.resetFallDistance();
@@ -1550,18 +1417,18 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
     }
 
-    public boolean canInteract(Vector3 pos, double maxDistance) {
+    public boolean canInteract(Vector3d pos, double maxDistance) {
         return this.canInteract(pos, maxDistance, 6.0);
     }
 
-    public boolean canInteract(Vector3 pos, double maxDistance, double maxDiff) {
-        if (this.distanceSquared(pos) > maxDistance * maxDistance) {
+    public boolean canInteract(Vector3d pos, double maxDistance, double maxDiff) {
+        if (pos.distanceSquared(pos) > maxDistance * maxDistance) {
             return false;
         }
 
         var dV = this.getDirectionPlane();
-        double dot = dV.dot(x, z);
-        double dot1 = dV.dot(pos.x, pos.z);
+        double dot = dV.dot(position.x(), position.z());
+        double dot1 = dV.dot(pos.x(), pos.z());
         return (dot1 - dot) >= -maxDiff;
     }
 
@@ -1629,14 +1496,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         Level level;
         if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null) {
-            this.setLevel(this.server.getDefaultLevel());
-            nbt.putString("Level", this.level.getName());
+            world = server.getDefaultLevel();
+            nbt.putString("Level", world.getName());
             nbt.getList("Pos", DoubleTag.class)
-                    .add(new DoubleTag("0", this.level.getSpawnLocation().x))
-                    .add(new DoubleTag("1", this.level.getSpawnLocation().y))
-                    .add(new DoubleTag("2", this.level.getSpawnLocation().z));
+                    .add(new DoubleTag("0", world.getSpawnLocation().x))
+                    .add(new DoubleTag("1", world.getSpawnLocation().y))
+                    .add(new DoubleTag("2", world.getSpawnLocation().z));
         } else {
-            this.setLevel(level);
+            world = level;
         }
 
         for (Tag achievement : nbt.getCompound("Achievements").getAllTags()) {
@@ -1664,7 +1531,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         ListTag<DoubleTag> posList = nbt.getList("Pos", DoubleTag.class);
 
-        super.init(this.level.getChunk((int) posList.get(0).data >> 4, (int) posList.get(2).data >> 4, true), nbt);
+        super.init(world.getChunk((int) posList.get(0).data >> 4, (int) posList.get(2).data >> 4, true), nbt);
 
         if (!this.namedTag.contains("foodLevel")) {
             this.namedTag.putInt("foodLevel", 20);
@@ -1702,76 +1569,64 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return;
         }
 
-        Level level = this.server.getLevelByName(this.namedTag.getString("SpawnLevel"));
-        if(level != null){
-            this.spawnPosition = new Position(this.namedTag.getInt("SpawnX"), this.namedTag.getInt("SpawnY"), this.namedTag.getInt("SpawnZ"), level);
-        }else{
-            this.spawnPosition = this.level.getSafeSpawn();
+        spawnPoint = this.getSpawn();
+
+        var pk = new StartGamePacket();
+        pk.entityUniqueId = getId();
+        pk.entityRuntimeId = getId();
+        pk.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+        pk.position = position.toFloat();
+        pk.yaw = (float) this.yaw;
+        pk.pitch = (float) this.pitch;
+        pk.seed = -1;
+        pk.dimension = /*(byte) (this.level.getDimension() & 0xff)*/0;
+        pk.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+        pk.difficulty = this.server.getDifficulty();
+        pk.spawn = spawnPoint.getPosition().toInt();
+        pk.hasAchievementsDisabled = true;
+        pk.dayCycleStopTime = -1;
+        pk.rainLevel = 0;
+        pk.lightningLevel = 0;
+        pk.commandsEnabled = this.isEnableClientCommand();
+        pk.gameRules = world.getGameRules();
+        pk.levelId = "";
+        pk.worldName = this.getServer().getNetwork().getName();
+        pk.generator = 1; //0 old, 1 infinite, 2 flat
+        pk.isMovementServerAuthoritative = true;
+        dataPacket(pk);
+
+        dataPacket(new BiomeDefinitionListPacket());
+        dataPacket(new AvailableEntityIdentifiersPacket());
+        inventory.sendCreativeContents();
+        getAdventureSettings().update();
+
+        sendAttributes();
+        sendPotionEffects(this);
+
+        if (isSpectator()) {
+            setDataFlag(DATA_FLAGS, EntityFlags.SILENT, true);
+            setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, false);
         }
+        sendData(this);
 
-        spawnPosition = this.getSpawn();
+        loggedIn = true;
 
-        StartGamePacket startGamePacket = new StartGamePacket();
-        startGamePacket.entityUniqueId = this.id;
-        startGamePacket.entityRuntimeId = this.id;
-        startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
-        startGamePacket.x = (float) this.x;
-        startGamePacket.y = (float) this.y;
-        startGamePacket.z = (float) this.z;
-        startGamePacket.yaw = (float) this.yaw;
-        startGamePacket.pitch = (float) this.pitch;
-        startGamePacket.seed = -1;
-        startGamePacket.dimension = /*(byte) (this.level.getDimension() & 0xff)*/0;
-        startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
-        startGamePacket.difficulty = this.server.getDifficulty();
-        startGamePacket.spawnX = spawnPosition.getFloorX();
-        startGamePacket.spawnY = spawnPosition.getFloorY();
-        startGamePacket.spawnZ = spawnPosition.getFloorZ();
-        startGamePacket.hasAchievementsDisabled = true;
-        startGamePacket.dayCycleStopTime = -1;
-        startGamePacket.rainLevel = 0;
-        startGamePacket.lightningLevel = 0;
-        startGamePacket.commandsEnabled = this.isEnableClientCommand();
-        startGamePacket.gameRules = getLevel().getGameRules();
-        startGamePacket.levelId = "";
-        startGamePacket.worldName = this.getServer().getNetwork().getName();
-        startGamePacket.generator = 1; //0 old, 1 infinite, 2 flat
-        startGamePacket.isMovementServerAuthoritative = true;
-        this.dataPacket(startGamePacket);
+        world.sendTime(this);
 
-        this.dataPacket(new BiomeDefinitionListPacket());
-        this.dataPacket(new AvailableEntityIdentifiersPacket());
-        this.inventory.sendCreativeContents();
-        this.getAdventureSettings().update();
-
-        this.sendAttributes();
-
-        this.sendPotionEffects(this);
-
-        if (this.isSpectator()) {
-            this.setDataFlag(DATA_FLAGS, EntityFlags.SILENT, true);
-            this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, false);
-        }
-        this.sendData(this);
-
-        this.loggedIn = true;
-
-        this.level.sendTime(this);
-
-        this.sendAttributes();
-        this.setNameTagVisible(true);
-        this.setNameTagAlwaysVisible(true);
-        this.setCanClimb(true);
+        sendAttributes();
+        setNameTagVisible(true);
+        setNameTagAlwaysVisible(true);
+        setCanClimb(true);
 
         this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
                 this.getAddress(),
                 String.valueOf(this.getPort()),
-                String.valueOf(this.id),
-                this.level.getName(),
-                String.valueOf(FastMath.round(this.x, 4)),
-                String.valueOf(FastMath.round(this.y, 4)),
-                String.valueOf(FastMath.round(this.z, 4))));
+                String.valueOf(getId()),
+                world.getName(),
+                String.valueOf(FastMath.round(position.x(), 4)),
+                String.valueOf(FastMath.round(position.y(), 4)),
+                String.valueOf(FastMath.round(position.z(), 4))));
 
         this.server.getPlayerManager().addPlayer(this);
         this.server.onPlayerCompleteLoginSequence(this);
@@ -2023,8 +1878,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     return;
                 }
                 EmotePacket emotePacket = (EmotePacket) packet;
-                if (emotePacket.runtimeId != this.id) {
-                    server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.id);
+                if (emotePacket.runtimeId != getId()) {
+                    server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + getId());
                     return;
                 }
                 for (Player viewer : this.getViewers().values()) {
@@ -2043,22 +1898,22 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
 
                 MovePlayerPacket movePlayerPacket = (MovePlayerPacket) packet;
-                Vector3 newPos = new Vector3(movePlayerPacket.x, movePlayerPacket.y - this.getEyeHeight(), movePlayerPacket.z);
+                Vector3d newPos = movePlayerPacket.position.sub(0, getEyeHeight(), 0).toDouble();
 
-                double dis = newPos.distanceSquared(this);
+                double dis = newPos.distanceSquared(position);
                 if (dis == 0 && movePlayerPacket.yaw % 360 == this.yaw && movePlayerPacket.pitch % 360 == this.pitch) {
                     break;
                 }
 
                 if (dis > 100) {
-                    this.sendPosition(this, movePlayerPacket.yaw, movePlayerPacket.pitch, MovePlayerPacket.MODE_RESET);
+                    this.sendPosition(position, movePlayerPacket.yaw, movePlayerPacket.pitch, MovePlayerPacket.MODE_RESET);
                     break;
                 }
 
                 boolean revert = false;
                 if (!this.isAlive() || !this.spawned) {
                     revert = true;
-                    this.forceMovement = new Vector3(this.x, this.y, this.z);
+                    this.forceMovement = position;
                 }
 
                 if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
@@ -2080,8 +1935,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
                 PlayerAuthInputPacket authPacket = (PlayerAuthInputPacket) packet;
 
-                if (!authPacket.getBlockActionData().isEmpty()) {
-                    for (PlayerBlockActionData action : authPacket.getBlockActionData().values()) {
+                if (!authPacket.blockActionData.isEmpty()) {
+                    for (PlayerBlockActionData action : authPacket.blockActionData.values()) {
                         var blockPos = action.getPosition();
                         var blockFace = BlockFace.fromIndex(action.getFacing());
 
@@ -2115,7 +1970,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     break;
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.START_SPRINTING)) {
+                if (authPacket.inputData.contains(AuthInputAction.START_SPRINTING)) {
                     PlayerToggleSprintEvent event = new PlayerToggleSprintEvent(this, true);
                     this.server.getPluginManager().callEvent(event);
                     if (event.isCancelled()) {
@@ -2125,7 +1980,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.STOP_SPRINTING)) {
+                if (authPacket.inputData.contains(AuthInputAction.STOP_SPRINTING)) {
                     PlayerToggleSprintEvent event = new PlayerToggleSprintEvent(this, false);
                     this.server.getPluginManager().callEvent(event);
                     if (event.isCancelled()) {
@@ -2135,7 +1990,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.START_SNEAKING)) {
+                if (authPacket.inputData.contains(AuthInputAction.START_SNEAKING)) {
                     PlayerToggleSneakEvent event = new PlayerToggleSneakEvent(this, true);
                     this.server.getPluginManager().callEvent(event);
                     if (event.isCancelled()) {
@@ -2145,7 +2000,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.STOP_SNEAKING)) {
+                if (authPacket.inputData.contains(AuthInputAction.STOP_SNEAKING)) {
                     PlayerToggleSneakEvent event = new PlayerToggleSneakEvent(this, false);
                     this.server.getPluginManager().callEvent(event);
                     if (event.isCancelled()) {
@@ -2155,12 +2010,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.START_JUMPING)) {
+                if (authPacket.inputData.contains(AuthInputAction.START_JUMPING)) {
                     PlayerJumpEvent playerJumpEvent = new PlayerJumpEvent(this);
                     this.server.getPluginManager().callEvent(playerJumpEvent);
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.START_GLIDING)) {
+                if (authPacket.inputData.contains(AuthInputAction.START_GLIDING)) {
                     PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
                     this.server.getPluginManager().callEvent(playerToggleGlideEvent);
                     if (playerToggleGlideEvent.isCancelled()) {
@@ -2170,7 +2025,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.STOP_GLIDING)) {
+                if (authPacket.inputData.contains(AuthInputAction.STOP_GLIDING)) {
                     PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
                     this.server.getPluginManager().callEvent(playerToggleGlideEvent);
                     if (playerToggleGlideEvent.isCancelled()) {
@@ -2180,7 +2035,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.START_SWIMMING)) {
+                if (authPacket.inputData.contains(AuthInputAction.START_SWIMMING)) {
                     PlayerToggleSwimEvent ptse = new PlayerToggleSwimEvent(this, true);
                     this.server.getPluginManager().callEvent(ptse);
                     if (ptse.isCancelled()) {
@@ -2190,7 +2045,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                if (authPacket.getInputData().contains(AuthInputAction.STOP_SWIMMING)) {
+                if (authPacket.inputData.contains(AuthInputAction.STOP_SWIMMING)) {
                     PlayerToggleSwimEvent ptse = new PlayerToggleSwimEvent(this, false);
                     this.server.getPluginManager().callEvent(ptse);
                     if (ptse.isCancelled()) {
@@ -2200,30 +2055,29 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
 
-                Vector3 clientPosition = authPacket.getPosition().asVector3()
-                        .subtract(0, this.getEyeHeight(), 0);
+                Vector3d clientPosition = authPacket.position.toDouble().sub(0, this.getEyeHeight(), 0);
 
-                double distSqrt = clientPosition.distanceSquared(this);
-                if (distSqrt == 0.0 && authPacket.getYaw() % 360 == this.yaw && authPacket.getPitch() % 360 == this.pitch) {
+                double distSqrt = clientPosition.distanceSquared(position);
+                if (distSqrt == 0.0 && authPacket.yaw % 360 == this.yaw && authPacket.pitch % 360 == this.pitch) {
                     break;
                 }
 
                 if (distSqrt > 100) {
-                    this.sendPosition(this, authPacket.getYaw(), authPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+                    this.sendPosition(position, authPacket.yaw, authPacket.pitch, MovePlayerPacket.MODE_RESET);
                     break;
                 }
 
                 boolean revertMotion = false;
                 if (!this.isAlive() || !this.spawned) {
                     revertMotion = true;
-                    this.forceMovement = new Vector3(this.x, this.y, this.z);
+                    this.forceMovement = position;
                 }
 
                 if (this.forceMovement != null && (clientPosition.distanceSquared(this.forceMovement) > 0.1 || revertMotion)) {
-                    this.sendPosition(this.forceMovement, authPacket.getYaw(), authPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+                    this.sendPosition(this.forceMovement, authPacket.yaw, authPacket.pitch, MovePlayerPacket.MODE_RESET);
                 } else {
-                    float yaw = authPacket.getYaw() % 360;
-                    float pitch = authPacket.getPitch() % 360;
+                    float yaw = authPacket.yaw % 360;
+                    float pitch = authPacket.pitch % 360;
                     if (yaw < 0) {
                         yaw += 360;
                     }
@@ -2311,7 +2165,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                         this.respawn();
                         break;
                     case PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK:
-                        this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+                        this.sendPosition(position, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
                         break;
                 }
 
@@ -2366,7 +2220,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     break;
                 }
 
-                Entity targetEntity = interactPacket.target == this.getId() ? this : this.level.getEntity(interactPacket.target);
+                Entity targetEntity = interactPacket.target == this.getId() ? this : world.getEntity(interactPacket.target);
 
                 if (targetEntity == null || !this.isAlive() || !targetEntity.isAlive()) {
                     break;
@@ -2401,15 +2255,15 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             case ProtocolInfo.BLOCK_PICK_REQUEST_PACKET:
                 var pickRequestPacket = (BlockPickRequestPacket) packet;
                 var pos = pickRequestPacket.position;
-                Block block = this.level.getBlock(pos.x(), pos.y(), pos.z(), false);
-                if (block.distanceSquared(this) > 1000) {
+                Block block = world.getBlock(pos.x(), pos.y(), pos.z(), false);
+                if (block.distanceSquared(new Vector3(position)) > 1000) {
                     this.getServer().getLogger().debug(username + ": Block pick request for a block too far away");
                     return;
                 }
                 item = block.toItem();
 
                 if (pickRequestPacket.addUserData) {
-                    var blockEntity = this.getLevel().getBlockEntity(pickRequestPacket.position);
+                    var blockEntity = world.getBlockEntity(pickRequestPacket.position);
                     if (blockEntity != null) {
                         CompoundTag nbt = blockEntity.getSaveData()
                                 .remove("id")
@@ -2526,17 +2380,17 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
 
                 if (entityEventPacket.event == EntityEventPacket.EATING_ITEM) {
-                    if (entityEventPacket.data == 0 || entityEventPacket.eid != this.id) {
+                    if (entityEventPacket.data == 0 || entityEventPacket.eid != getId()) {
                         break;
                     }
 
-                    entityEventPacket.eid = this.id;
+                    entityEventPacket.eid = getId();
                     entityEventPacket.isEncoded = false;
 
                     this.dataPacket(entityEventPacket);
                     Server.broadcastPacket(this.getViewers().values(), entityEventPacket);
                 } else if (entityEventPacket.event == EntityEventPacket.ENCHANT) {
-                    if (entityEventPacket.eid != this.id) {
+                    if (entityEventPacket.eid != getId()) {
                         break;
                     }
 
@@ -2610,11 +2464,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 this.resetCraftingGridType();
 
                 var vec = blockEntityDataPacket.position;
-                if (vec.toDouble().distanceSquared(this.toNewVector()) > 10000) {
+                if (vec.toDouble().distanceSquared(position) > 10000) {
                     break;
                 }
 
-                var t = level.getBlockEntity(vec);
+                var t = world.getBlockEntity(vec);
                 if (t.getType() instanceof SpawnableBlockEntityType type) {
                     CompoundTag nbt;
                     try {
@@ -2644,8 +2498,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             case ProtocolInfo.ITEM_FRAME_DROP_ITEM_PACKET:
                 ItemFrameDropItemPacket itemFrameDropItemPacket = (ItemFrameDropItemPacket) packet;
                 var vector3 = itemFrameDropItemPacket.position;
-                if (vector3.toDouble().distanceSquared(this.toNewVector()) < 1000) {
-                    level.getBlockEntity(vector3);
+                if (vector3.toDouble().distanceSquared(position) < 1000) {
+                    world.getBlockEntity(vector3);
                 }
                 break;
             case ProtocolInfo.MAP_INFO_REQUEST_PACKET:
@@ -2654,7 +2508,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
                 if (!this.isSpectator()) {
-                    this.level.addChunkPacket(this.getChunkX(), this.getChunkZ(), packet);
+                    world.addChunkPacket(this.getChunkX(), this.getChunkZ(), packet);
                 }
                 break;
             case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
@@ -2797,17 +2651,17 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, false);
 
-                                if (this.canInteract(new Vector3(blockVector.toDouble().add(0.5, 0.5, 0.5)), this.isCreative() ? 13 : 7)) {
+                                if (this.canInteract(blockVector.toDouble().add(0.5, 0.5, 0.5), isCreative()? 13 : 7)) {
                                     if (this.isCreative()) {
                                         Item i = inventory.getItemInHand();
-                                        if (this.level.useItemOn(blockVector, i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this) != null) {
+                                        if (world.useItemOn(blockVector, i, face, useItemData.clickPos.x(), useItemData.clickPos.y(), useItemData.clickPos.z(), this) != null) {
                                             break packetswitch;
                                         }
                                     } else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
                                         Item i = inventory.getItemInHand();
                                         Item oldItem = i.clone();
                                         //TODO: Implement adventure mode checks
-                                        if ((i = this.level.useItemOn(blockVector, i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this)) != null) {
+                                        if ((i = world.useItemOn(blockVector, i, face, useItemData.clickPos.x(), useItemData.clickPos.y(), useItemData.clickPos.z(), this)) != null) {
                                             if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
                                                 if (oldItem.getId() == i.getId() || i.getId() == 0) {
                                                     inventory.setItemInHand(i);
@@ -2823,14 +2677,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 inventory.sendHeldItem(this);
 
-                                if (blockVector.toDouble().distanceSquared(this.toNewVector()) > 10000) {
+                                if (blockVector.toDouble().distanceSquared(position) > 10000) {
                                     break packetswitch;
                                 }
 
-                                Block target = level.getBlock(blockVector);
+                                Block target = world.getBlock(blockVector);
                                 block = target.getSide(face);
 
-                                this.level.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                world.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                                 break packetswitch;
                             case InventoryTransactionPacket.USE_ITEM_ACTION_BREAK_BLOCK:
                                 if (!this.spawned || !this.isAlive()) {
@@ -2845,7 +2699,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 Item oldItem = i.clone();
 
-                                if (this.canInteract(new Vector3(blockVector.toDouble().add(0.5, 0.5, 0.5)), this.isCreative() ? 13 : 7) && (i = this.level.useBreakOn(blockVector, face, i, this, true)) != null) {
+                                if (this.canInteract(blockVector.toDouble().add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7) && (i = world.useBreakOn(blockVector, face, i, this, true)) != null) {
                                     if (this.isSurvival()) {
                                         this.getFoodData().updateFoodExpLevel(0.005);
                                         if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -2863,11 +2717,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                 inventory.sendContents(this);
                                 inventory.sendHeldItem(this);
 
-                                if (blockVector.toDouble().distanceSquared(this.toNewVector()) < 10000) {
-                                    target = this.level.getBlock(blockVector);
-                                    this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                if (blockVector.toDouble().distanceSquared(position) < 10000) {
+                                    target = world.getBlock(blockVector);
+                                    world.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                                    var blockEntity = this.level.getBlockEntity(blockVector);
+                                    var blockEntity = world.getBlockEntity(blockVector);
                                     if (blockEntity.getType() instanceof SpawnableBlockEntityType $type) {
                                         $type.spawnTo(this);
                                     }
@@ -2875,7 +2729,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 break packetswitch;
                             case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR:
-                                Vector3 directionVector = this.getDirectionVector();
+                                Vector3d directionVector = this.getDirectionVector();
 
                                 if (this.isCreative()) {
                                     item = this.inventory.getItemInHand();
@@ -2895,7 +2749,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                     break packetswitch;
                                 }
 
-                                if (item.onClickAir(this, directionVector)) {
+                                if (item.onClickAir(this, new Vector3(directionVector))) {
                                     if (!this.isCreative()) {
                                         if (item.getId() == 0 || this.inventory.getItemInHand().getId() == item.getId()) {
                                             this.inventory.setItemInHand(item);
@@ -2927,7 +2781,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     case InventoryTransactionPacket.TYPE_USE_ITEM_ON_ENTITY:
                         UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) transactionPacket.transactionData;
 
-                        Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
+                        Entity target = world.getEntity(useItemOnEntityData.entityRuntimeId);
                         if (target == null) {
                             return;
                         }
@@ -2970,7 +2824,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                 }
                                 break;
                             case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                                if (!this.canInteract(target, isCreative() ? 8 : 5)) {
+                                if (!this.canInteract(target.getPosition(), isCreative() ? 8 : 5)) {
                                     break;
                                 } else if (target instanceof Player) {
                                     if ((((Player) target).getGamemode() & 0x01) > 0) {
@@ -2998,7 +2852,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, DamageCause.ENTITY_ATTACK, damage, knockBack, enchantments);
                                 if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
-                                if ((target instanceof Player) && !this.level.getGameRules().getBoolean(GameRule.PVP)) {
+                                if ((target instanceof Player) && !world.getGameRules().getBoolean(GameRule.PVP)) {
                                     entityDamageByEntityEvent.setCancelled();
                                 }
 
@@ -3098,9 +2952,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 RespawnPacket respawnPacket = (RespawnPacket) packet;
                 if (respawnPacket.respawnState == RespawnPacket.STATE_CLIENT_READY_TO_SPAWN) {
                     RespawnPacket respawn1 = new RespawnPacket();
-                    respawn1.x = (float) this.getX();
-                    respawn1.y = (float) this.getY();
-                    respawn1.z = (float) this.getZ();
+                    respawn1.position = position.toFloat();
                     respawn1.respawnState = RespawnPacket.STATE_READY_TO_SPAWN;
                     this.dataPacket(respawn1);
                 }
@@ -3123,19 +2975,19 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
     private void onBlockBreakContinue(Vector3i pos, BlockFace face) {
         if (this.isBreakingBlock()) {
-            Block block = this.level.getBlock(pos, false);
-            this.level.addParticle(new PunchBlockParticle(new Vector3(pos.toDouble()), block, face));
+            Block block = world.getBlock(pos, false);
+            world.addParticle(new PunchBlockParticle(new Vector3(pos.toDouble()), block, face));
         }
     }
 
     private void onBlockBreakStart(Vector3i pos, BlockFace face) {
         long currentBreak = System.currentTimeMillis();
         // HACK: Client spams multiple left clicks so we need to skip them.
-        if ((this.lastBreakPosition.equals(pos) && (currentBreak - this.lastBreak) < 10) || pos.toDouble().distanceSquared(this.toNewVector()) > 100) {
+        if ((this.lastBreakPosition.equals(pos) && (currentBreak - this.lastBreak) < 10) || pos.toDouble().distanceSquared(position) > 100) {
             return;
         }
 
-        Block target = this.level.getBlock(pos);
+        Block target = world.getBlock(pos);
         var playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == 0 ? Action.LEFT_CLICK_AIR : Action.LEFT_CLICK_BLOCK);
         this.getServer().getPluginManager().callEvent(playerInteractEvent);
         if (playerInteractEvent.isCancelled()) {
@@ -3154,7 +3006,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 pk.y = (float) pos.y();
                 pk.z = (float) pos.z();
                 pk.data = (int) (65535 / breakTime);
-                this.getLevel().addChunkPacket(pos.x() >> 4, pos.z() >> 4, pk);
+                world.addChunkPacket(pos.x() >> 4, pos.z() >> 4, pk);
             }
         }
 
@@ -3164,14 +3016,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     private void onBlockBreakAbort(Vector3i pos, BlockFace face) {
-        if (pos.toDouble().distanceSquared(this.toNewVector()) < 100) {
+        if (pos.toDouble().distanceSquared(position) < 100) {
             LevelEventPacket pk = new LevelEventPacket();
             pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
             pk.x = (float) pos.x();
             pk.y = (float) pos.y();
             pk.z = (float) pos.z();
             pk.data = 0;
-            getLevel().addChunkPacket(pos.x() >> 4, pos.z() >> 4, pk);
+            world.addChunkPacket(pos.x() >> 4, pos.z() >> 4, pk);
         }
 
         breakingBlock = null;
@@ -3187,9 +3039,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         Item handItem = this.getInventory().getItemInHand();
         Item clone = handItem.clone();
 
-        boolean canInteract = this.canInteract(new Vector3(blockPos.toDouble().add(0.5, 0.5, 0.5)), this.isCreative() ? 13 : 7);
+        boolean canInteract = this.canInteract(blockPos.toDouble().add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7);
         if (canInteract) {
-            handItem = this.level.useBreakOn(blockPos, face, handItem, this, true);
+            handItem = world.useBreakOn(blockPos, face, handItem, this, true);
             if (handItem != null && this.isSurvival()) {
                 this.getFoodData().updateFoodExpLevel(0.005);
                 if (handItem.equals(clone) && handItem.getCount() == clone.getCount()) {
@@ -3209,11 +3061,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         inventory.sendContents(this);
         inventory.sendHeldItem(this);
 
-        if (blockPos.toDouble().distanceSquared(this.toNewVector()) < 100) {
-            Block target = this.level.getBlock(blockPos);
-            this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        if (blockPos.toDouble().distanceSquared(position) < 100) {
+            Block target = world.getBlock(blockPos);
+            world.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-            var blockEntity = this.level.getBlockEntity(blockPos);
+            var blockEntity = world.getBlockEntity(blockPos);
             if (blockEntity.getType() instanceof SpawnableBlockEntityType type) {
                 type.spawnTo(this);
             }
@@ -3509,10 +3361,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             for (long index : new ArrayList<>(this.usedChunks.keySet())) {
                 int chunkX = Level.getHashX(index);
                 int chunkZ = Level.getHashZ(index);
-                this.level.unregisterChunkLoader(this, chunkX, chunkZ);
+                world.unregisterChunkLoader(this, chunkX, chunkZ);
                 this.usedChunks.remove(index);
 
-                for (Entity entity : level.getChunkEntities(chunkX, chunkZ).values()) {
+                for (Entity entity : world.getChunkEntities(chunkX, chunkZ).values()) {
                     if (entity != this) {
                         entity.getViewers().remove(getLoaderId());
                     }
@@ -3539,7 +3391,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.usedChunks.clear();
             this.loadQueue.clear();
             this.hasSpawned.clear();
-            this.spawnPosition = null;
+            this.spawnPoint = null;
 
             this.riding = null;
         }
@@ -3558,45 +3410,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public void save(boolean async) {
-        if (this.closed) {
+        if (closed) {
             throw new IllegalStateException("Tried to save closed player");
         }
 
         super.saveNBT();
-
-        if (this.level != null) {
-            this.namedTag.putString("Level", this.level.getFolderName());
-            if (this.spawnPosition != null && this.spawnPosition.getLevel() != null) {
-                this.namedTag.putString("SpawnLevel", this.spawnPosition.getLevel().getFolderName());
-                this.namedTag.putInt("SpawnX", (int) this.spawnPosition.x);
-                this.namedTag.putInt("SpawnY", (int) this.spawnPosition.y);
-                this.namedTag.putInt("SpawnZ", (int) this.spawnPosition.z);
-            }
-
-            CompoundTag achievements = new CompoundTag();
-            for (String achievement : this.achievements) {
-                achievements.putByte(achievement, 1);
-            }
-
-            this.namedTag.putCompound("Achievements", achievements);
-
-            this.namedTag.putInt("playerGameType", this.gamemode);
-            this.namedTag.putLong("lastPlayed", System.currentTimeMillis() / 1000);
-
-            this.namedTag.putString("lastIP", this.getAddress());
-
-            this.namedTag.putInt("EXP", this.getExperience());
-            this.namedTag.putInt("expLevel", this.getExperienceLevel());
-
-            this.namedTag.putInt("foodLevel", this.getFoodData().getLevel());
-            this.namedTag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
-
-            this.namedTag.putInt("TimeSinceRest", this.timeSinceRest);
-
-            if (!this.username.isEmpty() && this.namedTag != null) {
-                this.server.saveOfflinePlayerData(this.playerUuid, this.namedTag, async);
-            }
-        }
     }
 
     public String getName() {
@@ -3609,7 +3427,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return;
         }
 
-        boolean showMessages = this.level.getGameRules().getBoolean(GameRule.SHOW_DEATH_MESSAGES);
+        boolean showMessages = world.getGameRules().getBoolean(GameRule.SHOW_DEATH_MESSAGES);
         String message = "";
         List<String> params = new ArrayList<>();
         EntityDamageEvent cause = this.getLastDamageCause();
@@ -3723,7 +3541,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
 
         PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), new TranslationContainer(message, params.toArray(new String[0])), this.expLevel);
-        ev.setKeepExperience(this.level.gameRules.getBoolean(GameRule.KEEP_INVENTORY));
+        ev.setKeepExperience(world.gameRules.getBoolean(GameRule.KEEP_INVENTORY));
         ev.setKeepInventory(ev.getKeepExperience());
 
         this.server.getPluginManager().callEvent(ev);
@@ -3734,10 +3552,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.extinguish();
             this.scheduleUpdate();
 
-            if (!ev.getKeepInventory() && this.level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
+            if (!ev.getKeepInventory() && world.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
                 for (Item item : ev.getDrops()) {
                     if (!item.hasEnchantment(Enchantment.ID_VANISHING_CURSE)) {
-                        this.level.dropItem(this, item, null, true, 40);
+                        world.dropItem(new Vector3(position), item, null, true, 40);
                     }
                 }
 
@@ -3749,11 +3567,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
             }
 
-            if (!ev.getKeepExperience() && this.level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
+            if (!ev.getKeepExperience() && world.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
                 if (this.isSurvival() || this.isAdventure()) {
                     int exp = ev.getExperience() * 7;
                     if (exp > 100) exp = 100;
-                    this.getLevel().dropExpOrb(this, exp);
+                    world.dropExpOrb(new Vector3(position), exp);
                 }
                 this.setExperience(0, 0);
             }
@@ -3761,10 +3579,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.timeSinceRest = 0;
 
             RespawnPacket pk = new RespawnPacket();
-            Position pos = this.getSpawn();
-            pk.x = (float) pos.x;
-            pk.y = (float) pos.y;
-            pk.z = (float) pos.z;
+            var point = this.getSpawn();
+            pk.position = point.getPosition().toFloat();
             pk.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
 
             this.dataPacket(pk);
@@ -3772,40 +3588,40 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     protected void respawn() {
-        this.craftingType = CRAFTING_SMALL;
-        this.resetCraftingGridType();
+        craftingType = CRAFTING_SMALL;
+        resetCraftingGridType();
 
-        PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(this, this.getSpawn());
-        this.server.getPluginManager().callEvent(playerRespawnEvent);
+        PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(this, getSpawn());
+        server.getPluginManager().callEvent(playerRespawnEvent);
 
-        Position respawnPos = playerRespawnEvent.getRespawnPosition();
+        var respawnPoint = playerRespawnEvent.getRespawnPoint();
 
-        this.sendExperience();
-        this.sendExperienceLevel();
+        sendExperience();
+        sendExperienceLevel();
 
-        this.setSprinting(false);
-        this.setSneaking(false);
+        setSprinting(false);
+        setSneaking(false);
 
-        this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
-        this.deadTicks = 0;
-        this.noDamageTicks = 60;
+        setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
+        deadTicks = 0;
+        noDamageTicks = 60;
 
-        this.removeAllEffects();
-        this.setHealth(this.getMaxHealth());
-        this.getFoodData().setLevel(20, 20);
+        removeAllEffects();
+        setHealth(this.getMaxHealth());
+        getFoodData().setLevel(20, 20);
 
-        this.sendData(this);
+        sendData(this);
 
-        this.setMovementSpeed(DEFAULT_SPEED);
+        setMovementSpeed(DEFAULT_SPEED);
 
-        this.getAdventureSettings().update();
-        this.inventory.sendContents(this);
-        this.inventory.sendArmorContents(this);
-        this.offhandInventory.sendContents(this);
+        getAdventureSettings().update();
+        inventory.sendContents(this);
+        inventory.sendArmorContents(this);
+        offhandInventory.sendContents(this);
 
-        this.teleport(respawnPos, null);
-        this.spawnToAll();
-        this.scheduleUpdate();
+        teleport(respawnPoint);
+        spawnToAll();
+        scheduleUpdate();
     }
 
     @Override
@@ -3825,7 +3641,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         var pk = new UpdateAttributesPacket();
         pk.entries = new Attribute.Entry[]{ attribute };
-        pk.entityId = id;
+        pk.entityId = getId();
         dataPacket(pk);
 
     }
@@ -3843,7 +3659,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         var pk = new UpdateAttributesPacket();
         pk.entries = new Attribute.Entry[]{ attribute };
-        pk.entityId = id;
+        pk.entityId = getId();
         dataPacket(pk);
     }
 
@@ -3926,7 +3742,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     public void setAttribute(Attribute attribute, float value) {
         var pk = new UpdateAttributesPacket();
         pk.entries = new Attribute.Entry[]{ new Attribute.Entry(attribute, value) };
-        pk.entityId = id;
+        pk.entityId = getId();
 
         dataPacket(pk);
     }
@@ -3975,7 +3791,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     }
                 }
                 EntityEventPacket pk = new EntityEventPacket();
-                pk.eid = this.id;
+                pk.eid = getId();
                 pk.event = EntityEventPacket.HURT_ANIMATION;
                 this.dataPacket(pk);
             }
@@ -4001,9 +3817,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return true;
         }
 
-        Vector3 motion = this.getDirectionVector().multiply(0.4);
+        Vector3d motion = this.getDirectionVector().mul(0.4);
 
-        this.level.dropItem(this.add(0, 1.3, 0), item, motion, 40);
+        world.dropItem(new Vector3(position.add(0, 1.3, 0)), item, new Vector3(motion), 40);
 
         this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, false);
         return true;
@@ -4025,40 +3841,39 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return null;
         }
 
-        Vector3 motion = this.getDirectionVector().multiply(0.4);
+        Vector3d motion = this.getDirectionVector().mul(0.4);
 
         this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, false);
 
-        return this.level.dropAndGetItem(this.add(0, 1.3, 0), item, motion, 40);
+        return world.dropAndGetItem(new Vector3(position.add(0, 1.3, 0)), item, new Vector3(motion), 40);
     }
 
-    public void sendPosition(Vector3 pos) {
+    public void sendPosition(Vector3d pos) {
         this.sendPosition(pos, this.yaw);
     }
 
-    public void sendPosition(Vector3 pos, double yaw) {
+    public void sendPosition(Vector3d pos, double yaw) {
         this.sendPosition(pos, yaw, this.pitch);
     }
 
-    public void sendPosition(Vector3 pos, double yaw, double pitch) {
+    public void sendPosition(Vector3d pos, double yaw, double pitch) {
         this.sendPosition(pos, yaw, pitch, MovePlayerPacket.MODE_NORMAL);
     }
 
-    public void sendPosition(Vector3 pos, double yaw, double pitch, int mode) {
+    public void sendPosition(Vector3d pos, double yaw, double pitch, int mode) {
         this.sendPosition(pos, yaw, pitch, mode, null);
     }
 
-    public void sendPosition(Vector3 pos, double yaw, double pitch, int mode, Player[] targets) {
-        MovePlayerPacket pk = new MovePlayerPacket();
+    public void sendPosition(Vector3d pos, double yaw, double pitch, int mode, Player[] targets) {
+        var pk = new MovePlayerPacket();
         pk.eid = this.getId();
-        pk.x = (float) pos.x;
-        pk.y = (float) (pos.y + this.getEyeHeight());
-        pk.z = (float) pos.z;
+        pk.position = pos.add(0, getEyeHeight(), 0).toFloat();
         pk.headYaw = (float) yaw;
         pk.pitch = (float) pitch;
         pk.yaw = (float) yaw;
         pk.mode = mode;
-        if (this.riding != null) {
+
+        if (riding != null) {
             pk.ridingEid = this.riding.getId();
             pk.mode = MovePlayerPacket.MODE_PITCH;
         }
@@ -4066,20 +3881,20 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         if (targets != null) {
             Server.broadcastPacket(targets, pk);
         } else {
-            this.dataPacket(pk);
+            dataPacket(pk);
         }
     }
 
     @Override
     protected void checkChunks() {
-        if (this.chunk == null || (this.chunk.getX() != ((int) this.x >> 4) || this.chunk.getZ() != ((int) this.z >> 4))) {
+        if (this.chunk == null || (this.chunk.getX() != getChunkX() || this.chunk.getZ() != getChunkZ())) {
             if (this.chunk != null) {
                 this.chunk.removeEntity(this);
             }
-            this.chunk = this.level.getChunk((int) this.x >> 4, (int) this.z >> 4, true);
+            this.chunk = world.getChunk(getChunkX(), getChunkZ(), true);
 
             if (!this.justCreated) {
-                Map<Integer, Player> newChunk = this.level.getChunkPlayers((int) this.x >> 4, (int) this.z >> 4);
+                Map<Integer, Player> newChunk = world.getChunkPlayers(getChunkX(), getChunkZ());
                 newChunk.remove(this.getLoaderId());
 
                 //List<Player> reload = new ArrayList<>();
@@ -4106,9 +3921,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     protected boolean checkTeleportPosition() {
-        if (this.teleportPosition != null) {
-            int chunkX = (int) this.teleportPosition.x >> 4;
-            int chunkZ = (int) this.teleportPosition.z >> 4;
+        if (teleportPosition != null) {
+            int chunkX = teleportPosition.floorX() >> 4;
+            int chunkZ = teleportPosition.floorZ() >> 4;
 
             for (int X = -1; X <= 1; ++X) {
                 for (int Z = -1; Z <= 1; ++Z) {
@@ -4140,41 +3955,35 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public boolean teleport(Location location, TeleportCause cause) {
-        if (!this.isOnline()) {
-            return false;
-        }
+    public boolean teleport(Point point) {
+        if (!isOnline()) return false;
 
-        Location from = this.getLocation();
-        Location to = location;
+        Point from = getPoint();
+        Point to = point;
 
-        if (cause != null) {
-            PlayerTeleportEvent event = new PlayerTeleportEvent(this, from, to, cause);
-            this.server.getPluginManager().callEvent(event);
-            if (event.isCancelled()) return false;
-            to = event.getTo();
-        }
+        PlayerTeleportEvent event = new PlayerTeleportEvent(this, from, to);
+        server.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+        to = event.getTo();
 
         //TODO Remove it! A hack to solve the client-side teleporting bug! (inside into the block)
-        if (super.teleport(to.getY() == to.getFloorY() ? to.add(0, 0.00001, 0) : to, null)) { // null to prevent fire of duplicate EntityTeleportEvent
-            this.removeAllWindows();
+        var pos = to.getPosition();
+        if (super.teleport(pos.y() == pos.floorY()? to.withPosition(pos.add(0, 0.00001, 0)) : to)) {
+            removeAllWindows();
 
-            this.teleportPosition = new Vector3(this.x, this.y, this.z);
-            this.forceMovement = this.teleportPosition;
-            this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
+            teleportPosition = position;
+            forceMovement = this.teleportPosition;
+            sendPosition(position, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
 
-            this.checkTeleportPosition();
+            checkTeleportPosition();
 
-            this.resetFallDistance();
-            this.nextChunkOrderRun = 0;
-            this.resetClientMovement();
+            resetFallDistance();
+            nextChunkOrderRun = 0;
+            resetClientMovement();
 
-            //DummyBossBar
-            this.getDummyBossBars().values().forEach(DummyBossBar::reshow);
-            //Weather
-            this.getLevel().sendWeather(this);
-            //Update time
-            this.getLevel().sendTime(this);
+            getDummyBossBars().values().forEach(DummyBossBar::reshow);
+            world.sendWeather(this);
+            world.sendTime(this);
             return true;
         }
 
@@ -4182,8 +3991,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     protected void forceSendEmptyChunks() {
-        int chunkPositionX = this.getFloorX() >> 4;
-        int chunkPositionZ = this.getFloorZ() >> 4;
+        int chunkPositionX = getChunkX();
+        int chunkPositionZ = getChunkZ();
         for (int x = -chunkRadius; x < chunkRadius; x++) {
             for (int z = -chunkRadius; z < chunkRadius; z++) {
                 LevelChunkPacket chunk = new LevelChunkPacket();
@@ -4195,61 +4004,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
     }
 
-    public void teleportImmediate(Location location) {
-        this.teleportImmediate(location, TeleportCause.PLUGIN);
-    }
-
-    public void teleportImmediate(Location location, TeleportCause cause) {
-        Location from = this.getLocation();
-        if (super.teleport(location, cause)) {
-            this.removeAllWindows();
-
-            if (from.getLevel().getId() != location.getLevel().getId()) { //Different level, update compass position
-                SetSpawnPositionPacket pk = new SetSpawnPositionPacket();
-                pk.spawnType = SetSpawnPositionPacket.TYPE_WORLD_SPAWN;
-                Position spawn = location.getLevel().getSpawnLocation();
-                pk.x = spawn.getFloorX();
-                pk.y = spawn.getFloorY();
-                pk.z = spawn.getFloorZ();
-                dataPacket(pk);
-            }
-
-            this.forceMovement = new Vector3(this.x, this.y, this.z);
-            this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
-
-            this.resetFallDistance();
-            this.orderChunks();
-            this.nextChunkOrderRun = 0;
-            this.resetClientMovement();
-
-            //DummyBossBar
-            this.getDummyBossBars().values().forEach(DummyBossBar::reshow);
-            //Weather
-            this.getLevel().sendWeather(this);
-            //Update time
-            this.getLevel().sendTime(this);
-        }
-    }
-
-    /**
-     * Shows a new FormWindow to the player
-     * You can find out FormWindow result by listening to PlayerFormRespondedEvent
-     *
-     * @param window to show
-     * @return form id to use in {@link PlayerFormRespondedEvent}
-     */
     public int showFormWindow(FormWindow window) {
         return showFormWindow(window, this.formWindowCount++);
     }
 
-    /**
-     * Shows a new FormWindow to the player
-     * You can find out FormWindow result by listening to PlayerFormRespondedEvent
-     *
-     * @param window to show
-     * @param id form id
-     * @return form id to use in {@link PlayerFormRespondedEvent}
-     */
     public int showFormWindow(FormWindow window, int id) {
         ModalFormRequestPacket packet = new ModalFormRequestPacket();
         packet.formId = id;
@@ -4260,13 +4018,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return id;
     }
 
-    /**
-     * Shows a new setting page in game settings
-     * You can find out settings result by listening to PlayerFormRespondedEvent
-     *
-     * @param window to show on settings page
-     * @return form id to use in {@link PlayerFormRespondedEvent}
-     */
     public int addServerSettings(FormWindow window) {
         int id = this.formWindowCount++;
 
@@ -4274,62 +4025,25 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         return id;
     }
 
-    /**
-     * Creates and sends a BossBar to the player
-     *
-     * @param text   The BossBar message
-     * @param length The BossBar percentage
-     * @return bossBarId  The BossBar ID, you should store it if you want to remove or update the BossBar later
-     */
-    @Deprecated
     public long createBossBar(String text, int length) {
         DummyBossBar bossBar = new DummyBossBar.Builder(this).text(text).length(length).build();
         return this.createBossBar(bossBar);
     }
 
-    /**
-     * Creates and sends a BossBar to the player
-     *
-     * @param dummyBossBar DummyBossBar Object (Instantiate it by the Class Builder)
-     * @return bossBarId  The BossBar ID, you should store it if you want to remove or update the BossBar later
-     * @see DummyBossBar.Builder
-     */
     public long createBossBar(DummyBossBar dummyBossBar) {
         this.dummyBossBars.put(dummyBossBar.getBossBarId(), dummyBossBar);
         dummyBossBar.create();
         return dummyBossBar.getBossBarId();
     }
 
-    /**
-     * Get a DummyBossBar object
-     *
-     * @param bossBarId The BossBar ID
-     * @return DummyBossBar object
-     * @see DummyBossBar#setText(String) Set BossBar text
-     * @see DummyBossBar#setLength(float) Set BossBar length
-     * @see DummyBossBar#setColor(BossBarColor) Set BossBar color
-     */
     public DummyBossBar getDummyBossBar(long bossBarId) {
         return this.dummyBossBars.getOrDefault(bossBarId, null);
     }
 
-    /**
-     * Get all DummyBossBar objects
-     *
-     * @return DummyBossBars Map
-     */
     public Map<Long, DummyBossBar> getDummyBossBars() {
         return dummyBossBars;
     }
 
-    /**
-     * Updates a BossBar
-     *
-     * @param text      The new BossBar message
-     * @param length    The new BossBar length
-     * @param bossBarId The BossBar ID
-     */
-    @Deprecated
     public void updateBossBar(String text, int length, long bossBarId) {
         if (this.dummyBossBars.containsKey(bossBarId)) {
             DummyBossBar bossBar = this.dummyBossBars.get(bossBarId);
@@ -4338,11 +4052,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
     }
 
-    /**
-     * Removes a BossBar
-     *
-     * @param bossBarId The BossBar ID
-     */
     public void removeBossBar(long bossBarId) {
         if (this.dummyBossBars.containsKey(bossBarId)) {
             this.dummyBossBars.get(bossBarId).destroy();
@@ -4608,38 +4317,34 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     private void setDimension(int dimension) {
         ChangeDimensionPacket pk = new ChangeDimensionPacket();
         pk.dimension = dimension;
-        pk.x = (float) this.x;
-        pk.y = (float) this.y;
-        pk.z = (float) this.z;
-        this.dataPacket(pk);
+        pk.position = position.toFloat();
+        dataPacket(pk);
     }
 
     @Override
-    public boolean switchLevel(Level level) {
-        Level oldLevel = this.level;
-        if (super.switchLevel(level)) {
+    public boolean switchLevel(Level world) {
+        Level oldWorld = this.world;
+        if (super.switchLevel(world)) {
             SetSpawnPositionPacket spawnPosition = new SetSpawnPositionPacket();
             spawnPosition.spawnType = SetSpawnPositionPacket.TYPE_WORLD_SPAWN;
-            Position spawn = level.getSpawnLocation();
-            spawnPosition.x = spawn.getFloorX();
-            spawnPosition.y = spawn.getFloorY();
-            spawnPosition.z = spawn.getFloorZ();
+            var spawn = world.getSpawnLocation().toPoint();
+            spawnPosition.position = spawn.getPosition().toInt();
             this.dataPacket(spawnPosition);
 
             // Remove old chunks
             for (long index : new ArrayList<>(this.usedChunks.keySet())) {
                 int chunkX = Level.getHashX(index);
                 int chunkZ = Level.getHashZ(index);
-                this.unloadChunk(chunkX, chunkZ, oldLevel);
+                this.unloadChunk(chunkX, chunkZ, oldWorld);
             }
             this.usedChunks.clear();
 
             SetTimePacket setTime = new SetTimePacket();
-            setTime.time = level.getTime();
+            setTime.time = world.getTime();
             this.dataPacket(setTime);
 
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
-            gameRulesChanged.gameRules = level.getGameRules();
+            gameRulesChanged.gameRules = world.getGameRules();
             this.dataPacket(gameRulesChanged);
             return true;
         }
@@ -4676,11 +4381,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public void transfer(InetSocketAddress address) {
-        String hostName = address.getAddress().getHostAddress();
-        int port = address.getPort();
         TransferPacket pk = new TransferPacket();
-        pk.address = hostName;
-        pk.port = port;
+        pk.address = address.getAddress().getHostAddress();
+        pk.port = address.getPort();
         this.dataPacket(pk);
     }
 
@@ -4729,47 +4432,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.dataPacket(pk);
     }
 
-    /**
-     * Start fishing
-     * @param fishingRod fishing rod item
-     */
-    public void startFishing(Item fishingRod) {
-        CompoundTag nbt = new CompoundTag()
-                .putList(new ListTag<DoubleTag>("Pos")
-                        .add(new DoubleTag("", x))
-                        .add(new DoubleTag("", y + this.getEyeHeight()))
-                        .add(new DoubleTag("", z)))
-                .putList(new ListTag<DoubleTag>("Motion")
-                        .add(new DoubleTag("", -Math.sin(yaw / 180 + Math.PI) * Math.cos(pitch / 180 * Math.PI)))
-                        .add(new DoubleTag("", -Math.sin(pitch / 180 * Math.PI)))
-                        .add(new DoubleTag("", Math.cos(yaw / 180 * Math.PI) * Math.cos(pitch / 180 * Math.PI))))
-                .putList(new ListTag<FloatTag>("Rotation")
-                        .add(new FloatTag("", (float) yaw))
-                        .add(new FloatTag("", (float) pitch)));
-        double f = 1.1;
-    }
-
-    /**
-     * Stop fishing
-     * @param click clicked or forced
-     */
-    public void stopFishing(boolean click) {
-
-    }
-
     @Override
     public String toString() {
         return "Player(name='" + getName() +
                 "', location=" + super.toString() +
                 ')';
-    }
-
-    public int getTimeSinceRest() {
-        return timeSinceRest;
-    }
-
-    public void setTimeSinceRest(int timeSinceRest) {
-        this.timeSinceRest = timeSinceRest;
     }
 
     public NetworkPlayerSession getNetworkSession() {

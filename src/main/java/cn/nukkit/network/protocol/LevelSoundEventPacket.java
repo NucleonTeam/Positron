@@ -477,10 +477,10 @@ public class LevelSoundEventPacket extends DataPacket {
     @Override
     public void decode() {
         this.sound = (int) this.getUnsignedVarInt();
-        Vector3f v = this.getVector3f();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+        var v = this.getVector3f();
+        this.x = v.x();
+        this.y = v.y();
+        this.z = v.z();
         this.extraData = this.getVarInt();
         this.entityIdentifier = this.getString();
         this.isBabyMob = this.getBoolean();

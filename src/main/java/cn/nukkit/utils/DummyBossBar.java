@@ -3,6 +3,8 @@ package cn.nukkit.utils;
 import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.network.protocol.*;
+import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3f;
 import ru.mc_positron.entity.attribute.Attribute;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.EntityMetadata;
@@ -103,17 +105,13 @@ public class DummyBossBar {
     }
 
     private void createBossEntity() {
-        AddEntityPacket pkAdd = new AddEntityPacket();
-        pkAdd.type = 43;
-        pkAdd.entityUniqueId = bossBarId;
-        pkAdd.entityRuntimeId = bossBarId;
-        pkAdd.x = (float) player.x;
-        pkAdd.y = (float) -10; // Below the bedrock
-        pkAdd.z = (float) player.z;
-        pkAdd.speedX = 0;
-        pkAdd.speedY = 0;
-        pkAdd.speedZ = 0;
-        pkAdd.metadata = new EntityMetadata()
+        AddEntityPacket pk = new AddEntityPacket();
+        pk.type = 43;
+        pk.entityUniqueId = bossBarId;
+        pk.entityRuntimeId = bossBarId;
+        pk.position = new Vector3f(player.getPosition().x(), -10, player.getPosition().z());
+        pk.speed = Vector3f.ZERO;
+        pk.metadata = new EntityMetadata()
                 // Default Metadata tags
                 .putLong(Entity.DATA_FLAGS, 0)
                 .putShort(Entity.DATA_AIR, 400)
@@ -122,7 +120,7 @@ public class DummyBossBar {
                 .putString(Entity.DATA_NAMETAG, text) // Set the entity name
                 .putFloat(Entity.DATA_SCALE, 0); // And make it invisible
 
-        player.dataPacket(pkAdd);
+        player.dataPacket(pk);
     }
 
     private void sendAttributes() {
@@ -184,9 +182,7 @@ public class DummyBossBar {
     public void updateBossEntityPosition() {
         MoveEntityAbsolutePacket pk = new MoveEntityAbsolutePacket();
         pk.eid = this.bossBarId;
-        pk.x = this.player.x;
-        pk.y = -10;
-        pk.z = this.player.z;
+        pk.position = new Vector3f(player.getPosition().x(), -10, player.getPosition().z());
         pk.headYaw = 0;
         pk.yaw = 0;
         pk.pitch = 0;

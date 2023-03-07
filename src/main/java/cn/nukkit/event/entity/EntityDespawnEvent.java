@@ -7,11 +7,8 @@ import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.projectile.EntityProjectile;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.level.Position;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EntityDespawnEvent extends EntityEvent {
     private static final HandlerList handlers = new HandlerList();
 
@@ -21,13 +18,13 @@ public class EntityDespawnEvent extends EntityEvent {
 
     private final int entityType;
 
-    public EntityDespawnEvent(cn.nukkit.entity.Entity entity) {
+    public EntityDespawnEvent(Entity entity) {
         this.entity = entity;
         this.entityType = entity.getNetworkId();
     }
 
-    public Position getPosition() {
-        return this.entity.getPosition();
+    public Vector3d getPosition() {
+        return entity.getPosition();
     }
 
     public int getType() {

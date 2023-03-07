@@ -11,6 +11,7 @@ import cn.nukkit.level.Level;
 import cn.nukkit.level.MovingObjectPosition;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.AxisAlignedBB;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.math.BlockFace;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.metadata.MetadataValue;
@@ -260,7 +261,7 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
         return (getId() << 4);
     }
 
-    public void addVelocityToEntity(Entity entity, Vector3 vector) {
+    public void addVelocityToEntity(Entity entity, Vector3d vector) {
 
     }
 
@@ -629,7 +630,7 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
             f = 3;
         }
 
-        return MovingObjectPosition.fromBlock((int) this.x, (int) this.y, (int) this.z, f, vector.add(this.x, this.y, this.z));
+        return MovingObjectPosition.fromBlock((int) this.x, (int) this.y, (int) this.z, f, vector.add(this.x, this.y, this.z).toNewVector());
     }
 
     public String getSaveId() {

@@ -3,7 +3,7 @@ package cn.nukkit.event.player;
 import cn.nukkit.Player;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
-import cn.nukkit.level.Location;
+import ru.mc_positron.math.Point;
 
 public class PlayerMoveEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
@@ -12,35 +12,35 @@ public class PlayerMoveEvent extends PlayerEvent implements Cancellable {
         return handlers;
     }
 
-    private Location from;
-    private Location to;
+    private Point from;
+    private Point to;
 
     private boolean resetBlocksAround;
 
-    public PlayerMoveEvent(Player player, Location from, Location to) {
+    public PlayerMoveEvent(Player player, Point from, Point to) {
         this(player, from, to, true);
     }
 
-    public PlayerMoveEvent(Player player, Location from, Location to, boolean resetBlocks) {
+    public PlayerMoveEvent(Player player, Point from, Point to, boolean resetBlocks) {
         this.player = player;
         this.from = from;
         this.to = to;
         this.resetBlocksAround = resetBlocks;
     }
 
-    public Location getFrom() {
+    public Point getFrom() {
         return from;
     }
 
-    public void setFrom(Location from) {
+    public void setFrom(Point from) {
         this.from = from;
     }
 
-    public Location getTo() {
+    public Point getTo() {
         return to;
     }
 
-    public void setTo(Location to) {
+    public void setTo(Point to) {
         this.to = to;
     }
 

@@ -3,13 +3,8 @@ package cn.nukkit.event.entity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
-import cn.nukkit.event.player.PlayerTeleportEvent;
-import cn.nukkit.level.Location;
+import ru.mc_positron.math.Point;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EntityTeleportEvent extends EntityEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
@@ -17,38 +12,28 @@ public class EntityTeleportEvent extends EntityEvent implements Cancellable {
         return handlers;
     }
 
-    private Location from;
-    private Location to;
-    private final PlayerTeleportEvent.TeleportCause cause;
+    private Point from;
+    private Point to;
 
-    public EntityTeleportEvent(Entity entity, Location from, Location to) {
-        this(entity, from, to, PlayerTeleportEvent.TeleportCause.UNKNOWN);
-    }
-
-    public EntityTeleportEvent(Entity entity, Location from, Location to, PlayerTeleportEvent.TeleportCause cause) {
+    public EntityTeleportEvent(Entity entity, Point from, Point to) {
         this.entity = entity;
         this.from = from;
         this.to = to;
-        this.cause = cause;
     }
 
-    public Location getFrom() {
+    public Point getFrom() {
         return from;
     }
 
-    public void setFrom(Location from) {
+    public void setFrom(Point from) {
         this.from = from;
     }
 
-    public Location getTo() {
+    public Point getTo() {
         return to;
     }
 
-    public void setTo(Location to) {
+    public void setTo(Point to) {
         this.to = to;
-    }
-
-    public PlayerTeleportEvent.TeleportCause getCause() {
-        return cause;
     }
 }

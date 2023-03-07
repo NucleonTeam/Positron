@@ -26,7 +26,7 @@ public class SpawnParticleEffectPacket extends DataPacket {
         this.reset();
         this.putByte((byte) this.dimensionId);
         this.putEntityUniqueId(uniqueEntityId);
-        this.putVector3f(this.position);
+        this.putVector3f(this.position.toNewVector().toFloat());
         this.putString(this.identifier);
         this.putBoolean(false);
     }

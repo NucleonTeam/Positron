@@ -96,4 +96,12 @@ public final class FastMath {
 
         return Math.max(diffX, diffZ);
     }
+
+    public static float square(float value) {
+        return value * value;
+    }
+
+    public static double square(double value) {
+        return value * value;
+    }
 }

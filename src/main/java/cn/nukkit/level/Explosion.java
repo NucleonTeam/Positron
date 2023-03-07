@@ -18,6 +18,7 @@ import cn.nukkit.math.*;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.utils.Hash;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
+import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.blockentity.BlockEntity;
 import ru.mc_positron.math.FastMath;
 
@@ -141,10 +142,10 @@ public class Explosion {
         AxisAlignedBB explosionBB = new SimpleAxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
         Entity[] list = this.level.getNearbyEntities(explosionBB, this.what instanceof Entity ? (Entity) this.what : null);
         for (Entity entity : list) {
-            double distance = entity.distance(this.source) / explosionSize;
+            double distance = entity.getPosition().distance(this.source.toNewVector()) / explosionSize;
 
             if (distance <= 1) {
-                Vector3 motion = entity.subtract(this.source).normalize();
+                Vector3d motion = entity.getPosition().sub(this.source.toNewVector()).normalize();
                 int exposure = 1;
                 double impact = (1 - distance) * exposure;
 
@@ -159,7 +160,7 @@ public class Explosion {
                 }
 
                 if (!(entity instanceof EntityItem)) {
-                    entity.setMotion(motion.multiply(impact));
+                    entity.setMotion(motion.mul(impact));
                 }
             }
         }

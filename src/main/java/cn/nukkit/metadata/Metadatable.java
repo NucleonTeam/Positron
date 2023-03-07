@@ -4,10 +4,6 @@ import cn.nukkit.plugin.Plugin;
 
 import java.util.List;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public interface Metadatable {
 
     void setMetadata(String metadataKey, MetadataValue newMetadataValue) throws Exception;

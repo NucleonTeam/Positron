@@ -1,11 +1,8 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.Vector3f;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 
-/**
- * Created on 15-10-14.
- */
 @ToString
 public class MovePlayerPacket extends DataPacket {
 
@@ -17,9 +14,7 @@ public class MovePlayerPacket extends DataPacket {
     public static final int MODE_PITCH = 3; //facepalm Mojang
 
     public long eid;
-    public float x;
-    public float y;
-    public float z;
+    public Vector3f position;
     public float yaw;
     public float headYaw;
     public float pitch;
@@ -32,40 +27,37 @@ public class MovePlayerPacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.eid = this.getEntityRuntimeId();
-        Vector3f v = this.getVector3f();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.pitch = this.getLFloat();
-        this.yaw = this.getLFloat();
-        this.headYaw = this.getLFloat();
-        this.mode = this.getByte();
-        this.onGround = this.getBoolean();
-        this.ridingEid = this.getEntityRuntimeId();
-        if (this.mode == MODE_TELEPORT) {
-            this.int1 = this.getLInt();
-            this.int2 = this.getLInt();
+        eid = getEntityRuntimeId();
+        position = getVector3f();
+        pitch = getLFloat();
+        yaw = getLFloat();
+        headYaw = getLFloat();
+        mode = getByte();
+        onGround = getBoolean();
+        ridingEid = getEntityRuntimeId();
+        if (mode == MODE_TELEPORT) {
+            int1 = getLInt();
+            int2 = getLInt();
         }
-        this.frame = this.getUnsignedVarLong();
+        frame = getUnsignedVarLong();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putEntityRuntimeId(this.eid);
-        this.putVector3f(this.x, this.y, this.z);
-        this.putLFloat(this.pitch);
-        this.putLFloat(this.yaw);
-        this.putLFloat(this.headYaw);
-        this.putByte((byte) this.mode);
-        this.putBoolean(this.onGround);
-        this.putEntityRuntimeId(this.ridingEid);
-        if (this.mode == MODE_TELEPORT) {
-            this.putLInt(this.int1);
-            this.putLInt(this.int2);
+        reset();
+        putEntityRuntimeId(eid);
+        putVector3f(position);
+        putLFloat(pitch);
+        putLFloat(yaw);
+        putLFloat(headYaw);
+        putByte((byte) mode);
+        putBoolean(onGround);
+        putEntityRuntimeId(ridingEid);
+        if (mode == MODE_TELEPORT) {
+            putLInt(int1);
+            putLInt(int2);
         }
-        this.putUnsignedVarLong(this.frame);
+        putUnsignedVarLong(frame);
     }
 
     @Override

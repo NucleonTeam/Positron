@@ -7,8 +7,11 @@ import ru.mc_positron.entity.attribute.Attributes;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class Entities {
+
+    private final static AtomicLong freeEntityId = new AtomicLong(1);
 
     private final HashMap<String, Attribute> attributes = new HashMap<>();
     private final HashMap<Integer, Attribute> attributesNumId = new HashMap<>();
@@ -71,5 +74,9 @@ public final class Entities {
 
     private void registerDefaultEntities() {
 
+    }
+
+    public static long getFreeEntityId() {
+        return freeEntityId.getAndIncrement();
     }
 }

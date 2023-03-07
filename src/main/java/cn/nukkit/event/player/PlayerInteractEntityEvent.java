@@ -5,11 +5,8 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.item.Item;
-import cn.nukkit.math.Vector3;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * Created by CreeperFace on 1. 1. 2017.
- */
 public class PlayerInteractEntityEvent extends PlayerEvent implements Cancellable {
 
 
@@ -17,9 +14,9 @@ public class PlayerInteractEntityEvent extends PlayerEvent implements Cancellabl
 
     protected final Entity entity;
     protected final Item item;
-    protected final Vector3 clickedPos;
+    protected final Vector3d clickedPos;
 
-    public PlayerInteractEntityEvent(Player player, Entity entity, Item item, Vector3 clickedPos) {
+    public PlayerInteractEntityEvent(Player player, Entity entity, Item item, Vector3d clickedPos) {
         this.player = player;
         this.entity = entity;
         this.item = item;
@@ -34,7 +31,7 @@ public class PlayerInteractEntityEvent extends PlayerEvent implements Cancellabl
         return this.item;
     }
 
-    public Vector3 getClickedPos() {
+    public Vector3d getClickedPos() {
         return clickedPos;
     }
 

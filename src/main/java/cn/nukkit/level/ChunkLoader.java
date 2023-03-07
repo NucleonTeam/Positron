@@ -2,24 +2,21 @@ package cn.nukkit.level;
 
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
+import org.spongepowered.math.vector.Vector3d;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public interface ChunkLoader {
 
     int getLoaderId();
 
     boolean isLoaderActive();
 
-    Position getPosition();
+    Vector3d getPosition();
 
-    double getX();
+    Level getWorld();
 
-    double getZ();
+    int getChunkX();
 
-    Level getLevel();
+    int getChunkZ();
 
     void onChunkChanged(FullChunk chunk);
 

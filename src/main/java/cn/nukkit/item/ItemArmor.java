@@ -73,28 +73,29 @@ abstract public class ItemArmor extends Item implements ItemDurable {
         }
         if (equip) {
             player.getInventory().setItem(player.getInventory().getHeldItemIndex(), oldSlotItem);
+            var pos = new Vector3(player.getPosition());
             switch (this.getTier()) {
                 case TIER_CHAIN:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_CHAIN);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_CHAIN);
                     break;
                 case TIER_DIAMOND:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_DIAMOND);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_DIAMOND);
                     break;
                 case TIER_GOLD:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GOLD);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GOLD);
                     break;
                 case TIER_IRON:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_IRON);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_IRON);
                     break;
                 case TIER_LEATHER:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_LEATHER);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_LEATHER);
                     break;
                 case TIER_NETHERITE:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_NETHERITE);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_NETHERITE);
                     break;
                 case TIER_OTHER:
                 default:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GENERIC);
+                    player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GENERIC);
             }
         }
 

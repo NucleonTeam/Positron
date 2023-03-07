@@ -2,6 +2,7 @@ package cn.nukkit.item.enchantment.trident;
 
 import cn.nukkit.entity.Entity;
 import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.math.Vector3;
 
 public class EnchantmentTridentImpaling extends EnchantmentTrident {
     public EnchantmentTridentImpaling() {
@@ -25,7 +26,7 @@ public class EnchantmentTridentImpaling extends EnchantmentTrident {
 
     @Override
     public double getDamageBonus(Entity entity) {
-        if (entity.isInsideOfWater() || (entity.getLevel().isRaining() && entity.getLevel().canBlockSeeSky(entity))) {
+        if (entity.isInsideOfWater() || (entity.getWorld().isRaining() && entity.getWorld().canBlockSeeSky(new Vector3(entity.getPosition())))) {
             return 2.5 * getLevel();
         }
 

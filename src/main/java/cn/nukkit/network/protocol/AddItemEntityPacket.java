@@ -3,12 +3,9 @@ package cn.nukkit.network.protocol;
 import cn.nukkit.item.Item;
 import cn.nukkit.utils.Binary;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 import ru.mc_positron.entity.data.EntityMetadata;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @ToString
 public class AddItemEntityPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.ADD_ITEM_ENTITY_PACKET;
@@ -21,12 +18,8 @@ public class AddItemEntityPacket extends DataPacket {
     public long entityUniqueId;
     public long entityRuntimeId;
     public Item item;
-    public float x;
-    public float y;
-    public float z;
-    public float speedX;
-    public float speedY;
-    public float speedZ;
+    public Vector3f position;
+    public Vector3f speed;
     public EntityMetadata metadata = new EntityMetadata();
     public boolean isFromFishing = false;
 
@@ -37,13 +30,13 @@ public class AddItemEntityPacket extends DataPacket {
 
     @Override
     public void encode() {
-        this.reset();
-        this.putEntityUniqueId(this.entityUniqueId);
-        this.putEntityRuntimeId(this.entityRuntimeId);
-        this.putSlot(this.item);
-        this.putVector3f(this.x, this.y, this.z);
-        this.putVector3f(this.speedX, this.speedY, this.speedZ);
-        this.put(Binary.writeMetadata(metadata));
-        this.putBoolean(this.isFromFishing);
+        reset();
+        putEntityUniqueId(entityUniqueId);
+        putEntityRuntimeId(entityRuntimeId);
+        putSlot(item);
+        putVector3f(position);
+        putVector3f(speed);
+        put(Binary.writeMetadata(metadata));
+        putBoolean(isFromFishing);
     }
 }

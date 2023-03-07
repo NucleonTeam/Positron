@@ -8,19 +8,16 @@ import cn.nukkit.event.entity.ItemDespawnEvent;
 import cn.nukkit.event.entity.ItemSpawnEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
-import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.math.FastMath;
 
-/**
- * @author MagicDroidX
- */
 public class EntityItem extends Entity {
 
     public static final int NETWORK_ID = 64;
@@ -133,7 +130,7 @@ public class EntityItem extends Entity {
                 if (item.isNull()) {
                     continue;
                 }
-                this.level.dropItem(this, item);
+                world.dropItem(new Vector3(position), item);
             }
             return true;
         }
@@ -156,7 +153,7 @@ public class EntityItem extends Entity {
         
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < this.getItem().getMaxStackSize()) {
-                for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
+                for (Entity entity: world.getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityItem) {
                         if (!entity.isAlive()) {
                             continue;
@@ -206,69 +203,55 @@ public class EntityItem extends Entity {
                 }
             }*/
 
-            int bid = level.getBlockIdAt(this.getFloorX(), FastMath.floorDouble(this.y + 0.53), this.getFloorZ());
-            if (!this.isOnGround()) {
-                this.motionY -= this.getGravity();
-            }
+            int bid = world.getBlockIdAt(position.floorX(), FastMath.floorDouble(position.y() + 0.53), position.floorZ());
+            if (!isOnGround()) motion = motion.sub(0, getGravity(), 0);
+            if (checkObstruction(position)) hasUpdate = true;
 
-            if (this.checkObstruction(this.x, this.y, this.z)) {
-                hasUpdate = true;
-            }
-
-            this.move(this.motionX, this.motionY, this.motionZ);
+            move(motion);
 
             double friction = 1 - this.getDrag();
 
-            if (this.onGround && (Math.abs(this.motionX) > 0.00001 || Math.abs(this.motionZ) > 0.00001)) {
-                friction *= getLevel().getBlock(new Vector3d(x, y - 1, z - 1).toInt()).getFrictionFactor();
+            if (this.onGround && (Math.abs(motion.x()) > 0.00001 || Math.abs(motion.z()) > 0.00001)) {
+                friction *= world.getBlock(position.sub(0, 1, 1).toInt()).getFrictionFactor();
             }
 
-            this.motionX *= friction;
-            this.motionY *= 1 - this.getDrag();
-            this.motionZ *= friction;
+            motion = motion.mul(friction, 1 - getDrag(), friction);
 
-            if (this.onGround) {
-                this.motionY *= -0.5;
-            }
+            if (onGround) motion = motion.mul(1, -0.5, 0);
+            updateMovement();
 
-            this.updateMovement();
+            if (age > 6000) {
+                var event = new ItemDespawnEvent(this);
+                server.getPluginManager().callEvent(event);
 
-            if (this.age > 6000) {
-                ItemDespawnEvent ev = new ItemDespawnEvent(this);
-                this.server.getPluginManager().callEvent(ev);
-                if (ev.isCancelled()) {
-                    this.age = 0;
-                } else {
-                    this.kill();
+                if (event.isCancelled()) age = 0;
+                else {
+                    kill();
                     hasUpdate = true;
                 }
             }
         }
 
-        return hasUpdate || !this.onGround || Math.abs(this.motionX) > 0.00001 || Math.abs(this.motionY) > 0.00001 || Math.abs(this.motionZ) > 0.00001;
+        return hasUpdate || !onGround || Math.abs(motion.x()) > 0.00001 || Math.abs(motion.y()) > 0.00001 || Math.abs(motion.z()) > 0.00001;
     }
 
     @Override
     public void saveNBT() {
         super.saveNBT();
-        if (this.item != null) { // Yes, a item can be null... I don't know what causes this, but it can happen.
-            this.namedTag.putCompound("Item", NBTIO.putItemHelper(this.item, -1));
-            this.namedTag.putShort("Health", (int) this.getHealth());
-            this.namedTag.putShort("Age", this.age);
-            this.namedTag.putShort("PickupDelay", this.pickupDelay);
-            if (this.owner != null) {
-                this.namedTag.putString("Owner", this.owner);
-            }
+        if (item != null) { // Yes, a item can be null... I don't know what causes this, but it can happen.
+            namedTag.putCompound("Item", NBTIO.putItemHelper(item, -1));
+            namedTag.putShort("Health", (int) getHealth());
+            namedTag.putShort("Age", age);
+            namedTag.putShort("PickupDelay", pickupDelay);
 
-            if (this.thrower != null) {
-                this.namedTag.putString("Thrower", this.thrower);
-            }
+            if (owner != null) namedTag.putString("Owner", owner);
+            if (thrower != null) namedTag.putString("Thrower", thrower);
         }
     }
 
     @Override
     public String getName() {
-        return this.hasCustomName() ? this.getNameTag() : (this.item == null ? "" : this.item.hasCustomName() ? this.item.getCustomName() : this.item.getName());
+        return hasCustomName()? getNameTag() : (item == null ? "" : (item.hasCustomName()? item.getCustomName() : item.getName()));
     }
 
     public Item getItem() {
@@ -306,17 +289,14 @@ public class EntityItem extends Entity {
 
     @Override
     public DataPacket createAddEntityPacket() {
-        AddItemEntityPacket addEntity = new AddItemEntityPacket();
-        addEntity.entityUniqueId = this.getId();
-        addEntity.entityRuntimeId = this.getId();
-        addEntity.x = (float) this.x;
-        addEntity.y = (float) this.y + this.getBaseOffset();
-        addEntity.z = (float) this.z;
-        addEntity.speedX = (float) this.motionX;
-        addEntity.speedY = (float) this.motionY;
-        addEntity.speedZ = (float) this.motionZ;
-        addEntity.metadata = this.dataProperties;
-        addEntity.item = this.getItem();
-        return addEntity;
+        var pk = new AddItemEntityPacket();
+        pk.entityUniqueId = getId();
+        pk.entityRuntimeId = getId();
+        pk.position = position.add(0, getBaseOffset(), 0).toFloat();
+        pk.speed = motion.toFloat();
+        pk.metadata = dataProperties;
+        pk.item = getItem();
+
+        return pk;
     }
 }

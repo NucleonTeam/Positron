@@ -33,6 +33,7 @@ import cn.nukkit.level.particle.DestroyBlockParticle;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.math.*;
 import org.spongepowered.math.vector.Vector2d;
+import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
 import cn.nukkit.metadata.BlockMetadataStore;
@@ -435,13 +436,6 @@ public class Level implements ChunkManager, Metadatable {
         this.addLevelSoundEvent(pos, type, -1);
     }
 
-    /**
-     * Broadcasts sound to players
-     *
-     * @param pos  position where sound should be played
-     * @param type ID of the sound from {@link cn.nukkit.network.protocol.LevelSoundEventPacket}
-     * @param data generic data that can affect sound
-     */
     public void addLevelSoundEvent(Vector3 pos, int type, int data) {
         this.addLevelSoundEvent(pos, type, data, ":", false, false);
     }
@@ -553,13 +547,13 @@ public class Level implements ChunkManager, Metadatable {
 
         this.server.getLogger().info(this.server.getLanguage().translateString("nukkit.level.unloading",
                 TextFormat.GREEN + this.getName() + TextFormat.WHITE));
-        Level defaultLevel = this.server.getDefaultLevel();
+        Level defaultLevel = server.getDefaultLevel();
 
         for (Player player : new ArrayList<>(this.getPlayers().values())) {
             if (this == defaultLevel || defaultLevel == null) {
                 player.close(player.getLeaveMessage(), "Forced default level unload");
             } else {
-                player.teleport(this.server.getDefaultLevel().getSafeSpawn());
+                player.teleport(this.server.getDefaultLevel().getSafeSpawn().toPoint());
             }
         }
 
@@ -849,13 +843,13 @@ public class Level implements ChunkManager, Metadatable {
         List<Entity> list = new ArrayList<>();
 
         for (Entity entity : this.getCollidingEntities(axisalignedbb)) {
-            if (entity.isAlive() && canBlockSeeSky(entity)) {
+            if (entity.isAlive() && canBlockSeeSky(new Vector3(entity.getPosition()))) {
                 list.add(entity);
             }
         }
 
         if (!list.isEmpty()) {
-            return list.get(ThreadLocalRandom.current().nextInt(list.size())).getPosition();
+            return new Vector3(list.get(ThreadLocalRandom.current().nextInt(list.size())).getPosition());
         } else {
             if (pos.getY() == -1) {
                 pos = pos.up(2);
@@ -987,8 +981,8 @@ public class Level implements ChunkManager, Metadatable {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         if (!this.loaders.isEmpty()) {
             for (ChunkLoader loader : this.loaders.values()) {
-                int chunkX = (int) loader.getX() >> 4;
-                int chunkZ = (int) loader.getZ() >> 4;
+                int chunkX = loader.getChunkX();
+                int chunkZ = loader.getChunkZ();
 
                 long index = Level.chunkHash(chunkX, chunkZ);
                 int existingLoaders = Math.max(0, this.chunkTickList.getOrDefault(index, 0));
@@ -1673,7 +1667,7 @@ public class Level implements ChunkManager, Metadatable {
         if (item.getId() > 0 && item.getCount() > 0) {
             EntityItem itemEntity = (EntityItem) Entity.createEntity("Item",
                     this.getChunk((int) source.getX() >> 4, (int) source.getZ() >> 4, true),
-                    Entity.getDefaultNBT(source, motion, new Random().nextFloat() * 360, 0).putShort("Health", 5).putCompound("Item", NBTIO.putItemHelper(item)).putShort("PickupDelay", delay));
+                    Entity.getDefaultNBT(source.toNewVector(), motion.toNewVector(), new Random().nextFloat() * 360, 0).putShort("Health", 5).putCompound("Item", NBTIO.putItemHelper(item)).putShort("PickupDelay", delay));
 
             if (itemEntity != null) {
                 itemEntity.spawnToAll();
@@ -1980,9 +1974,9 @@ public class Level implements ChunkManager, Metadatable {
             }
 
             if (player != null) {
-                Vector3 diff = player.getNextPosition().subtract(player.getPosition());
+                Vector3d diff = player.getNextPosition().sub(player.getPosition());
                 if (diff.lengthSquared() > 0.00001) {
-                    AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff.x, diff.y, diff.z);
+                    AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff.x(), diff.y(), diff.z());
                     if (hand.getBoundingBox().intersectsWith(bb)) {
                         ++realCount;
                     }
@@ -2438,9 +2432,7 @@ public class Level implements ChunkManager, Metadatable {
         this.server.getPluginManager().callEvent(new SpawnChangeEvent(this, previousSpawn));
         SetSpawnPositionPacket pk = new SetSpawnPositionPacket();
         pk.spawnType = SetSpawnPositionPacket.TYPE_WORLD_SPAWN;
-        pk.x = pos.getFloorX();
-        pk.y = pos.getFloorY();
-        pk.z = pos.getFloorZ();
+        pk.position = pos.toNewVector().toInt();
         for (Player p : getPlayers().values()) p.dataPacket(pk);
     }
 
@@ -2515,7 +2507,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void removeEntity(Entity entity) {
-        if (entity.getLevel() != this) {
+        if (entity.getWorld() != this) {
             throw new LevelException("Invalid Entity level");
         }
 
@@ -2531,7 +2523,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void addEntity(Entity entity) {
-        if (entity.getLevel() != this) {
+        if (entity.getWorld() != this) {
             throw new LevelException("Invalid Entity level");
         }
 
@@ -3045,12 +3037,10 @@ public class Level implements ChunkManager, Metadatable {
         this.server.getLevelMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 
-    public void addPlayerMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw) {
-        MovePlayerPacket pk = new MovePlayerPacket();
+    public void addPlayerMovement(Entity entity, Vector3d position, double yaw, double pitch, double headYaw) {
+        var pk = new MovePlayerPacket();
         pk.eid = entity.getId();
-        pk.x = (float) x;
-        pk.y = (float) y;
-        pk.z = (float) z;
+        pk.position = position.toFloat();
         pk.yaw = (float) yaw;
         pk.headYaw = (float) headYaw;
         pk.pitch = (float) pitch;
@@ -3062,12 +3052,11 @@ public class Level implements ChunkManager, Metadatable {
         Server.broadcastPacket(entity.getViewers().values(), pk);
     }
 
-    public void addEntityMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw) {
-        MoveEntityAbsolutePacket pk = new MoveEntityAbsolutePacket();
+    public void addEntityMovement(Entity entity, Vector3d position, double yaw, double pitch, double headYaw) {
+        var pk = new MoveEntityAbsolutePacket();
+
         pk.eid = entity.getId();
-        pk.x = (float) x;
-        pk.y = (float) y;
-        pk.z = (float) z;
+        pk.position = position.toFloat();
         pk.yaw = (float) yaw;
         pk.headYaw = (float) headYaw;
         pk.pitch = (float) pitch;

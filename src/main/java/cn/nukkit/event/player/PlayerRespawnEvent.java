@@ -2,7 +2,7 @@ package cn.nukkit.event.player;
 
 import cn.nukkit.Player;
 import cn.nukkit.event.HandlerList;
-import cn.nukkit.level.Position;
+import ru.mc_positron.math.Point;
 
 public class PlayerRespawnEvent extends PlayerEvent {
     private static final HandlerList handlers = new HandlerList();
@@ -11,26 +11,25 @@ public class PlayerRespawnEvent extends PlayerEvent {
         return handlers;
     }
 
-    private Position position;
-
+    private Point point;
     private boolean firstSpawn;
 
-    public PlayerRespawnEvent(Player player, Position position) {
-        this(player, position, false);
+    public PlayerRespawnEvent(Player player, Point point) {
+        this(player, point, false);
     }
 
-    public PlayerRespawnEvent(Player player, Position position, boolean firstSpawn) {
+    public PlayerRespawnEvent(Player player, Point point, boolean firstSpawn) {
         this.player = player;
-        this.position = position;
+        this.point = point;
         this.firstSpawn = firstSpawn;
     }
 
-    public Position getRespawnPosition() {
-        return position;
+    public Point getRespawnPoint() {
+        return point;
     }
 
-    public void setRespawnPosition(Position position) {
-        this.position = position;
+    public void setRespawnPosition(Point position) {
+        this.point = position;
     }
 
     public boolean isFirstSpawn() {
