@@ -15,6 +15,8 @@ import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import org.spongepowered.math.vector.Vector3d;
+import ru.mc_positron.math.Point;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,7 +38,7 @@ public abstract class BaseLevelProvider implements LevelProvider {
 
     protected CompoundTag levelData;
 
-    private Vector3 spawn;
+    private Point spawn;
 
     protected final AtomicReference<BaseRegionLoader> lastRegion = new AtomicReference<>();
 
@@ -68,7 +70,7 @@ public abstract class BaseLevelProvider implements LevelProvider {
             this.levelData.putString("generatorOptions", "");
         }
 
-        this.spawn = new Vector3(this.levelData.getInt("SpawnX"), this.levelData.getInt("SpawnY"), this.levelData.getInt("SpawnZ"));
+        this.spawn = Point.of(new Vector3d(levelData.getInt("SpawnX"), levelData.getInt("SpawnY"), levelData.getInt("SpawnZ")), 0, 0, 0);
     }
 
     public abstract BaseFullChunk loadChunk(long index, int chunkX, int chunkZ, boolean create);
@@ -232,15 +234,15 @@ public abstract class BaseLevelProvider implements LevelProvider {
     }
 
     @Override
-    public Vector3 getSpawn() {
+    public Point getSpawn() {
         return spawn;
     }
 
     @Override
-    public void setSpawn(Vector3 pos) {
-        this.levelData.putInt("SpawnX", (int) pos.x);
-        this.levelData.putInt("SpawnY", (int) pos.y);
-        this.levelData.putInt("SpawnZ", (int) pos.z);
+    public void setSpawn(Point pos) {
+        levelData.putInt("SpawnX", (int) pos.getPosition().x());
+        levelData.putInt("SpawnY", (int) pos.getPosition().y());
+        levelData.putInt("SpawnZ", (int) pos.getPosition().z());
         spawn = pos;
     }
 

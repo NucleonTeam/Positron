@@ -168,7 +168,7 @@ public abstract class EntityProjectile extends Entity {
 
                 motion = Vector3d.ZERO;
 
-                server.getPluginManager().callEvent(new ProjectileHitEvent(this, MovingObjectPosition.fromBlock(position.floorX(), position.floorX(), position.floorZ(), -1, position)));
+                server.getPluginManager().callEvent(new ProjectileHitEvent(this, MovingObjectPosition.fromBlock(position.toInt(), -1, position)));
                 return false;
             } else if (!isCollided && hadCollision) {
                 hadCollision = false;

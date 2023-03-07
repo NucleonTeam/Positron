@@ -22,7 +22,7 @@ public class StructureGrowEvent extends LevelEvent implements Cancellable {
     private final List<Block> blocks;
 
     public StructureGrowEvent(Block block, List<Block> blocks) {
-        super(Objects.requireNonNull(block.getLevel()));
+        super(Objects.requireNonNull(block.getWorld()));
         this.block = block;
         this.blocks = blocks;
     }

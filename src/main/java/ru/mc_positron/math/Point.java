@@ -39,6 +39,14 @@ public final class Point {
         return new Point(position, yaw, pitch, headYaw);
     }
 
+    public int getChunkX() {
+        return position.floorX() >> 4;
+    }
+
+    public int getChunkZ() {
+        return position.floorZ() >> 4;
+    }
+
     public static @NonNull Point of(@NonNull Vector3d position, double yaw, double pitch, double headYaw) {
         return new Point(position, yaw, pitch, headYaw);
     }

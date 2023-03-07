@@ -14,6 +14,7 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3i;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -24,7 +25,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
     private final byte CAN_FLOW = 0;
     private final byte BLOCKED = -1;
     public int adjacentSources = 0;
-    protected Vector3 flowVector = null;
+    protected Vector3d flowVector = null;
     private Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
 
     protected BlockLiquid(int meta) {
@@ -76,7 +77,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
 
     @Override
     public double getMaxY() {
-        return this.y + 1 - getFluidHeightPercent();
+        return getPosition().y() + 1 - getFluidHeightPercent();
     }
 
     @Override
@@ -116,69 +117,60 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
         this.flowCostVisited.clear();
     }
 
-    public Vector3 getFlowVector() {
+    public Vector3d getFlowVector() {
         if (this.flowVector != null) {
             return this.flowVector;
         }
-        Vector3 vector = new Vector3(0, 0, 0);
+        var vector = new Vector3i(0, 0, 0);
         int decay = this.getEffectiveFlowDecay(this);
         for (int j = 0; j < 4; ++j) {
-            int x = (int) this.x;
-            int y = (int) this.y;
-            int z = (int) this.z;
+            int x = getPosition().x();
+            int y = getPosition().y();
+            int z = getPosition().z();
             switch (j) {
-                case 0:
-                    --x;
-                    break;
-                case 1:
-                    x++;
-                    break;
-                case 2:
-                    z--;
-                    break;
-                default:
-                    z++;
+                case 0 -> --x;
+                case 1 -> x++;
+                case 2 -> z--;
+                default -> z++;
             }
-            Block sideBlock = this.level.getBlock(x, y, z);
+            Block sideBlock = getWorld().getBlock(x, y, z);
             int blockDecay = this.getEffectiveFlowDecay(sideBlock);
             if (blockDecay < 0) {
                 if (!sideBlock.canBeFlowedInto()) {
                     continue;
                 }
-                blockDecay = this.getEffectiveFlowDecay(this.level.getBlock(x, y - 1, z));
+                blockDecay = this.getEffectiveFlowDecay(getWorld().getBlock(x, y - 1, z));
                 if (blockDecay >= 0) {
                     int realDecay = blockDecay - (decay - 8);
-                    vector.x += (sideBlock.x - this.x) * realDecay;
-                    vector.y += (sideBlock.y - this.y) * realDecay;
-                    vector.z += (sideBlock.z - this.z) * realDecay;
+                    vector = vector.add(sideBlock.getPosition().sub(getPosition()).mul(realDecay));
                 }
             } else {
                 int realDecay = blockDecay - decay;
-                vector.x += (sideBlock.x - this.x) * realDecay;
-                vector.y += (sideBlock.y - this.y) * realDecay;
-                vector.z += (sideBlock.z - this.z) * realDecay;
+                vector = vector.add(sideBlock.getPosition().sub(getPosition()).mul(realDecay));
             }
         }
+
+        var result = vector.toDouble();
         if (this.getDamage() >= 8) {
-            if (!this.canFlowInto(this.level.getBlock((int) this.x, (int) this.y, (int) this.z - 1)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x, (int) this.y, (int) this.z + 1)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x - 1, (int) this.y, (int) this.z)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x + 1, (int) this.y, (int) this.z)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x, (int) this.y + 1, (int) this.z - 1)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x, (int) this.y + 1, (int) this.z + 1)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x - 1, (int) this.y + 1, (int) this.z)) ||
-                    !this.canFlowInto(this.level.getBlock((int) this.x + 1, (int) this.y + 1, (int) this.z))) {
-                vector = vector.normalize().add(0, -6, 0);
+            if (!this.canFlowInto(getWorld().getBlock(getPosition().sub(0, 0, 1))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().add(0, 0, 1))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().sub(1, 0, 0))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().add(1, 0, 0))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().sub(0, -1, 1))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().add(0, 1, 1))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().sub(1, -1, 0))) ||
+                    !this.canFlowInto(getWorld().getBlock(getPosition().add(1, 1, 0)))) {
+                result = result.normalize().add(0, -6, 0);
             }
         }
-        return this.flowVector = vector.normalize();
+        return this.flowVector = result.normalize();
     }
 
     @Override
     public void addVelocityToEntity(Entity entity, Vector3d vector) {
         if (entity.canBeMovedByCurrents()) {
-            Vector3 flow = this.getFlowVector();
-            vector = vector.add(flow.toNewVector());
+            Vector3d flow = this.getFlowVector();
+            vector = vector.add(flow);
         }
     }
 
@@ -190,7 +182,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden();
-            this.level.scheduleUpdate(this, this.tickRate());
+            getWorld().scheduleUpdate(this, this.tickRate());
             return 0;
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             int decay = this.getFlowDecay(this);
@@ -198,15 +190,15 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             if (decay > 0) {
                 int smallestFlowDecay = -100;
                 this.adjacentSources = 0;
-                smallestFlowDecay = this.getSmallestFlowDecay(this.level.getBlock((int) this.x, (int) this.y, (int) this.z - 1), smallestFlowDecay);
-                smallestFlowDecay = this.getSmallestFlowDecay(this.level.getBlock((int) this.x, (int) this.y, (int) this.z + 1), smallestFlowDecay);
-                smallestFlowDecay = this.getSmallestFlowDecay(this.level.getBlock((int) this.x - 1, (int) this.y, (int) this.z), smallestFlowDecay);
-                smallestFlowDecay = this.getSmallestFlowDecay(this.level.getBlock((int) this.x + 1, (int) this.y, (int) this.z), smallestFlowDecay);
+                smallestFlowDecay = this.getSmallestFlowDecay(getWorld().getBlock(getPosition().sub(0, 0, 1)), smallestFlowDecay);
+                smallestFlowDecay = this.getSmallestFlowDecay(getWorld().getBlock(getPosition().add(0, 0, 1)), smallestFlowDecay);
+                smallestFlowDecay = this.getSmallestFlowDecay(getWorld().getBlock(getPosition().sub(1, 0, 0)), smallestFlowDecay);
+                smallestFlowDecay = this.getSmallestFlowDecay(getWorld().getBlock(getPosition().add(1, 0, 0)), smallestFlowDecay);
                 int newDecay = smallestFlowDecay + multiplier;
                 if (newDecay >= 8 || smallestFlowDecay < 0) {
                     newDecay = -1;
                 }
-                int topFlowDecay = this.getFlowDecay(this.level.getBlock((int) this.x, (int) this.y + 1, (int) this.z));
+                int topFlowDecay = this.getFlowDecay(getWorld().getBlock(getPosition().add(0, 1, 0)));
                 if (topFlowDecay >= 0) {
                     newDecay = topFlowDecay | 0x08;
                 }
@@ -220,17 +212,17 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                         to = getBlock(decay);
                     }
                     BlockFromToEvent event = new BlockFromToEvent(this, to);
-                    level.getServer().getPluginManager().callEvent(event);
+                    getWorld().getServer().getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
-                        this.level.setBlock(this, event.getTo(), true, true);
+                        getWorld().setBlock(getPosition(), event.getTo(), true, true);
                         if (!decayed) {
-                            this.level.scheduleUpdate(this, this.tickRate());
+                            getWorld().scheduleUpdate(this, this.tickRate());
                         }
                     }
                 }
             }
             if (decay >= 0) {
-                Block bottomBlock = this.level.getBlock((int) this.x, (int) this.y - 1, (int) this.z);
+                Block bottomBlock = getWorld().getBlock(getPosition().sub(0, 1, 0));
                 this.flowIntoBlock(bottomBlock, decay | 0x08);
                 if (decay == 0 || !bottomBlock.canBeFlowedInto()) {
                     int adjacentDecay;
@@ -242,16 +234,16 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                     if (adjacentDecay < 8) {
                         boolean[] flags = this.getOptimalFlowDirections();
                         if (flags[0]) {
-                            this.flowIntoBlock(this.level.getBlock((int) this.x - 1, (int) this.y, (int) this.z), adjacentDecay);
+                            this.flowIntoBlock(getWorld().getBlock(getPosition().sub(1, 0, 0)), adjacentDecay);
                         }
                         if (flags[1]) {
-                            this.flowIntoBlock(this.level.getBlock((int) this.x + 1, (int) this.y, (int) this.z), adjacentDecay);
+                            this.flowIntoBlock(getWorld().getBlock(getPosition().add(1, 0, 0)), adjacentDecay);
                         }
                         if (flags[2]) {
-                            this.flowIntoBlock(this.level.getBlock((int) this.x, (int) this.y, (int) this.z - 1), adjacentDecay);
+                            this.flowIntoBlock(getWorld().getBlock(getPosition().sub(0, 0, 1)), adjacentDecay);
                         }
                         if (flags[3]) {
-                            this.flowIntoBlock(this.level.getBlock((int) this.x, (int) this.y, (int) this.z + 1), adjacentDecay);
+                            this.flowIntoBlock(getWorld().getBlock(getPosition().add(0, 0, 1)), adjacentDecay);
                         }
                     }
                 }
@@ -264,13 +256,12 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
     protected void flowIntoBlock(Block block, int newFlowDecay) {
         if (this.canFlowInto(block) && !(block instanceof BlockLiquid)) {
             LiquidFlowEvent event = new LiquidFlowEvent(block, this, newFlowDecay);
-            level.getServer().getPluginManager().callEvent(event);
+            getWorld().getServer().getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
                 if (block.getId() > 0) {
-                    this.level.useBreakOn(block.asBlockVector3(), null);
+                    getWorld().useBreakOn(block.getPosition(), null);
                 }
-                this.level.setBlock(block, getBlock(newFlowDecay), true, true);
-                this.level.scheduleUpdate(block, this.tickRate());
+                getWorld().scheduleUpdate(block, this.tickRate());
             }
         }
     }
@@ -295,10 +286,10 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             }
             long hash = Level.blockHash(x, y, z);
             if (!this.flowCostVisited.containsKey(hash)) {
-                Block blockSide = this.level.getBlock(x, y, z);
+                Block blockSide = getWorld().getBlock(x, y, z);
                 if (!this.canFlowInto(blockSide)) {
                     this.flowCostVisited.put(hash, BLOCKED);
-                } else if (this.level.getBlock(x, y - 1, z).canBeFlowedInto()) {
+                } else if (getWorld().getBlock(x, y - 1, z).canBeFlowedInto()) {
                     this.flowCostVisited.put(hash, CAN_FLOW_DOWN);
                 } else {
                     this.flowCostVisited.put(hash, CAN_FLOW);
@@ -340,9 +331,9 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
         };
         int maxCost = 4 / this.getFlowDecayPerBlock();
         for (int j = 0; j < 4; ++j) {
-            int x = (int) this.x;
-            int y = (int) this.y;
-            int z = (int) this.z;
+            int x = getPosition().x();
+            int y = getPosition().y();
+            int z = getPosition().z();
             if (j == 0) {
                 --x;
             } else if (j == 1) {
@@ -352,10 +343,10 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             } else {
                 ++z;
             }
-            Block block = this.level.getBlock(x, y, z);
+            Block block = getWorld().getBlock(x, y, z);
             if (!this.canFlowInto(block)) {
                 this.flowCostVisited.put(Level.blockHash(x, y, z), BLOCKED);
-            } else if (this.level.getBlock(x, y - 1, z).canBeFlowedInto()) {
+            } else if (getWorld().getBlock(x, y - 1, z).canBeFlowedInto()) {
                 this.flowCostVisited.put(Level.blockHash(x, y, z), CAN_FLOW_DOWN);
                 flowCost[j] = maxCost = 0;
             } else if (maxCost > 0) {
@@ -396,10 +387,10 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
 
     protected void triggerLavaMixEffects(Vector3 pos) {
         Random random = ThreadLocalRandom.current();
-        this.getLevel().addLevelEvent(pos.add(0.5, 0.5, 0.5), LevelEventPacket.EVENT_SOUND_FIZZ, (int) ((random.nextFloat() - random.nextFloat()) * 800) + 2600);
+        getWorld().addLevelEvent(pos.add(0.5, 0.5, 0.5), LevelEventPacket.EVENT_SOUND_FIZZ, (int) ((random.nextFloat() - random.nextFloat()) * 800) + 2600);
 
         for (int i = 0; i < 8; ++i) {
-            this.getLevel().addParticle(new SmokeParticle(pos.add(Math.random(), 1.2, Math.random())));
+            getWorld().addParticle(new SmokeParticle(pos.add(Math.random(), 1.2, Math.random())));
         }
     }
 
@@ -417,12 +408,12 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
 
     protected boolean liquidCollide(Block cause, Block result) {
         BlockFromToEvent event = new BlockFromToEvent(this, result);
-        this.level.getServer().getPluginManager().callEvent(event);
+        getWorld().getServer().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             return false;
         }
-        this.level.setBlock(this, event.getTo(), true, true);
-        this.getLevel().addLevelSoundEvent(this.add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_FIZZ);
+        getWorld().setBlock(getPosition(), event.getTo(), true, true);
+        getWorld().addLevelSoundEvent(getPosition().toFloat().add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_FIZZ);
         return true;
     }
 

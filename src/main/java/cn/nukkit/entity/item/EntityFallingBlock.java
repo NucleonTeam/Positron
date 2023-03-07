@@ -121,7 +121,7 @@ public class EntityFallingBlock extends Entity {
 
                 EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
                 server.getPluginManager().callEvent(event);
-                if (!event.isCancelled()) world.setBlock(new Vector3(pos), event.getTo(), true);
+                if (!event.isCancelled()) world.setBlock(pos.toInt(), event.getTo(), true);
                 hasUpdate = true;
             }
 

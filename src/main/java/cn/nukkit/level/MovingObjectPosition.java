@@ -2,11 +2,8 @@ package cn.nukkit.level;
 
 import cn.nukkit.entity.Entity;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3i;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class MovingObjectPosition {
 
     /**
@@ -14,9 +11,7 @@ public class MovingObjectPosition {
      */
     public int typeOfHit;
 
-    public int blockX;
-    public int blockY;
-    public int blockZ;
+    public Vector3i position;
 
     /**
      * Which side was hit. If its -1 then it went the full length of the ray trace.
@@ -28,12 +23,10 @@ public class MovingObjectPosition {
 
     public Entity entityHit;
 
-    public static MovingObjectPosition fromBlock(int x, int y, int z, int side, Vector3d hitVector) {
+    public static MovingObjectPosition fromBlock(Vector3i position, int side, Vector3d hitVector) {
         MovingObjectPosition objectPosition = new MovingObjectPosition();
         objectPosition.typeOfHit = 0;
-        objectPosition.blockX = x;
-        objectPosition.blockY = y;
-        objectPosition.blockZ = z;
+        objectPosition.position = position;
         objectPosition.hitVector = hitVector;
         return objectPosition;
     }

@@ -17,13 +17,13 @@ public abstract class BlockStairs extends BlockTransparentMeta implements Faceab
     @Override
     public double getMinY() {
         // TODO: this seems wrong
-        return this.y + ((getDamage() & 0x04) > 0 ? 0.5 : 0);
+        return getPosition().y() + ((getDamage() & 0x04) > 0 ? 0.5 : 0);
     }
 
     @Override
     public double getMaxY() {
         // TODO: this seems wrong
-        return this.y + ((getDamage() & 0x04) > 0 ? 1 : 0.5);
+        return getPosition().y() + ((getDamage() & 0x04) > 0 ? 1 : 0.5);
     }
 
     @Override
@@ -33,7 +33,7 @@ public abstract class BlockStairs extends BlockTransparentMeta implements Faceab
         if ((fy > 0.5 && face != BlockFace.UP) || face == BlockFace.DOWN) {
             this.setDamage(this.getDamage() | 0x04); //Upside-down stairs
         }
-        this.getLevel().setBlock(block, this, true, true);
+        getWorld().setBlock(block.getPosition(), this, true, true);
 
         return true;
     }
@@ -71,60 +71,25 @@ public abstract class BlockStairs extends BlockTransparentMeta implements Faceab
             f3 = 0.5;
         }
 
-        if (bb.intersectsWith(new SimpleAxisAlignedBB(
-                this.x,
-                this.y + f,
-                this.z,
-                this.x + 1,
-                this.y + f1,
-                this.z + 1
-        ))) {
+        if (bb.intersectsWith(new SimpleAxisAlignedBB(getPosition().toDouble().add(0, f, 0), getPosition().toDouble().add(1, f1, 1)))) {
             return true;
         }
 
 
         if (side == 0) {
-            if (bb.intersectsWith(new SimpleAxisAlignedBB(
-                    this.x + 0.5,
-                    this.y + f2,
-                    this.z,
-                    this.x + 1,
-                    this.y + f3,
-                    this.z + 1
-            ))) {
+            if (bb.intersectsWith(new SimpleAxisAlignedBB(getPosition().toDouble().add(0.5, f2, 0), getPosition().toDouble().add(1, f3, 1)))) {
                 return true;
             }
         } else if (side == 1) {
-            if (bb.intersectsWith(new SimpleAxisAlignedBB(
-                    this.x,
-                    this.y + f2,
-                    this.z,
-                    this.x + 0.5,
-                    this.y + f3,
-                    this.z + 1
-            ))) {
+            if (bb.intersectsWith(new SimpleAxisAlignedBB(getPosition().toDouble().add(0, f2, 0), getPosition().toDouble().add(0.5, f3, 1)))) {
                 return true;
             }
         } else if (side == 2) {
-            if (bb.intersectsWith(new SimpleAxisAlignedBB(
-                    this.x,
-                    this.y + f2,
-                    this.z + 0.5,
-                    this.x + 1,
-                    this.y + f3,
-                    this.z + 1
-            ))) {
+            if (bb.intersectsWith(new SimpleAxisAlignedBB(getPosition().toDouble().add(0, f2, 0.5), getPosition().toDouble().add(1, f3, 1)))) {
                 return true;
             }
         } else if (side == 3) {
-            if (bb.intersectsWith(new SimpleAxisAlignedBB(
-                    this.x,
-                    this.y + f2,
-                    this.z,
-                    this.x + 1,
-                    this.y + f3,
-                    this.z + 0.5
-            ))) {
+            if (bb.intersectsWith(new SimpleAxisAlignedBB(getPosition().toDouble().add(0, f2, 0), getPosition().toDouble().add(1, f3, 0.5)))) {
                 return true;
             }
         }

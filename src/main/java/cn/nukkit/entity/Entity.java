@@ -1520,7 +1520,7 @@ public abstract class Entity implements Metadatable {
         return false;
     }
 
-    protected boolean switchLevel(Level targetLevel) {
+    protected boolean setWorld(Level targetLevel) {
         if (this.removed) {
             return false;
         }

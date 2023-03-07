@@ -161,7 +161,7 @@ public class BlockIterator implements Iterator<Block> {
     }
 
     private boolean blockEquals(Block a, Block b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
+        return a.getPosition().equals(b.getPosition());
     }
 
     private BlockFace getXFace(Vector3 direction) {
@@ -193,15 +193,15 @@ public class BlockIterator implements Iterator<Block> {
     }
 
     private double getXPosition(Vector3 direction, Vector3 position, Block block) {
-        return this.getPosition(direction.x, position.x, block.x);
+        return this.getPosition(direction.x, position.x, block.getPosition().x());
     }
 
     private double getYPosition(Vector3 direction, Vector3 position, Block block) {
-        return this.getPosition(direction.y, position.y, block.y);
+        return this.getPosition(direction.y, position.y, block.getPosition().y());
     }
 
     private double getZPosition(Vector3 direction, Vector3 position, Block block) {
-        return this.getPosition(direction.z, position.z, block.z);
+        return this.getPosition(direction.z, position.z, block.getPosition().z());
     }
 
     @Override

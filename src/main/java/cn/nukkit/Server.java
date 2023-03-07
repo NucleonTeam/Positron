@@ -1358,14 +1358,14 @@ public class Server {
             if (this.shouldSavePlayerData()) {
                 log.info(this.getLanguage().translateString("nukkit.data.playerNotFound", name));
             }
-            Position spawn = this.getDefaultLevel().getSafeSpawn();
+            var spawn = this.getDefaultLevel().getSpawnPoint();
             nbt = new CompoundTag()
                     .putLong("firstPlayed", System.currentTimeMillis() / 1000)
                     .putLong("lastPlayed", System.currentTimeMillis() / 1000)
                     .putList(new ListTag<DoubleTag>("Pos")
-                            .add(new DoubleTag("0", spawn.x))
-                            .add(new DoubleTag("1", spawn.y))
-                            .add(new DoubleTag("2", spawn.z)))
+                            .add(new DoubleTag("0", spawn.getPosition().x()))
+                            .add(new DoubleTag("1", spawn.getPosition().y()))
+                            .add(new DoubleTag("2", spawn.getPosition().z())))
                     .putString("Level", this.getDefaultLevel().getName())
                     .putList(new ListTag<>("Inventory"))
                     .putCompound("Achievements", new CompoundTag())

@@ -35,14 +35,7 @@ public abstract class BlockThin extends BlockTransparent {
         } catch (LevelException ignore) {
             //null sucks
         }
-        return new SimpleAxisAlignedBB(
-                this.x + w,
-                this.y,
-                this.z + n,
-                this.x + e,
-                this.y + 1,
-                this.z + s
-        );
+        return new SimpleAxisAlignedBB(getPosition().toDouble().add(w, 0, n), getPosition().toDouble().add(e, 1, s));
     }
 
     public boolean canConnect(Block block) {

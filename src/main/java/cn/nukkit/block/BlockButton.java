@@ -36,7 +36,7 @@ public abstract class BlockButton extends BlockFlowable implements Faceable {
         }
 
         this.setDamage(face.getIndex());
-        this.level.setBlock(block, this, true, true);
+        getWorld().setBlock(block.getPosition(), this, true, true);
         return true;
     }
 
@@ -51,11 +51,11 @@ public abstract class BlockButton extends BlockFlowable implements Faceable {
             return false;
         }
 
-        level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
+        getWorld().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
         setDamage(getDamage() ^ 0x08);
-        level.setBlock(this, this, true, false);
-        level.addLevelSoundEvent(this.add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_POWER_ON, GlobalBlockPalette.getOrCreateRuntimeId(this.getId(), this.getDamage()));
-        level.scheduleUpdate(this, 30);
+        getWorld().setBlock(getPosition(), this, true, false);
+        getWorld().addLevelSoundEvent(getPosition().toFloat().add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_POWER_ON, GlobalBlockPalette.getOrCreateRuntimeId(this.getId(), this.getDamage()));
+        getWorld().scheduleUpdate(this, 30);
         return true;
     }
 
@@ -89,7 +89,7 @@ public abstract class BlockButton extends BlockFlowable implements Faceable {
     @Override
     public boolean onBreak(Item item) {
         if (isActivated()) {
-            this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
+            getWorld().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
         }
 
         return super.onBreak(item);

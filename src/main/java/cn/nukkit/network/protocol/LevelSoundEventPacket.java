@@ -1,6 +1,7 @@
 package cn.nukkit.network.protocol;
 
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 
 @ToString
 public class LevelSoundEventPacket extends DataPacket {
@@ -465,9 +466,7 @@ public class LevelSoundEventPacket extends DataPacket {
     public static final int SOUND_UNDEFINED = 462;
 
     public int sound;
-    public float x;
-    public float y;
-    public float z;
+    public Vector3f position;
     public int extraData = -1;
     public String entityIdentifier;
     public boolean isBabyMob;
@@ -475,26 +474,23 @@ public class LevelSoundEventPacket extends DataPacket {
 
     @Override
     public void decode() {
-        this.sound = (int) this.getUnsignedVarInt();
-        var v = this.getVector3f();
-        this.x = v.x();
-        this.y = v.y();
-        this.z = v.z();
-        this.extraData = this.getVarInt();
-        this.entityIdentifier = this.getString();
-        this.isBabyMob = this.getBoolean();
-        this.isGlobal = this.getBoolean();
+        sound = (int) getUnsignedVarInt();
+        position = getVector3f();
+        extraData = getVarInt();
+        entityIdentifier = getString();
+        isBabyMob = getBoolean();
+        isGlobal = getBoolean();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putUnsignedVarInt(this.sound);
-        this.putVector3f(this.x, this.y, this.z);
-        this.putVarInt(this.extraData);
-        this.putString(this.entityIdentifier);
-        this.putBoolean(this.isBabyMob);
-        this.putBoolean(this.isGlobal);
+        reset();
+        putUnsignedVarInt(sound);
+        putVector3f(position);
+        putVarInt(extraData);
+        putString(entityIdentifier);
+        putBoolean(isBabyMob);
+        putBoolean(isGlobal);
     }
 
     @Override

@@ -510,8 +510,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public Point getSpawn() {
-        var pos = server.getDefaultLevel().getSafeSpawn();
-        return Point.of(pos.toNewVector(), 0, 0, 0);
+        return server.getDefaultLevel().getSpawnPoint();
     }
 
     public void sendChunk(int x, int z, DataPacket packet) {
@@ -615,7 +614,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         setTimePacket.time = world.getTime();
         this.dataPacket(setTimePacket);
 
-        var pos = world.getSafeSpawn(new Vector3(position)).toPoint();
+        var pos = world.getSpawnPoint();
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, pos, true);
 
@@ -1499,9 +1498,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             world = server.getDefaultLevel();
             nbt.putString("Level", world.getName());
             nbt.getList("Pos", DoubleTag.class)
-                    .add(new DoubleTag("0", world.getSpawnLocation().x))
-                    .add(new DoubleTag("1", world.getSpawnLocation().y))
-                    .add(new DoubleTag("2", world.getSpawnLocation().z));
+                    .add(new DoubleTag("0", world.getSpawnPoint().getPosition().x()))
+                    .add(new DoubleTag("1", world.getSpawnPoint().getPosition().y()))
+                    .add(new DoubleTag("2", world.getSpawnPoint().getPosition().z()));
         } else {
             world = level;
         }
@@ -2256,7 +2255,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 var pickRequestPacket = (BlockPickRequestPacket) packet;
                 var pos = pickRequestPacket.position;
                 Block block = world.getBlock(pos.x(), pos.y(), pos.z(), false);
-                if (block.distanceSquared(new Vector3(position)) > 1000) {
+                if (block.getPosition().toDouble().distanceSquared(position) > 1000) {
                     this.getServer().getLogger().debug(username + ": Block pick request for a block too far away");
                     return;
                 }
@@ -2684,7 +2683,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                 Block target = world.getBlock(blockVector);
                                 block = target.getSide(face);
 
-                                world.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                world.sendBlocks(new Player[]{this}, new Vector3i[]{target.getPosition(), block.getPosition()}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                                 break packetswitch;
                             case InventoryTransactionPacket.USE_ITEM_ACTION_BREAK_BLOCK:
                                 if (!this.spawned || !this.isAlive()) {
@@ -2719,7 +2718,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                                 if (blockVector.toDouble().distanceSquared(position) < 10000) {
                                     target = world.getBlock(blockVector);
-                                    world.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                    world.sendBlocks(new Player[]{this}, new Vector3i[]{target.getPosition()}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
                                     var blockEntity = world.getBlockEntity(blockVector);
                                     if (blockEntity.getType() instanceof SpawnableBlockEntityType $type) {
@@ -3063,7 +3062,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         if (blockPos.toDouble().distanceSquared(position) < 100) {
             Block target = world.getBlock(blockPos);
-            world.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+            world.sendBlocks(new Player[]{this}, new Vector3i[]{target.getPosition()}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
             var blockEntity = world.getBlockEntity(blockPos);
             if (blockEntity.getType() instanceof SpawnableBlockEntityType type) {
@@ -4261,7 +4260,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public void onBlockChanged(Vector3 block) {
+    public void onBlockChanged(Vector3i block) {
 
     }
 
@@ -4322,12 +4321,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public boolean switchLevel(Level world) {
+    public boolean setWorld(Level world) {
         Level oldWorld = this.world;
-        if (super.switchLevel(world)) {
+        if (super.setWorld(world)) {
             SetSpawnPositionPacket spawnPosition = new SetSpawnPositionPacket();
             spawnPosition.spawnType = SetSpawnPositionPacket.TYPE_WORLD_SPAWN;
-            var spawn = world.getSpawnLocation().toPoint();
+            var spawn = world.getSpawnPoint();
             spawnPosition.position = spawn.getPosition().toInt();
             this.dataPacket(spawnPosition);
 

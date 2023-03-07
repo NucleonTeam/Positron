@@ -14,6 +14,7 @@ import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.BlockUpdateEntry;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.Zlib;
+import org.spongepowered.math.vector.Vector3i;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -150,11 +151,13 @@ public class Chunk extends BaseChunk {
                     continue;
                 }
 
-                block.x = entryNBT.getInt("x");
-                block.y = entryNBT.getInt("y");
-                block.z = entryNBT.getInt("z");
+                block = block.init(getProvider().getLevel(), new Vector3i(
+                        entryNBT.getInt("x"),
+                        entryNBT.getInt("y"),
+                        entryNBT.getInt("z")
+                ));
 
-                this.provider.getLevel().scheduleUpdate(block, block, entryNBT.getInt("t"), entryNBT.getInt("p"), false);
+                this.provider.getLevel().scheduleUpdate(block, block.getPosition(), entryNBT.getInt("t"), entryNBT.getInt("p"), false);
             }
         }
 
@@ -308,9 +311,9 @@ public class Chunk extends BaseChunk {
             for (BlockUpdateEntry entry : entries) {
                 CompoundTag entryNBT = new CompoundTag()
                         .putString("i", entry.block.getSaveId())
-                        .putInt("x", entry.pos.getFloorX())
-                        .putInt("y", entry.pos.getFloorY())
-                        .putInt("z", entry.pos.getFloorZ())
+                        .putInt("x", entry.pos.x())
+                        .putInt("y", entry.pos.y())
+                        .putInt("z", entry.pos.z())
                         .putInt("t", (int) (entry.delay - totalTime))
                         .putInt("p", entry.priority);
                 tileTickTag.add(entryNBT);
@@ -399,9 +402,9 @@ public class Chunk extends BaseChunk {
             for (BlockUpdateEntry entry : entries) {
                 CompoundTag entryNBT = new CompoundTag()
                         .putString("i", entry.block.getSaveId())
-                        .putInt("x", entry.pos.getFloorX())
-                        .putInt("y", entry.pos.getFloorY())
-                        .putInt("z", entry.pos.getFloorZ())
+                        .putInt("x", entry.pos.x())
+                        .putInt("y", entry.pos.y())
+                        .putInt("z", entry.pos.z())
                         .putInt("t", (int) (entry.delay - totalTime))
                         .putInt("p", entry.priority);
                 tileTickTag.add(entryNBT);

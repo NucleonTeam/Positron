@@ -51,7 +51,7 @@ public class BlockDirt extends BlockSolidMeta {
         if (item.isHoe()) {
             if (this.up() instanceof BlockAir) {
                 item.useOn(this);
-                this.getLevel().setBlock(this, get(DIRT), true);
+                getWorld().setBlock(getPosition(), get(DIRT), true);
                 return true;
             }
         }

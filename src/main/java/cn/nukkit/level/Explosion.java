@@ -204,7 +204,7 @@ public class Explosion {
         */
 
         this.level.addParticle(new HugeExplodeSeedParticle(this.source));
-        this.level.addLevelSoundEvent(source, LevelSoundEventPacket.SOUND_EXPLODE);
+        this.level.addLevelSoundEvent(source.toNewVector().toFloat(), LevelSoundEventPacket.SOUND_EXPLODE);
 
         return true;
     }

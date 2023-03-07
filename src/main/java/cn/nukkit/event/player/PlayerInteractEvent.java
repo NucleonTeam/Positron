@@ -29,7 +29,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     }
 
     public PlayerInteractEvent(Player player, Item item, Block block, BlockFace face, Action action)  {
-        this(player, item, block.toNewVector(), face, Action.RIGHT_CLICK_BLOCK);
+        this(player, item, block.getPosition().toDouble(), face, Action.RIGHT_CLICK_BLOCK);
 
         this.blockTouched = block;
         this.touchVector = Vector3d.ZERO;
@@ -37,7 +37,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 
     public PlayerInteractEvent(Player player, Item item, Vector3d block, BlockFace face, Action action) {
         this.touchVector = block;
-        this.blockTouched = Block.get(Block.AIR, 0, new Position(0, 0, 0, player.getWorld()));
+        this.blockTouched = Block.get(Block.AIR, 0, block.toInt(), player.getWorld());
 
         this.player = player;
         this.item = item;

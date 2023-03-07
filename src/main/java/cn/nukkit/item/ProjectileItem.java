@@ -56,7 +56,7 @@ public abstract class ProjectileItem extends Item {
                         this.count--;
                     }
                     projectile.spawnToAll();
-                    player.getWorld().addLevelSoundEvent(new Vector3(player.getPosition()), LevelSoundEventPacket.SOUND_BOW);
+                    player.getWorld().addLevelSoundEvent(player.getPosition().toFloat(), LevelSoundEventPacket.SOUND_BOW);
                 }
             }
         } else {

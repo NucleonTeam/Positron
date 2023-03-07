@@ -73,7 +73,7 @@ abstract public class ItemArmor extends Item implements ItemDurable {
         }
         if (equip) {
             player.getInventory().setItem(player.getInventory().getHeldItemIndex(), oldSlotItem);
-            var pos = new Vector3(player.getPosition());
+            var pos = player.getPosition().toFloat();
             switch (this.getTier()) {
                 case TIER_CHAIN:
                     player.getWorld().addLevelSoundEvent(pos, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_CHAIN);

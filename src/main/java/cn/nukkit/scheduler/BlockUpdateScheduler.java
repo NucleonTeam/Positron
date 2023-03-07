@@ -6,6 +6,7 @@ import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.BlockUpdateEntry;
 import com.google.common.collect.Maps;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.FastMath;
 
 import java.util.*;
@@ -49,9 +50,9 @@ public class BlockUpdateScheduler {
             Set<BlockUpdateEntry> updates = pendingUpdates = queuedUpdates.remove(tick);
             if (updates != null) {
                 for (BlockUpdateEntry entry : updates) {
-                    Vector3 pos = entry.pos;
-                    if (level.isChunkLoaded(FastMath.floorDouble(pos.x) >> 4, FastMath.floorDouble(pos.z) >> 4)) {
-                        Block block = level.getBlock(entry.pos.asBlockVector3());
+                    Vector3i pos = entry.pos;
+                    if (level.isChunkLoaded(FastMath.floorDouble(pos.x()) >> 4, FastMath.floorDouble(pos.z()) >> 4)) {
+                        Block block = level.getBlock(entry.pos);
 
                         if (Block.equals(block, entry.block, false)) {
                             block.onUpdate(Level.BLOCK_UPDATE_SCHEDULED);
@@ -72,9 +73,9 @@ public class BlockUpdateScheduler {
         for (Map.Entry<Long, LinkedHashSet<BlockUpdateEntry>> tickEntries : this.queuedUpdates.entrySet()) {
             LinkedHashSet<BlockUpdateEntry> tickSet = tickEntries.getValue();
             for (BlockUpdateEntry update : tickSet) {
-                Vector3 pos = update.pos;
+                Vector3i pos = update.pos;
 
-                if (pos.getX() >= boundingBox.getMinX() && pos.getX() < boundingBox.getMaxX() && pos.getZ() >= boundingBox.getMinZ() && pos.getZ() < boundingBox.getMaxZ()) {
+                if (pos.x() >= boundingBox.getMinX() && pos.x() < boundingBox.getMaxX() && pos.z() >= boundingBox.getMinZ() && pos.z() < boundingBox.getMaxZ()) {
                     if (set == null) {
                         set = new LinkedHashSet<>();
                     }
@@ -87,7 +88,7 @@ public class BlockUpdateScheduler {
         return set;
     }
 
-    public boolean isBlockTickPending(Vector3 pos, Block block) {
+    public boolean isBlockTickPending(Vector3i pos, Block block) {
         Set<BlockUpdateEntry> tmpUpdates = pendingUpdates;
         if (tmpUpdates == null || tmpUpdates.isEmpty()) return false;
         return tmpUpdates.contains(new BlockUpdateEntry(pos, block));

@@ -5,6 +5,7 @@ import cn.nukkit.level.Level;
 import cn.nukkit.level.format.generic.BaseFullChunk;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.scheduler.AsyncTask;
+import ru.mc_positron.math.Point;
 
 import java.util.Map;
 
@@ -90,9 +91,9 @@ public interface LevelProvider {
 
     void setSeed(long value);
 
-    Vector3 getSpawn();
+    Point getSpawn();
 
-    void setSpawn(Vector3 pos);
+    void setSpawn(Point pos);
 
     Map<Long, ? extends FullChunk> getLoadedChunks();
 

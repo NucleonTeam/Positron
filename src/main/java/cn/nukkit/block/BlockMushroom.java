@@ -20,7 +20,7 @@ public abstract class BlockMushroom extends BlockFlowable {
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (!canStay()) {
-                getLevel().useBreakOn(this.asBlockVector3());
+                getWorld().useBreakOn(getPosition());
 
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -31,7 +31,7 @@ public abstract class BlockMushroom extends BlockFlowable {
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
         if (canStay()) {
-            getLevel().setBlock(block, this, true, true);
+            getWorld().setBlock(block.getPosition(), this, true, true);
             return true;
         }
         return false;
@@ -48,7 +48,7 @@ public abstract class BlockMushroom extends BlockFlowable {
     }
 
     public boolean grow() {
-        this.level.setBlock(this, Block.get(BlockID.AIR), true, false);
+        getWorld().setBlock(getPosition(), Block.get(BlockID.AIR), true, false);
 
         return false;
     }

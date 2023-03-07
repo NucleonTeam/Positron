@@ -2,10 +2,6 @@ package cn.nukkit.level;
 
 import cn.nukkit.level.format.generic.BaseFullChunk;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public interface ChunkManager {
 
     int getBlockIdAt(int x, int y, int z);

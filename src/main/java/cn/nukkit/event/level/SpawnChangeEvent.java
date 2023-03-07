@@ -2,12 +2,8 @@ package cn.nukkit.event.level;
 
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.level.Level;
-import cn.nukkit.level.Position;
+import ru.mc_positron.math.Point;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class SpawnChangeEvent extends LevelEvent {
 
     private static final HandlerList handlers = new HandlerList();
@@ -16,14 +12,14 @@ public class SpawnChangeEvent extends LevelEvent {
         return handlers;
     }
 
-    private final Position previousSpawn;
+    private final Point previousSpawn;
 
-    public SpawnChangeEvent(Level level, Position previousSpawn) {
+    public SpawnChangeEvent(Level level, Point previousSpawn) {
         super(level);
         this.previousSpawn = previousSpawn;
     }
 
-    public Position getPreviousSpawn() {
+    public Point getPreviousSpawn() {
         return previousSpawn;
     }
 }

@@ -2,6 +2,7 @@ package cn.nukkit.math;
 
 import cn.nukkit.level.MovingObjectPosition;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.FastMath;
 
 public interface AxisAlignedBB extends Cloneable {
@@ -292,7 +293,7 @@ public interface AxisAlignedBB extends Cloneable {
             face = 3;
         }
 
-        return MovingObjectPosition.fromBlock(0, 0, 0, face, vector.toNewVector());
+        return MovingObjectPosition.fromBlock(Vector3i.ZERO, face, vector.toNewVector());
     }
 
     default void setMinX(double minX) {

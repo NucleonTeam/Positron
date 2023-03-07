@@ -22,7 +22,8 @@ public class BlockMetadataStore extends MetadataStore {
         if (!(block instanceof Block)) {
             throw new IllegalArgumentException("Argument must be a Block instance");
         }
-        return ((Block) block).x + ":" + ((Block) block).y + ":" + ((Block) block).z + ":" + metadataKey;
+        var pos = ((Block) block).getPosition();
+        return pos.x() + ":" + pos.y() + ":" + pos.z() + ":" + metadataKey;
     }
 
     @Override
@@ -30,7 +31,7 @@ public class BlockMetadataStore extends MetadataStore {
         if (!(block instanceof Block)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-        if (((Block) block).getLevel() == this.owningLevel) {
+        if (((Block) block).getWorld() == this.owningLevel) {
             return super.getMetadata(block, metadataKey);
         } else {
             throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
@@ -42,7 +43,7 @@ public class BlockMetadataStore extends MetadataStore {
         if (!(block instanceof Block)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-        if (((Block) block).getLevel() == this.owningLevel) {
+        if (((Block) block).getWorld() == this.owningLevel) {
             return super.hasMetadata(block, metadataKey);
         } else {
             throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
@@ -54,7 +55,7 @@ public class BlockMetadataStore extends MetadataStore {
         if (!(block instanceof Block)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-        if (((Block) block).getLevel() == this.owningLevel) {
+        if (((Block) block).getWorld() == this.owningLevel) {
             super.removeMetadata(block, metadataKey, owningPlugin);
         } else {
             throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
@@ -66,7 +67,7 @@ public class BlockMetadataStore extends MetadataStore {
         if (!(block instanceof Block)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-        if (((Block) block).getLevel() == this.owningLevel) {
+        if (((Block) block).getWorld() == this.owningLevel) {
             super.setMetadata(block, metadataKey, newMetadataValue);
         } else {
             throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());

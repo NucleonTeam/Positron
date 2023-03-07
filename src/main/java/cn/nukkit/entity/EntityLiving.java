@@ -120,7 +120,7 @@ public abstract class EntityLiving extends Entity {
                     animate.eid = getId();
 
                     world.addChunkPacket(damager.getChunkX(), damager.getChunkZ(), animate);
-                    world.addLevelSoundEvent(new Vector3(position), LevelSoundEventPacket.SOUND_ATTACK_STRONG);
+                    world.addLevelSoundEvent(position.toFloat(), LevelSoundEventPacket.SOUND_ATTACK_STRONG);
 
                     source.setDamage(source.getDamage() * 1.5f);
                 }

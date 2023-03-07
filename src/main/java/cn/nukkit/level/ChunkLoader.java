@@ -3,6 +3,7 @@ package cn.nukkit.level;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3i;
 
 public interface ChunkLoader {
 
@@ -26,5 +27,5 @@ public interface ChunkLoader {
 
     void onChunkPopulated(FullChunk chunk);
 
-    void onBlockChanged(Vector3 block);
+    void onBlockChanged(Vector3i block);
 }
