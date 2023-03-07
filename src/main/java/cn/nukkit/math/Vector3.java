@@ -1,7 +1,6 @@
 package cn.nukkit.math;
 
 import lombok.NonNull;
-import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
@@ -87,24 +86,8 @@ public class Vector3 implements Cloneable {
         return getFloorZ() >> 4;
     }
 
-    public double getRight() {
-        return this.x;
-    }
-
     public double getUp() {
         return this.y;
-    }
-
-    public double getForward() {
-        return this.z;
-    }
-
-    public double getSouth() {
-        return this.x;
-    }
-
-    public double getWest() {
-        return this.z;
     }
 
     public Vector3 add(double x) {
@@ -123,36 +106,12 @@ public class Vector3 implements Cloneable {
         return new Vector3(this.x + x.getX(), this.y + x.getY(), this.z + x.getZ());
     }
 
-    public Vector3 subtract() {
-        return this.subtract(0, 0, 0);
-    }
-
-    public Vector3 subtract(double x) {
-        return this.subtract(x, 0, 0);
-    }
-
-    public Vector3 subtract(double x, double y) {
-        return this.subtract(x, y, 0);
-    }
-
     public Vector3 subtract(double x, double y, double z) {
         return this.add(-x, -y, -z);
     }
 
-    public Vector3 subtract(Vector3 x) {
-        return this.add(-x.getX(), -x.getY(), -x.getZ());
-    }
-
-    public Vector3 multiply(double number) {
-        return new Vector3(this.x * number, this.y * number, this.z * number);
-    }
-
     public Vector3 divide(double number) {
         return new Vector3(this.x / number, this.y / number, this.z / number);
-    }
-
-    public Vector3 ceil() {
-        return new Vector3((int) Math.ceil(this.x), (int) Math.ceil(this.y), (int) Math.ceil(this.z));
     }
 
     public Vector3 floor() {
@@ -228,39 +187,10 @@ public class Vector3 implements Cloneable {
         return getSide(BlockFace.WEST, step);
     }
 
-    public double distance(Vector3 pos) {
-        return Math.sqrt(this.distanceSquared(pos));
-    }
-
     public double distanceSquared(Vector3 pos) {
         return Math.pow(this.x - pos.x, 2) + Math.pow(this.y - pos.y, 2) + Math.pow(this.z - pos.z, 2);
     }
 
-    public double maxPlainDistance() {
-        return this.maxPlainDistance(0, 0);
-    }
-
-    public double maxPlainDistance(double x) {
-        return this.maxPlainDistance(x, 0);
-    }
-
-    public double maxPlainDistance(double x, double z) {
-        return Math.max(Math.abs(this.x - x), Math.abs(this.z - z));
-    }
-
-    public double maxPlainDistance(Vector2d vector) {
-        return this.maxPlainDistance(vector.x(), vector.y());
-    }
-
-    public double maxPlainDistance(Vector3 x) {
-        return this.maxPlainDistance(x.x, x.z);
-    }
-
-    /**
-     * Calculates the Length of this Vector
-     *
-     * @return The Length of this Vector.
-     */
     public double length() {
         return Math.sqrt(this.lengthSquared());
     }
@@ -275,40 +205,6 @@ public class Vector3 implements Cloneable {
             return this.divide(Math.sqrt(len));
         }
         return new Vector3(0, 0, 0);
-    }
-
-    /**
-     * Scalar Product of this Vector and the Vector supplied.
-     *
-     * @param v Vector to calculate the scalar product to.
-     * @return Scalar Product
-     */
-    public double dot(Vector3 v) {
-        return this.x * v.x + this.y * v.y + this.z * v.z;
-    }
-
-    /**
-     * Calculates the cross product of this Vector and the given Vector
-     *
-     * @param v the vector to calculate the cross product with.
-     * @return a Vector at right angle to this and other
-     */
-    public Vector3 cross(Vector3 v) {
-        return new Vector3(
-                this.y * v.z - this.z * v.y,
-                this.z * v.x - this.x * v.z,
-                this.x * v.y - this.y * v.x
-        );
-    }
-
-    /**
-     * Calculates the angle between this and the supplied Vector.
-     *
-     * @param v the Vector to calculate the angle to.
-     * @return the Angle between the two Vectors.
-     */
-    public Angle angleBetween(Vector3 v) {
-        return Angle.fromRadian(Math.acos(Math.min(Math.max(this.normalize().dot(v.normalize()), -1.0d), 1.0d)));
     }
 
     /**
@@ -408,10 +304,6 @@ public class Vector3 implements Cloneable {
         return ((int) x ^ ((int) z << 12)) ^ ((int) y << 24);
     }
 
-    public int rawHashCode() {
-        return super.hashCode();
-    }
-
     @Override
     public Vector3 clone() {
         try {
@@ -419,10 +311,6 @@ public class Vector3 implements Cloneable {
         } catch (CloneNotSupportedException e) {
             return null;
         }
-    }
-
-    public Vector3f asVector3f() {
-        return toNewVector().toFloat();
     }
 
     public Vector3i asBlockVector3() {

@@ -401,7 +401,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         viewDistance = server.getViewDistance();
         chunkRadius = viewDistance;
         //this.newPosition = new Vector3(0, 0, 0);
-        boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
+        boundingBox = new SimpleAxisAlignedBB(Vector3d.ZERO, Vector3d.ZERO);
         lastSkinChange = -1;
 
         playerUuid = null;

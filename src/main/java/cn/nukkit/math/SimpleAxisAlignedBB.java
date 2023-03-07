@@ -1,5 +1,7 @@
 package cn.nukkit.math;
 
+import org.spongepowered.math.vector.Vector3d;
+
 /**
  * auth||: MagicDroidX
  * Nukkit Project
@@ -13,13 +15,13 @@ public class SimpleAxisAlignedBB implements AxisAlignedBB {
     private double maxY;
     private double maxZ;
 
-    public SimpleAxisAlignedBB(Vector3 pos1, Vector3 pos2) {
-        this.minX = Math.min(pos1.x, pos2.x);
-        this.minY = Math.min(pos1.y, pos2.y);
-        this.minZ = Math.min(pos1.z, pos2.z);
-        this.maxX = Math.max(pos1.x, pos2.x);
-        this.maxY = Math.max(pos1.y, pos2.y);
-        this.maxZ = Math.max(pos1.z, pos2.z);
+    public SimpleAxisAlignedBB(Vector3d pos1, Vector3d pos2) {
+        this.minX = Math.min(pos1.x(), pos2.x());
+        this.minY = Math.min(pos1.y(), pos2.y());
+        this.minZ = Math.min(pos1.z(), pos2.z());
+        this.maxX = Math.max(pos1.x(), pos2.x());
+        this.maxY = Math.max(pos1.y(), pos2.y());
+        this.maxZ = Math.max(pos1.z(), pos2.z());
     }
 
     public SimpleAxisAlignedBB(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
