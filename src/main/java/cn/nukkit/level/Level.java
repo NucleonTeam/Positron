@@ -34,6 +34,7 @@ import cn.nukkit.level.particle.Particle;
 import cn.nukkit.math.*;
 import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
 import cn.nukkit.metadata.BlockMetadataStore;
@@ -486,35 +487,35 @@ public class Level implements ChunkManager, Metadatable {
         this.addParticle(particle, players.toArray(new Player[0]));
     }
 
-    public void addParticleEffect(Vector3 pos, ParticleEffect particleEffect) {
+    public void addParticleEffect(Vector3d pos, ParticleEffect particleEffect) {
         this.addParticleEffect(pos, particleEffect, -1, this.getDimension(), (Player[]) null);
     }
 
-    public void addParticleEffect(Vector3 pos, ParticleEffect particleEffect, long uniqueEntityId) {
+    public void addParticleEffect(Vector3d pos, ParticleEffect particleEffect, long uniqueEntityId) {
         this.addParticleEffect(pos, particleEffect, uniqueEntityId, this.getDimension(), (Player[]) null);
     }
 
-    public void addParticleEffect(Vector3 pos, ParticleEffect particleEffect, long uniqueEntityId, int dimensionId) {
+    public void addParticleEffect(Vector3d pos, ParticleEffect particleEffect, long uniqueEntityId, int dimensionId) {
         this.addParticleEffect(pos, particleEffect, uniqueEntityId, dimensionId, (Player[]) null);
     }
 
-    public void addParticleEffect(Vector3 pos, ParticleEffect particleEffect, long uniqueEntityId, int dimensionId, Collection<Player> players) {
+    public void addParticleEffect(Vector3d pos, ParticleEffect particleEffect, long uniqueEntityId, int dimensionId, Collection<Player> players) {
         this.addParticleEffect(pos, particleEffect, uniqueEntityId, dimensionId, players.toArray(new Player[0]));
     }
 
-    public void addParticleEffect(Vector3 pos, ParticleEffect particleEffect, long uniqueEntityId, int dimensionId, Player... players) {
-        this.addParticleEffect(pos.asVector3f(), particleEffect.getIdentifier(), uniqueEntityId, dimensionId, players);
+    public void addParticleEffect(Vector3d pos, ParticleEffect particleEffect, long uniqueEntityId, int dimensionId, Player... players) {
+        this.addParticleEffect(pos.toFloat(), particleEffect.getIdentifier(), uniqueEntityId, dimensionId, players);
     }
 
     public void addParticleEffect(Vector3f pos, String identifier, long uniqueEntityId, int dimensionId, Player... players) {
-        SpawnParticleEffectPacket pk = new SpawnParticleEffectPacket();
+        var pk = new SpawnParticleEffectPacket();
         pk.identifier = identifier;
         pk.uniqueEntityId = uniqueEntityId;
         pk.dimensionId = dimensionId;
         pk.position = pos;
 
         if (players == null || players.length == 0) {
-            addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+            addChunkPacket(pos.floorX() >> 4, pos.floorZ() >> 4, pk);
         } else {
             Server.broadcastPacket(players, pk);
         }

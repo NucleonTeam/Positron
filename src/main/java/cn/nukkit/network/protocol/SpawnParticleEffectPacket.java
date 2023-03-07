@@ -1,7 +1,7 @@
 package cn.nukkit.network.protocol;
 
-import cn.nukkit.math.Vector3f;
 import lombok.ToString;
+import org.spongepowered.math.vector.Vector3f;
 
 @ToString
 public class SpawnParticleEffectPacket extends DataPacket {
@@ -26,7 +26,7 @@ public class SpawnParticleEffectPacket extends DataPacket {
         this.reset();
         this.putByte((byte) this.dimensionId);
         this.putEntityUniqueId(uniqueEntityId);
-        this.putVector3f(this.position.toNewVector().toFloat());
+        this.putVector3f(this.position);
         this.putString(this.identifier);
         this.putBoolean(false);
     }

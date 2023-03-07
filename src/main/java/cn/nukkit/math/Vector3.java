@@ -3,13 +3,10 @@ package cn.nukkit.math;
 import lombok.NonNull;
 import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
+import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Vector3 implements Cloneable {
 
     public double x;
@@ -425,7 +422,7 @@ public class Vector3 implements Cloneable {
     }
 
     public Vector3f asVector3f() {
-        return new Vector3f((float) this.x, (float) this.y, (float) this.z);
+        return toNewVector().toFloat();
     }
 
     public Vector3i asBlockVector3() {
