@@ -216,7 +216,7 @@ public abstract class BlockDoor extends BlockTransparentMeta implements Faceable
             this.getLevel().setBlock(block, this, true, false); //Bottom
             this.getLevel().setBlock(blockUp, Block.get(this.getId(), metaUp), true, true); //Top
 
-            if (!this.isOpen() && this.level.isBlockPowered(this.getLocation())) {
+            if (!this.isOpen() && this.level.isBlockPowered(this)) {
                 this.toggle(null);
                 metaUp |= DOOR_POWERED_BIT;
                 this.getLevel().setBlockDataAt(blockUp.getFloorX(), blockUp.getFloorY(), blockUp.getFloorZ(), metaUp);

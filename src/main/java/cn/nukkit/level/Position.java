@@ -73,11 +73,6 @@ public class Position extends Vector3 {
         return this;
     }
 
-    public Location getLocation() {
-        if (this.isValid()) return new Location(this.x, this.y, this.z, 0, 0, this.level);
-        else throw new LevelException("Undefined Level reference");
-    }
-
     @Override
     public Position add(double x) {
         return this.add(x, 0, 0);
