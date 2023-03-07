@@ -227,7 +227,7 @@ public class Network {
         try {
             this.processBatch(packet.payload, packets, player.getNetworkSession().getCompression());
         } catch (ProtocolException e) {
-            player.close("", e.getMessage());
+            player.remove("", e.getMessage());
             log.error("Unable to process player packets ", e);
         }
     }

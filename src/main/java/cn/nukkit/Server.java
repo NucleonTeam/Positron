@@ -15,7 +15,6 @@ import cn.nukkit.event.server.PlayerDataSerializeEvent;
 import cn.nukkit.event.server.QueryRegenerateEvent;
 import cn.nukkit.event.server.ServerStopEvent;
 import cn.nukkit.inventory.CraftingManager;
-import cn.nukkit.inventory.Recipe;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.item.enchantment.Enchantment;
@@ -61,7 +60,6 @@ import cn.nukkit.scheduler.ServerScheduler;
 import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -665,7 +663,7 @@ public class Server {
             getPluginManager().callEvent(serverStopEvent);
 
             for (var connection: playerManager.getConnectedPlayers()) {
-                connection.close(
+                connection.remove(
                         connection.getLeaveMessage(),
                         this.getConfig("settings.shutdown-message",
                         "Server closed")

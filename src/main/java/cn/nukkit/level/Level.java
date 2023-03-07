@@ -32,7 +32,6 @@ import cn.nukkit.level.generator.task.PopulationTask;
 import cn.nukkit.level.particle.DestroyBlockParticle;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.math.*;
-import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
@@ -552,7 +551,7 @@ public class Level implements ChunkManager, Metadatable {
 
         for (Player player : new ArrayList<>(this.getPlayers().values())) {
             if (this == defaultLevel || defaultLevel == null) {
-                player.close(player.getLeaveMessage(), "Forced default level unload");
+                player.remove(player.getLeaveMessage(), "Forced default level unload");
             } else {
                 player.teleport(this.server.getDefaultLevel().getSafeSpawn().toPoint());
             }
@@ -746,7 +745,7 @@ public class Level implements ChunkManager, Metadatable {
                     this.updateEntities.remove(id);
                     continue;
                 }
-                if (entity.closed || !entity.onUpdate(currentTick)) {
+                if (entity.isRemoved() || !entity.onUpdate(currentTick)) {
                     this.updateEntities.remove(id);
                 }
             }
@@ -2516,7 +2515,7 @@ public class Level implements ChunkManager, Metadatable {
             this.players.remove(entity.getId());
             this.checkSleep();
         } else {
-            entity.close();
+            entity.remove();
         }
 
         this.entities.remove(entity.getId());

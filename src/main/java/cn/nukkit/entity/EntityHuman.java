@@ -353,16 +353,16 @@ public class EntityHuman extends EntityHumanType {
     }
 
     @Override
-    public void close() {
-        if (!this.closed) {
-            if (inventory != null && (!(this instanceof Player) || ((Player) this).loggedIn)) {
-                for (Player viewer : this.inventory.getViewers()) {
-                    viewer.removeWindow(this.inventory);
-                }
-            }
+    public void remove() {
+        if (removed) return;
 
-            super.close();
+        if (inventory != null && (!(this instanceof Player) || ((Player) this).loggedIn)) {
+            for (Player viewer : this.inventory.getViewers()) {
+                viewer.removeWindow(this.inventory);
+            }
         }
+
+        super.remove();
     }
 
 }

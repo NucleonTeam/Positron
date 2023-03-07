@@ -415,7 +415,7 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
 
         for (Entity entity: new ArrayList<>(getEntities().values())) {
             if (entity instanceof Player) continue;
-            entity.close();
+            entity.remove();
         }
 
         for (var blockEntity: new ArrayList<>(getBlockEntities().values())) {

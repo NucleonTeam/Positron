@@ -97,7 +97,7 @@ public class EntityItem extends Entity {
         }
 
         if (!getNbt().contains("Item")) {
-            this.close();
+            this.remove();
             return;
         }
 
@@ -139,9 +139,7 @@ public class EntityItem extends Entity {
 
     @Override
     public boolean onUpdate(int currentTick) {
-        if (this.closed) {
-            return false;
-        }
+        if (removed) return false;
 
         int tickDiff = currentTick - this.lastUpdate;
 
@@ -169,7 +167,7 @@ public class EntityItem extends Entity {
                         if (newAmount > this.getItem().getMaxStackSize()) {
                             continue;
                         }
-                        entity.close();
+                        entity.remove();
                         this.getItem().setCount(newAmount);
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.eid = getId();

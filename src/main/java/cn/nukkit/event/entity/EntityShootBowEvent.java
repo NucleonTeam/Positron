@@ -50,7 +50,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
         if (projectile != this.projectile) {
             if (this.projectile.getViewers().size() == 0) {
                 this.projectile.kill();
-                this.projectile.close();
+                this.projectile.remove();
             }
             this.projectile = (EntityProjectile) projectile;
         }

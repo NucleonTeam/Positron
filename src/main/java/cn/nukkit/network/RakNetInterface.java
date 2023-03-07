@@ -2,7 +2,6 @@ package cn.nukkit.network;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.event.player.PlayerCreationEvent;
 import cn.nukkit.event.server.QueryRegenerateEvent;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -17,7 +16,6 @@ import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.internal.PlatformDependent;
 import lombok.extern.log4j.Log4j2;
 
-import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -78,7 +76,7 @@ public class RakNetInterface implements RakNetServerListener, AdvancedSourceInte
             RakNetPlayerSession nukkitSession = iterator.next();
             Player player = nukkitSession.getPlayer();
             if (nukkitSession.getDisconnectReason() != null) {
-                player.close(player.getLeaveMessage(), nukkitSession.getDisconnectReason(), false);
+                player.remove(player.getLeaveMessage(), nukkitSession.getDisconnectReason(), false);
                 iterator.remove();
             } else {
                 nukkitSession.serverTick();

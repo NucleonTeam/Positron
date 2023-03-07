@@ -9,7 +9,6 @@ import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
-import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.IntEntityData;
 
@@ -77,7 +76,7 @@ public class EntityFallingBlock extends Entity {
         }
 
         if (blockId == 0) {
-            close();
+            remove();
             return;
         }
 
@@ -98,8 +97,7 @@ public class EntityFallingBlock extends Entity {
 
     @Override
     public boolean onUpdate(int currentTick) {
-
-        if (closed) return false;
+        if (removed) return false;
 
         int tickDiff = currentTick - lastUpdate;
         if (tickDiff <= 0 && !justCreated) return true;
@@ -118,7 +116,7 @@ public class EntityFallingBlock extends Entity {
             var pos = position.sub(0.5, 0, 0.5).round();
 
             if (onGround) {
-                close();
+                remove();
                 Block block = world.getBlock(pos.toInt());
 
                 EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
@@ -159,8 +157,9 @@ public class EntityFallingBlock extends Entity {
 
     @Override
     public void resetFallDistance() {
-        if (!closed) { // For falling anvil: do not reset fall distance before dealing damage to entities
-            highestPosition = position.y();
-        }
+        if (removed) return;
+
+        // For falling anvil: do not reset fall distance before dealing damage to entities
+        highestPosition = position.y();
     }
 }

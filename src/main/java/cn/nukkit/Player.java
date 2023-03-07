@@ -526,7 +526,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         if (this.spawned) {
             for (Entity entity: world.getChunkEntities(x, z).values()) {
-                if (this != entity && !entity.closed && entity.isAlive()) {
+                if (this != entity && !entity.isRemoved() && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
             }
@@ -551,7 +551,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         if (this.spawned) {
             for (Entity entity: world.getChunkEntities(x, z).values()) {
-                if (this != entity && !entity.closed && entity.isAlive()) {
+                if (this != entity && !entity.isRemoved() && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
             }
@@ -642,7 +642,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             int chunkX = Level.getHashX(index);
             int chunkZ = Level.getHashZ(index);
             for (Entity entity : world.getChunkEntities(chunkX, chunkZ).values()) {
-                if (this != entity && !entity.closed && entity.isAlive()) {
+                if (this != entity && !entity.isRemoved() && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
             }
@@ -1445,7 +1445,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         if (oldPlayer != null) {
             oldPlayer.saveNBT();
             nbt = oldPlayer.getNbt();
-            oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
+            oldPlayer.remove("", "disconnectionScreen.loggedinOtherLocation");
         } else {
             File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
             File dataFile = new File(server.getDataPath() + "players/" + this.playerUuid.toString() + ".dat");
@@ -1461,7 +1461,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
 
         if (nbt == null) {
-            this.close(this.getLeaveMessage(), "Invalid data");
+            this.remove(this.getLeaveMessage(), "Invalid data");
             return;
         }
 
@@ -1565,7 +1565,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         PlayerLoginEvent ev;
         this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin reason"));
         if (ev.isCancelled()) {
-            this.close(this.getLeaveMessage(), ev.getKickMessage());
+            this.remove(this.getLeaveMessage(), ev.getKickMessage());
             return;
         }
 
@@ -1640,7 +1640,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         if (!verified && packet.pid() != ProtocolInfo.LOGIN_PACKET && packet.pid() != ProtocolInfo.BATCH_PACKET && packet.pid() != ProtocolInfo.REQUEST_NETWORK_SETTINGS_PACKET) {
             server.getLogger().warning("Ignoring " + packet.getClass().getSimpleName() + " from " + getAddress() + " due to player not verified yet");
             if (unverifiedPackets++ > 100) {
-                this.close("", "Too many failed login attempts");
+                this.remove("", "Too many failed login attempts");
             }
             return;
         }
@@ -1678,7 +1678,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     } else {
                         message = "disconnectionScreen.outdatedServer";
                     }
-                    this.close("", message, true);
+                    this.remove("", message, true);
                     break;
                 }
 
@@ -1704,7 +1704,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 this.loginChainData = ClientChainData.read(loginPacket);
 
                 if (!loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth")) {
-                    this.close("", "disconnectionScreen.notAuthenticated");
+                    this.remove("", "disconnectionScreen.notAuthenticated");
                     break;
                 }
 
@@ -1738,13 +1738,13 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
 
                 if (!valid || Objects.equals(this.iusername, "rcon") || Objects.equals(this.iusername, "console")) {
-                    this.close("", "disconnectionScreen.invalidName");
+                    this.remove("", "disconnectionScreen.invalidName");
 
                     break;
                 }
 
                 if (!loginPacket.skin.isValid()) {
-                    this.close("", "disconnectionScreen.invalidSkin");
+                    this.remove("", "disconnectionScreen.invalidSkin");
                     break;
                 } else {
                     this.setSkin(loginPacket.skin);
@@ -1753,7 +1753,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 PlayerPreLoginEvent playerPreLoginEvent;
                 this.server.getPluginManager().callEvent(playerPreLoginEvent = new PlayerPreLoginEvent(this, "Plugin reason"));
                 if (playerPreLoginEvent.isCancelled()) {
-                    this.close("", playerPreLoginEvent.getKickMessage());
+                    this.remove("", playerPreLoginEvent.getKickMessage());
 
                     break;
                 }
@@ -1772,12 +1772,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                     @Override
                     public void onCompletion(Server server) {
-                        if (playerInstance.closed) {
+                        if (playerInstance.isRemoved()) {
                             return;
                         }
 
                         if (this.event.getLoginResult() == LoginResult.KICK) {
-                            playerInstance.close(this.event.getKickMessage(), this.event.getKickMessage());
+                            playerInstance.remove(this.event.getKickMessage(), this.event.getKickMessage());
                         } else if (playerInstance.shouldLogin) {
                             playerInstance.setSkin(this.event.getSkin());
                             playerInstance.completeLoginSequence();
@@ -1795,13 +1795,13 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 ResourcePackClientResponsePacket responsePacket = (ResourcePackClientResponsePacket) packet;
                 switch (responsePacket.responseStatus) {
                     case ResourcePackClientResponsePacket.STATUS_REFUSED:
-                        this.close("", "disconnectionScreen.noReason");
+                        this.remove("", "disconnectionScreen.noReason");
                         break;
                     case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
                         for (ResourcePackClientResponsePacket.Entry entry : responsePacket.packEntries) {
                             ResourcePack resourcePack = this.server.getResourcePackManager().getPackById(entry.uuid);
                             if (resourcePack == null) {
-                                this.close("", "disconnectionScreen.resourcePack");
+                                this.remove("", "disconnectionScreen.resourcePack");
                                 break;
                             }
 
@@ -1833,7 +1833,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 ResourcePackChunkRequestPacket requestPacket = (ResourcePackChunkRequestPacket) packet;
                 ResourcePack resourcePack = this.server.getResourcePackManager().getPackById(requestPacket.packId);
                 if (resourcePack == null) {
-                    this.close("", "disconnectionScreen.resourcePack");
+                    this.remove("", "disconnectionScreen.resourcePack");
                     break;
                 }
 
@@ -3142,7 +3142,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
             }
 
-            this.close(ev.getQuitMessage(), message);
+            this.remove(ev.getQuitMessage(), message);
 
             return true;
         }
@@ -3307,32 +3307,32 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public void close() {
-        this.close("");
+    public void remove() {
+        remove("");
     }
 
-    public void close(String message) {
-        this.close(message, "generic");
+    public void remove(String message) {
+        remove(message, "generic");
     }
 
-    public void close(String message, String reason) {
-        this.close(message, reason, true);
+    public void remove(String message, String reason) {
+        remove(message, reason, true);
     }
 
-    public void close(String message, String reason, boolean notify) {
-        this.close(new TextContainer(message), reason, notify);
+    public void remove(String message, String reason, boolean notify) {
+        remove(new TextContainer(message), reason, notify);
     }
 
-    public void close(TextContainer message) {
-        this.close(message, "generic");
+    public void remove(TextContainer message) {
+        remove(message, "generic");
     }
 
-    public void close(TextContainer message, String reason) {
-        this.close(message, reason, true);
+    public void remove(TextContainer message, String reason) {
+        remove(message, reason, true);
     }
 
-    public void close(TextContainer message, String reason, boolean notify) {
-        if (this.connected && !this.closed) {
+    public void remove(TextContainer message, String reason, boolean notify) {
+        if (this.connected && !removed) {
             if (notify && reason.length() > 0) {
                 DisconnectPacket pk = new DisconnectPacket();
                 pk.message = reason;
@@ -3371,7 +3371,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
             }
 
-            super.close();
+            super.remove();
 
             this.interfaz.close(this, notify ? reason : "");
 
@@ -3410,7 +3410,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public void save(boolean async) {
-        if (closed) {
+        if (removed) {
             throw new IllegalStateException("Tried to save closed player");
         }
 
@@ -4392,7 +4392,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public boolean pickupEntity(Entity entity, boolean near) {
-        if (!this.spawned || !this.isAlive() || !this.isOnline() || this.isSpectator() || entity.isClosed()) {
+        if (!this.spawned || !this.isAlive() || !this.isOnline() || this.isSpectator() || entity.isRemoved()) {
             return false;
         }
 

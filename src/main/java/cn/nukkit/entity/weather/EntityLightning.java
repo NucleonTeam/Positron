@@ -59,9 +59,7 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
 
     @Override
     public boolean onUpdate(int currentTick) {
-        if (this.closed) {
-            return false;
-        }
+        if (removed) return false;
 
         int tickDiff = currentTick - this.lastUpdate;
 
@@ -82,7 +80,7 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
 
         if (this.state < 0) {
             if (this.liveTime == 0) {
-                this.close();
+                this.remove();
                 return false;
             } else if (this.state < -ThreadLocalRandom.current().nextInt(10)) {
                 this.liveTime--;

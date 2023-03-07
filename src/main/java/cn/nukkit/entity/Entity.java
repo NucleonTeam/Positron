@@ -214,8 +214,9 @@ public abstract class Entity implements Metadatable {
     protected double lastPitch;
     protected double lastYaw;
     protected double lastHeadYaw;
-    public boolean firstMove = true;
+    protected boolean firstMove = true;
     @Getter protected CompoundTag nbt = new CompoundTag();
+    @Getter protected boolean removed = false;
 
 
     public double entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
@@ -252,8 +253,6 @@ public abstract class Entity implements Metadatable {
     protected Server server;
 
     public double highestPosition;
-
-    public boolean closed = false;
 
     protected boolean isPlayer = this instanceof Player;
 
@@ -972,10 +971,6 @@ public abstract class Entity implements Metadatable {
         return this.health > 0;
     }
 
-    public boolean isClosed() {
-        return closed;
-    }
-
     public void setHealth(float health) {
         if (this.health == health) {
             return;
@@ -1114,7 +1109,7 @@ public abstract class Entity implements Metadatable {
             this.removeAllEffects();
             this.despawnFromAll();
             if (!this.isPlayer) {
-                this.close();
+                this.remove();
             }
             return false;
         }
@@ -1230,7 +1225,7 @@ public abstract class Entity implements Metadatable {
     }
 
     public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+        if (this.removed) {
             return false;
         }
 
@@ -1239,7 +1234,7 @@ public abstract class Entity implements Metadatable {
             if (this.deadTicks >= 10) {
                 this.despawnFromAll();
                 if (!this.isPlayer) {
-                    this.close();
+                    this.remove();
                 }
             }
             return this.deadTicks < 10;
@@ -1526,7 +1521,7 @@ public abstract class Entity implements Metadatable {
     }
 
     protected boolean switchLevel(Level targetLevel) {
-        if (this.closed) {
+        if (this.removed) {
             return false;
         }
 
@@ -1803,7 +1798,7 @@ public abstract class Entity implements Metadatable {
     }
 
     public boolean setPosition(Vector3d newPosition) {
-        if (closed) return false;
+        if (removed) return false;
 
         position = newPosition;
         recalculateBoundingBox(false);
@@ -1870,7 +1865,7 @@ public abstract class Entity implements Metadatable {
     }
 
     public void spawnToAll() {
-        if (this.chunk == null || this.closed) {
+        if (this.chunk == null || this.removed) {
             return;
         }
 
@@ -1887,13 +1882,14 @@ public abstract class Entity implements Metadatable {
         }
     }
 
-    public void close() {
-        if (!this.closed) {
-            this.closed = true;
-            this.server.getPluginManager().callEvent(new EntityDespawnEvent(this));
-            this.despawnFromAll();
-            if (this.chunk != null) {
-                this.chunk.removeEntity(this);
+    public void remove() {
+        if (!removed) {
+            removed = true;
+            server.getPluginManager().callEvent(new EntityDespawnEvent(this));
+            despawnFromAll();
+
+            if (chunk != null) {
+                chunk.removeEntity(this);
             }
 
             if (world != null) {

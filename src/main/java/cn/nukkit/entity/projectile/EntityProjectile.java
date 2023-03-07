@@ -7,7 +7,6 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.MovingObjectPosition;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
-import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.data.LongEntityData;
@@ -79,7 +78,7 @@ public abstract class EntityProjectile extends Entity {
             }
         }
         if (closeOnCollide) {
-            this.close();
+            this.remove();
         }
     }
 
@@ -107,9 +106,7 @@ public abstract class EntityProjectile extends Entity {
 
     @Override
     public boolean onUpdate(int currentTick) {
-        if (this.closed) {
-            return false;
-        }
+        if (removed) return false;
 
         int tickDiff = currentTick - this.lastUpdate;
         if (tickDiff <= 0 && !this.justCreated) {
