@@ -94,58 +94,30 @@ public class Server {
     public static final String BROADCAST_CHANNEL_USERS = "nukkit.broadcast.user";
     private static final long START_TIME = System.currentTimeMillis();
     public static int DEBUG_LEVEL = 1;
-
     private static Server instance = null;
-
-    private AtomicBoolean isRunning = new AtomicBoolean(true);
-
+    private final AtomicBoolean isRunning = new AtomicBoolean(true);
     private boolean hasStopped = false;
-
-    private PluginManager pluginManager;
-
-    private int profilingTickrate = 20;
-
-    private ServerScheduler scheduler;
-
+    private final PluginManager pluginManager;
+    private final ServerScheduler scheduler;
     private int tickCounter;
-
     private long nextTick;
-
     private final float[] tickAverage = {20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-
     private final float[] useAverage = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
     private float maxTick = 20;
-
     private float maxUse = 0;
-
     private int sendUsageTicker = 0;
-
-    private boolean dispatchSignals = false;
-
     private final NukkitConsole console;
     private final ConsoleThread consoleThread;
-
-    private CraftingManager craftingManager;
-
-    private ResourcePackManager resourcePackManager;
-
+    private final CraftingManager craftingManager;
+    private final ResourcePackManager resourcePackManager;
     private int maxPlayers;
-
     private boolean autoSave = true;
-
-    private EntityMetadataStore entityMetadata;
-
-    private PlayerMetadataStore playerMetadata;
-
-    private LevelMetadataStore levelMetadata;
-
-    private Network network;
-
+    private final EntityMetadataStore entityMetadata;
+    private final PlayerMetadataStore playerMetadata;
+    private final LevelMetadataStore levelMetadata;
+    private final Network network;
     private boolean networkCompressionAsync = true;
     public int networkCompressionLevel = 7;
-    private int networkZlibProvider = 0;
-
     private boolean autoTickRate = true;
     private int autoTickRateLimit = 20;
     private boolean alwaysTickPlayers = false;
@@ -153,28 +125,18 @@ public class Server {
     private Boolean getAllowFlight = null;
     private int difficulty = Integer.MAX_VALUE;
     private int defaultGamemode = Integer.MAX_VALUE;
-
     private int autoSaveTicker = 0;
     private int autoSaveTicks = 6000;
-
-    private BaseLang baseLang;
-
+    private final BaseLang baseLang;
     private boolean forceLanguage = false;
-
-    private UUID serverID;
-
+    private final UUID serverID;
     private final String filePath;
     private final String dataPath;
     private final String pluginPath;
-
-    private final Set<UUID> uniquePlayers = new HashSet<>();
-
     private QueryHandler queryHandler;
-
     private QueryRegenerateEvent queryRegenerateEvent;
-
-    private Config properties;
-    private Config config;
+    private final Config properties;
+    private final Config config;
 
     @Getter private final PlayerManager playerManager = new PositronPlayerManager(this);
 
@@ -311,8 +273,8 @@ public class Server {
         DEBUG_LEVEL = FastMath.clamp(this.getConfig("debug.level", 1), 1, 3);
 
         int logLevel = (DEBUG_LEVEL + 3) * 100;
-        org.apache.logging.log4j.Level currentLevel = Server.getLogLevel();
-        for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
+        var currentLevel = Server.getLogLevel();
+        for (var level: org.apache.logging.log4j.Level.values()) {
             if (level.intLevel() == logLevel && level.intLevel() > currentLevel.intLevel()) {
                 Server.setLogLevel(level);
                 break;
@@ -376,8 +338,8 @@ public class Server {
 
         ServerScheduler.WORKERS = (int) poolSize;
 
-        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
-        Zlib.setProvider(this.networkZlibProvider);
+        int networkZlibProvider = this.getConfig("network.zlib-provider", 2);
+        Zlib.setProvider(networkZlibProvider);
 
         this.networkCompressionLevel = this.getConfig("network.compression-level", 7);
         this.networkCompressionAsync = this.getConfig("network.async-compression", true);
@@ -535,23 +497,7 @@ public class Server {
         this.start();
     }
 
-    public int broadcastMessage(String message, Player[] recipients) {
-        for (Player recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-
-        return recipients.length;
-    }
-
     public int broadcastMessage(String message, Collection<? extends Player> recipients) {
-        for (Player recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-
-        return recipients.size();
-    }
-
-    public int broadcastMessage(TextContainer message, Collection<? extends Player> recipients) {
         for (Player recipient : recipients) {
             recipient.sendMessage(message);
         }
@@ -793,13 +739,7 @@ public class Server {
     }
 
     public void onPlayerLogin(Player player) {
-        if (this.sendUsageTicker > 0) {
-            this.uniquePlayers.add(player.getUniqueId());
-        }
-    }
 
-    public void updatePlayerListData(UUID uuid, long entityId, String name, Skin skin) {
-        this.updatePlayerListData(uuid, entityId, name, skin, "", playerManager.getPlayers());
     }
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, Skin skin, String xboxUserId) {
@@ -821,10 +761,6 @@ public class Server {
         this.updatePlayerListData(uuid, entityId, name, skin, xboxUserId, players.toArray(new Player[0]));
     }
 
-    public void removePlayerListData(UUID uuid) {
-        this.removePlayerListData(uuid, playerManager.getPlayers());
-    }
-
     public void removePlayerListData(UUID uuid, Player[] players) {
         PlayerListPacket pk = new PlayerListPacket();
         pk.type = PlayerListPacket.TYPE_REMOVE;
@@ -837,10 +773,6 @@ public class Server {
         pk.type = PlayerListPacket.TYPE_REMOVE;
         pk.entries = new PlayerListPacket.Entry[]{new PlayerListPacket.Entry(uuid)};
         player.dataPacket(pk);
-    }
-
-    public void removePlayerListData(UUID uuid, Collection<Player> players) {
-        this.removePlayerListData(uuid, players.toArray(new Player[0]));
     }
 
     public void sendFullPlayerListData(Player player) {
@@ -864,12 +796,6 @@ public class Server {
 
     private void checkTickUpdates(int currentTick, long tickTime) {
         for (var p: playerManager.getConnectedPlayers()) {
-            /*if (!p.loggedIn && (tickTime - p.creationTime) >= 10000 && p.kick(PlayerKickEvent.Reason.LOGIN_TIMEOUT, "Login timeout")) {
-                continue;
-            }
-
-            client freezes when applying resource packs
-            todo: fix*/
 
             if (this.alwaysTickPlayers) {
                 p.onUpdate(currentTick);
@@ -1058,24 +984,12 @@ public class Server {
         return "1.0.14";
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
     public String getDataPath() {
         return dataPath;
     }
 
-    public String getPluginPath() {
-        return pluginPath;
-    }
-
     public int getMaxPlayers() {
         return maxPlayers;
-    }
-
-    public void setMaxPlayers(int maxPlayers) {
-        this.maxPlayers = maxPlayers;
     }
 
     public int getPort() {
@@ -1088,10 +1002,6 @@ public class Server {
 
     public String getIp() {
         return this.getPropertyString("server-ip", "0.0.0.0");
-    }
-
-    public UUID getServerUniqueId() {
-        return this.serverID;
     }
 
     public boolean getAutoSave() {
@@ -1107,10 +1017,6 @@ public class Server {
 
     public String getLevelType() {
         return this.getPropertyString("level-type", "DEFAULT");
-    }
-
-    public boolean getGenerateStructures() {
-        return this.getPropertyBoolean("generate-structures", true);
     }
 
     public int getGamemode() {
@@ -1219,10 +1125,6 @@ public class Server {
             getAllowFlight = this.getPropertyBoolean("allow-flight", false);
         }
         return getAllowFlight;
-    }
-
-    public boolean isHardcore() {
-        return this.getPropertyBoolean("hardcore", false);
     }
 
     public int getDefaultGamemode() {
@@ -1387,14 +1289,6 @@ public class Server {
         return nbt;
     }
 
-    public void saveOfflinePlayerData(UUID uuid, CompoundTag tag) {
-        this.saveOfflinePlayerData(uuid, tag, false);
-    }
-
-    public void saveOfflinePlayerData(String name, CompoundTag tag) {
-        this.saveOfflinePlayerData(name, tag, false);
-    }
-
     public void saveOfflinePlayerData(UUID uuid, CompoundTag tag, boolean async) {
         this.saveOfflinePlayerData(uuid.toString(), tag, async);
     }
@@ -1487,20 +1381,6 @@ public class Server {
                 log.warn("Unable to delete legacy data for {}", name);
             }
         }
-    }
-
-    public Player[] matchPlayer(String partialName) {
-        partialName = partialName.toLowerCase();
-        List<Player> matchedPlayer = new ArrayList<>();
-        for (var player: playerManager.getPlayers()) {
-            if (player.getName().toLowerCase().equals(partialName)) {
-                return new Player[]{player};
-            } else if (player.getName().toLowerCase().contains(partialName)) {
-                matchedPlayer.add(player);
-            }
-        }
-
-        return matchedPlayer.toArray(new Player[0]);
     }
 
     public Map<Integer, Level> getLevels() {
@@ -1656,36 +1536,6 @@ public class Server {
         this.getPluginManager().callEvent(new LevelInitEvent(level));
 
         this.getPluginManager().callEvent(new LevelLoadEvent(level));
-
-        /*this.getLogger().notice(this.getLanguage().translateString("nukkit.level.backgroundGeneration", name));
-
-        int centerX = (int) level.getSpawnLocation().getX() >> 4;
-        int centerZ = (int) level.getSpawnLocation().getZ() >> 4;
-
-        TreeMap<String, Integer> order = new TreeMap<>();
-
-        for (int X = -3; X <= 3; ++X) {
-            for (int Z = -3; Z <= 3; ++Z) {
-                int distance = X * X + Z * Z;
-                int chunkX = X + centerX;
-                int chunkZ = Z + centerZ;
-                order.put(Level.chunkHash(chunkX, chunkZ), distance);
-            }
-        }
-
-        List<Map.Entry<String, Integer>> sortList = new ArrayList<>(order.entrySet());
-
-        Collections.sort(sortList, new Comparator<Map.Entry<String, Integer>>() {
-            @Override
-            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                return o2.getValue() - o1.getValue();
-            }
-        });
-
-        for (String index : order.keySet()) {
-            Chunk.Entry entry = Level.getChunkXZ(index);
-            level.populateChunk(entry.chunkX, entry.chunkZ, true);
-        }*/
         return true;
     }
 
@@ -1761,10 +1611,6 @@ public class Server {
         return this.properties.exists(key) ? this.properties.get(key).toString() : defaultValue;
     }
 
-    public int getPropertyInt(String variable) {
-        return this.getPropertyInt(variable, null);
-    }
-
     public int getPropertyInt(String variable, Integer defaultValue) {
         return this.properties.exists(variable) ? (!this.properties.get(variable).equals("") ? Integer.parseInt(String.valueOf(this.properties.get(variable))) : defaultValue) : defaultValue;
     }
@@ -1791,11 +1637,6 @@ public class Server {
                 return true;
         }
         return false;
-    }
-
-    public void setPropertyBoolean(String variable, boolean value) {
-        this.properties.set(variable, value ? "1" : "0");
-        this.properties.save();
     }
 
     public ServiceManager getServiceManager() {

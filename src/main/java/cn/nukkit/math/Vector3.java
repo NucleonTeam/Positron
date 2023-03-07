@@ -2,7 +2,6 @@ package cn.nukkit.math;
 
 import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
-import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.math.BlockFace;
 
@@ -106,28 +105,12 @@ public class Vector3 implements Cloneable {
         return new Vector3(this.x + x.getX(), this.y + x.getY(), this.z + x.getZ());
     }
 
-    public Vector3 subtract(double x, double y, double z) {
-        return this.add(-x, -y, -z);
-    }
-
     public Vector3 divide(double number) {
         return new Vector3(this.x / number, this.y / number, this.z / number);
     }
 
     public Vector3 floor() {
         return new Vector3(this.getFloorX(), this.getFloorY(), this.getFloorZ());
-    }
-
-    public Vector3 round() {
-        return new Vector3(Math.round(this.x), Math.round(this.y), Math.round(this.z));
-    }
-
-    public Vector3 abs() {
-        return new Vector3((int) Math.abs(this.x), (int) Math.abs(this.y), (int) Math.abs(this.z));
-    }
-
-    public Vector3 getSide(BlockFace face) {
-        return this.getSide(face, 1);
     }
 
     public Vector3 getSide(BlockFace face, int step) {
@@ -197,14 +180,6 @@ public class Vector3 implements Cloneable {
 
     public double lengthSquared() {
         return this.x * this.x + this.y * this.y + this.z * this.z;
-    }
-
-    public Vector3 normalize() {
-        double len = this.lengthSquared();
-        if (len > 0) {
-            return this.divide(Math.sqrt(len));
-        }
-        return new Vector3(0, 0, 0);
     }
 
     /**
