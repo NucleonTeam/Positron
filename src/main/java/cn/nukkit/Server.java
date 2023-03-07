@@ -19,8 +19,6 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.lang.BaseLang;
-import cn.nukkit.lang.TextContainer;
-import cn.nukkit.level.EnumLevel;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.biome.EnumBiome;
@@ -90,8 +88,6 @@ import java.util.regex.Pattern;
 @Log4j2
 public class Server {
 
-    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "nukkit.broadcast.admin";
-    public static final String BROADCAST_CHANNEL_USERS = "nukkit.broadcast.user";
     private static final long START_TIME = System.currentTimeMillis();
     public static int DEBUG_LEVEL = 1;
     private static Server instance = null;
@@ -110,36 +106,30 @@ public class Server {
     private final ConsoleThread consoleThread;
     private final CraftingManager craftingManager;
     private final ResourcePackManager resourcePackManager;
-    private int maxPlayers;
+    private final int maxPlayers;
     private boolean autoSave = true;
     private final EntityMetadataStore entityMetadata;
     private final PlayerMetadataStore playerMetadata;
     private final LevelMetadataStore levelMetadata;
     private final Network network;
-    private boolean networkCompressionAsync = true;
-    public int networkCompressionLevel = 7;
-    private boolean autoTickRate = true;
-    private int autoTickRateLimit = 20;
-    private boolean alwaysTickPlayers = false;
-    private int baseTickRate = 1;
+    private final boolean networkCompressionAsync;
+    public int networkCompressionLevel;
+    private final boolean autoTickRate;
+    private final int autoTickRateLimit;
+    private final boolean alwaysTickPlayers;
+    private final int baseTickRate;
     private Boolean getAllowFlight = null;
     private int difficulty = Integer.MAX_VALUE;
     private int defaultGamemode = Integer.MAX_VALUE;
     private int autoSaveTicker = 0;
     private int autoSaveTicks = 6000;
     private final BaseLang baseLang;
-    private boolean forceLanguage = false;
-    private final UUID serverID;
-    private final String filePath;
+    private final boolean forceLanguage;
     private final String dataPath;
-    private final String pluginPath;
     private QueryHandler queryHandler;
     private QueryRegenerateEvent queryRegenerateEvent;
     private final Config properties;
     private final Config config;
-
-    @Getter private final PlayerManager playerManager = new PositronPlayerManager(this);
-
     private final Map<Integer, Level> levels = new HashMap<>() {
         public Level put(Integer key, Level value) {
             Level result = super.put(key, value);
@@ -159,24 +149,16 @@ public class Server {
             return result;
         }
     };
-
     private Level[] levelArray = new Level[0];
-
     private final ServiceManager serviceManager = new NKServiceManager();
-
     private Level defaultLevel = null;
-
-    private boolean allowNether;
-
     private final Thread currentThread;
-
     private Watchdog watchdog;
-
-    private DB nameLookup;
-
-    private PlayerDataSerializer playerDataSerializer;
-
+    private final DB nameLookup;
+    private final PlayerDataSerializer playerDataSerializer;
     private final Set<String> ignoredPackets = new HashSet<>();
+
+    @Getter private final PlayerManager playerManager = new PositronPlayerManager(this);
 
     public static Server init() {
         var path = System.getProperty("user.dir") + "/";
@@ -193,7 +175,6 @@ public class Server {
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
         instance = this;
 
-        this.filePath = filePath;
         if (!new File(dataPath + "worlds/").exists()) {
             new File(dataPath + "worlds/").mkdirs();
         }
@@ -207,7 +188,7 @@ public class Server {
         }
 
         this.dataPath = new File(dataPath).getAbsolutePath() + "/";
-        this.pluginPath = new File(pluginPath).getAbsolutePath() + "/";
+        String pluginPath1 = new File(pluginPath).getAbsolutePath() + "/";
 
         this.console = new NukkitConsole(this);
         this.consoleThread = new ConsoleThread();
@@ -319,9 +300,6 @@ public class Server {
             }
         });
 
-        // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
-        this.allowNether = this.properties.getBoolean("allow-nether", true);
-
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.baseLang = new BaseLang(this.getConfig("settings.language", BaseLang.FALLBACK_LANGUAGE));
         log.info(this.getLanguage().translateString("language.selected", new String[]{getLanguage().getName(), getLanguage().getLang()}));
@@ -362,16 +340,7 @@ public class Server {
             this.setPropertyInt("difficulty", 3);
         }
 
-        boolean bugReport;
-        if (this.getConfig().exists("settings.bug-report")) {
-            bugReport = this.getConfig().getBoolean("settings.bug-report");
-            this.getProperties().remove("bug-report");
-        } else {
-            bugReport = this.getPropertyBoolean("bug-report", true); //backwards compat
-        }
-
         log.info(this.getLanguage().translateString("nukkit.server.networkStart", new String[]{this.getIp().equals("") ? "*" : this.getIp(), String.valueOf(this.getPort())}));
-        this.serverID = UUID.randomUUID();
 
         this.network = new Network(this);
         this.network.setName(this.getMotd());
@@ -413,7 +382,7 @@ public class Server {
 
         this.network.registerInterface(new RakNetInterface(this));
 
-        this.pluginManager.loadPlugins(this.pluginPath);
+        this.pluginManager.loadPlugins(pluginPath1);
 
         this.enablePlugins(PluginLoadOrder.STARTUP);
 
@@ -480,8 +449,6 @@ public class Server {
 
             return;
         }
-
-        EnumLevel.initLevels();
 
         if (this.getConfig("ticks-per.autosave", 6000) > 0) {
             this.autoSaveTicks = this.getConfig("ticks-per.autosave", 6000);
@@ -759,13 +726,6 @@ public class Server {
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, Skin skin, String xboxUserId, Collection<Player> players) {
         this.updatePlayerListData(uuid, entityId, name, skin, xboxUserId, players.toArray(new Player[0]));
-    }
-
-    public void removePlayerListData(UUID uuid, Player[] players) {
-        PlayerListPacket pk = new PlayerListPacket();
-        pk.type = PlayerListPacket.TYPE_REMOVE;
-        pk.entries = new PlayerListPacket.Entry[]{new PlayerListPacket.Entry(uuid)};
-        Server.broadcastPacket(players, pk);
     }
 
     public void removePlayerListData(UUID uuid, Player player) {
@@ -1691,10 +1651,6 @@ public class Server {
 
     private void registerBlockEntities() {
 
-    }
-
-    public boolean isNetherAllowed() {
-        return this.allowNether;
     }
 
     public boolean isIgnoredPacket(Class<? extends DataPacket> clazz) {
