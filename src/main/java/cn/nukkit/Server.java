@@ -1076,10 +1076,6 @@ public class Server {
         this.setPropertyInt("difficulty", value);
     }
 
-    public boolean hasWhitelist() {
-        return this.getPropertyBoolean("white-list", false);
-    }
-
     public boolean getAllowFlight() {
         if (getAllowFlight == null) {
             getAllowFlight = this.getPropertyBoolean("allow-flight", false);

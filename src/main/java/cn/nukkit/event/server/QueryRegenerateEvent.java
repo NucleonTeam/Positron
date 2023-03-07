@@ -61,7 +61,7 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.map = server.getDefaultLevel() == null ? "unknown" : server.getDefaultLevel().getName();
         this.numPlayers = this.players.length;
         this.maxPlayers = server.getMaxPlayers();
-        this.whitelist = server.hasWhitelist() ? "on" : "off";
+        this.whitelist = "off";
         this.port = server.getPort();
         this.ip = server.getIp();
     }
