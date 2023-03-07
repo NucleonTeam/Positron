@@ -56,16 +56,16 @@ public abstract class EntityLiving extends Entity {
     protected void initEntity() {
         super.initEntity();
 
-        if (this.namedTag.contains("HealF")) {
-            this.namedTag.putFloat("Health", this.namedTag.getShort("HealF"));
-            this.namedTag.remove("HealF");
+        if (getNbt().contains("HealF")) {
+            getNbt().putFloat("Health", getNbt().getShort("HealF"));
+            getNbt().remove("HealF");
         }
 
-        if (!this.namedTag.contains("Health") || !(this.namedTag.get("Health") instanceof FloatTag)) {
-            this.namedTag.putFloat("Health", this.getMaxHealth());
+        if (!getNbt().contains("Health") || !(getNbt().get("Health") instanceof FloatTag)) {
+            getNbt().putFloat("Health", this.getMaxHealth());
         }
 
-        this.health = this.namedTag.getFloat("Health");
+        this.health = getNbt().getFloat("Health");
     }
 
     @Override
@@ -83,7 +83,7 @@ public abstract class EntityLiving extends Entity {
     @Override
     public void saveNBT() {
         super.saveNBT();
-        this.namedTag.putFloat("Health", this.getHealth());
+        getNbt().putFloat("Health", this.getHealth());
     }
 
     public boolean hasLineOfSight(Entity entity) {

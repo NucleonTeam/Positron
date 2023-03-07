@@ -63,16 +63,16 @@ public class EntityFallingBlock extends Entity {
     protected void initEntity() {
         super.initEntity();
 
-        if (namedTag != null) {
-            if (namedTag.contains("TileID")) {
-                blockId = namedTag.getInt("TileID");
-            } else if (namedTag.contains("Tile")) {
-                blockId = namedTag.getInt("Tile");
-                namedTag.putInt("TileID", blockId);
+        if (getNbt() != null) {
+            if (getNbt().contains("TileID")) {
+                blockId = getNbt().getInt("TileID");
+            } else if (getNbt().contains("Tile")) {
+                blockId = getNbt().getInt("Tile");
+                getNbt().putInt("TileID", blockId);
             }
 
-            if (namedTag.contains("Data")) {
-                damage = namedTag.getByte("Data");
+            if (getNbt().contains("Data")) {
+                damage = getNbt().getByte("Data");
             }
         }
 
@@ -148,8 +148,8 @@ public class EntityFallingBlock extends Entity {
 
     @Override
     public void saveNBT() {
-        namedTag.putInt("TileID", blockId);
-        namedTag.putByte("Data", damage);
+        getNbt().putInt("TileID", blockId);
+        getNbt().putByte("Data", damage);
     }
 
     @Override

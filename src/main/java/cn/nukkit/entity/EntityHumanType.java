@@ -52,8 +52,8 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
         this.inventory = new PlayerInventory(this);
         this.offhandInventory = new PlayerOffhandInventory(this);
 
-        if (this.namedTag.contains("Inventory") && this.namedTag.get("Inventory") instanceof ListTag) {
-            ListTag<CompoundTag> inventoryList = this.namedTag.getList("Inventory", CompoundTag.class);
+        if (getNbt().contains("Inventory") && getNbt().get("Inventory") instanceof ListTag) {
+            ListTag<CompoundTag> inventoryList = getNbt().getList("Inventory", CompoundTag.class);
             for (CompoundTag item : inventoryList.getAll()) {
                 int slot = item.getByte("Slot");
                 if (slot >= 0 && slot < 9) { //hotbar
@@ -71,8 +71,8 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
 
         this.enderChestInventory = new PlayerEnderChestInventory(this);
 
-        if (this.namedTag.contains("EnderItems") && this.namedTag.get("EnderItems") instanceof ListTag) {
-            ListTag<CompoundTag> inventoryList = this.namedTag.getList("EnderItems", CompoundTag.class);
+        if (getNbt().contains("EnderItems") && getNbt().get("EnderItems") instanceof ListTag) {
+            ListTag<CompoundTag> inventoryList = getNbt().getList("EnderItems", CompoundTag.class);
             for (CompoundTag item : inventoryList.getAll()) {
                 this.enderChestInventory.setItem(item.getByte("Slot"), NBTIO.getItemHelper(item));
             }
@@ -88,7 +88,7 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
         ListTag<CompoundTag> inventoryTag = null;
         if (this.inventory != null) {
             inventoryTag = new ListTag<>("Inventory");
-            this.namedTag.putList(inventoryTag);
+            getNbt().putList(inventoryTag);
 
             for (int slot = 0; slot < 9; ++slot) {
                 inventoryTag.add(new CompoundTag()
@@ -119,18 +119,18 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
             if (item.getId() != Item.AIR) {
                 if (inventoryTag == null) {
                     inventoryTag = new ListTag<>("Inventory");
-                    this.namedTag.putList(inventoryTag);
+                    getNbt().putList(inventoryTag);
                 }
                 inventoryTag.add(NBTIO.putItemHelper(item, -106));
             }
         }
 
-        this.namedTag.putList(new ListTag<CompoundTag>("EnderItems"));
+        getNbt().putList(new ListTag<CompoundTag>("EnderItems"));
         if (this.enderChestInventory != null) {
             for (int slot = 0; slot < 27; ++slot) {
                 Item item = this.enderChestInventory.getItem(slot);
                 if (item != null && item.getId() != Item.AIR) {
-                    this.namedTag.getList("EnderItems", CompoundTag.class).add(NBTIO.putItemHelper(item, slot));
+                    getNbt().getList("EnderItems", CompoundTag.class).add(NBTIO.putItemHelper(item, slot));
                 }
             }
         }

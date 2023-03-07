@@ -99,12 +99,12 @@ public class EntityHuman extends EntityHumanType {
         this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO), false);
 
         if (!(this instanceof Player)) {
-            if (this.namedTag.contains("NameTag")) {
-                this.setNameTag(this.namedTag.getString("NameTag"));
+            if (getNbt().contains("NameTag")) {
+                this.setNameTag(getNbt().getString("NameTag"));
             }
 
-            if (this.namedTag.contains("Skin") && this.namedTag.get("Skin") instanceof CompoundTag) {
-                CompoundTag skinTag = this.namedTag.getCompound("Skin");
+            if (getNbt().contains("Skin") && getNbt().get("Skin") instanceof CompoundTag) {
+                CompoundTag skinTag = getNbt().getCompound("Skin");
                 if (!skinTag.contains("Transparent")) {
                     skinTag.putBoolean("Transparent", false);
                 }
@@ -286,7 +286,7 @@ public class EntityHuman extends EntityHumanType {
                 skinTag.putString("PlayFabId", this.getSkin().getPlayFabId());
             }
 
-            this.namedTag.putCompound("Skin", skinTag);
+            getNbt().putCompound("Skin", skinTag);
         }
     }
 

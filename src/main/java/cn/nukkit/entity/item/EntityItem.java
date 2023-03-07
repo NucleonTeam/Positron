@@ -78,30 +78,30 @@ public class EntityItem extends Entity {
         super.initEntity();
 
         this.setMaxHealth(5);
-        this.setHealth(this.namedTag.getShort("Health"));
+        this.setHealth(getNbt().getShort("Health"));
 
-        if (this.namedTag.contains("Age")) {
-            this.age = this.namedTag.getShort("Age");
+        if (getNbt().contains("Age")) {
+            this.age = getNbt().getShort("Age");
         }
 
-        if (this.namedTag.contains("PickupDelay")) {
-            this.pickupDelay = this.namedTag.getShort("PickupDelay");
+        if (getNbt().contains("PickupDelay")) {
+            this.pickupDelay = getNbt().getShort("PickupDelay");
         }
 
-        if (this.namedTag.contains("Owner")) {
-            this.owner = this.namedTag.getString("Owner");
+        if (getNbt().contains("Owner")) {
+            this.owner = getNbt().getString("Owner");
         }
 
-        if (this.namedTag.contains("Thrower")) {
-            this.thrower = this.namedTag.getString("Thrower");
+        if (getNbt().contains("Thrower")) {
+            this.thrower = getNbt().getString("Thrower");
         }
 
-        if (!this.namedTag.contains("Item")) {
+        if (!getNbt().contains("Item")) {
             this.close();
             return;
         }
 
-        this.item = NBTIO.getItemHelper(this.namedTag.getCompound("Item"));
+        this.item = NBTIO.getItemHelper(getNbt().getCompound("Item"));
         this.setDataFlag(DATA_FLAGS, EntityFlags.GRAVITY, true);
 
         int id = this.item.getId();
@@ -239,13 +239,13 @@ public class EntityItem extends Entity {
     public void saveNBT() {
         super.saveNBT();
         if (item != null) { // Yes, a item can be null... I don't know what causes this, but it can happen.
-            namedTag.putCompound("Item", NBTIO.putItemHelper(item, -1));
-            namedTag.putShort("Health", (int) getHealth());
-            namedTag.putShort("Age", age);
-            namedTag.putShort("PickupDelay", pickupDelay);
+            getNbt().putCompound("Item", NBTIO.putItemHelper(item, -1));
+            getNbt().putShort("Health", (int) getHealth());
+            getNbt().putShort("Age", age);
+            getNbt().putShort("PickupDelay", pickupDelay);
 
-            if (owner != null) namedTag.putString("Owner", owner);
-            if (thrower != null) namedTag.putString("Thrower", thrower);
+            if (owner != null) getNbt().putString("Owner", owner);
+            if (thrower != null) getNbt().putString("Thrower", thrower);
         }
     }
 

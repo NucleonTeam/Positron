@@ -20,7 +20,7 @@ public abstract class EntityProjectile extends Entity {
     public Entity shootingEntity;
 
     protected double getDamage() {
-        return namedTag.contains("damage") ? namedTag.getDouble("damage") : getBaseDamage();
+        return getNbt().contains("damage") ? getNbt().getDouble("damage") : getBaseDamage();
     }
 
     protected double getBaseDamage() {
@@ -89,8 +89,8 @@ public abstract class EntityProjectile extends Entity {
 
         this.setMaxHealth(1);
         this.setHealth(1);
-        if (this.namedTag.contains("Age")) {
-            this.age = this.namedTag.getShort("Age");
+        if (getNbt().contains("Age")) {
+            this.age = getNbt().getShort("Age");
         }
     }
 
@@ -102,7 +102,7 @@ public abstract class EntityProjectile extends Entity {
     @Override
     public void saveNBT() {
         super.saveNBT();
-        this.namedTag.putShort("Age", this.age);
+        getNbt().putShort("Age", this.age);
     }
 
     @Override

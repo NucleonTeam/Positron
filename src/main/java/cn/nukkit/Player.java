@@ -946,7 +946,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.spawnToAll();
         }
 
-        this.namedTag.putInt("playerGameType", this.gamemode);
+        getNbt().putInt("playerGameType", this.gamemode);
 
         if (!clientSide) {
             SetPlayerGameTypePacket pk = new SetPlayerGameTypePacket();
@@ -1444,7 +1444,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         CompoundTag nbt;
         if (oldPlayer != null) {
             oldPlayer.saveNBT();
-            nbt = oldPlayer.namedTag;
+            nbt = oldPlayer.getNbt();
             oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
         } else {
             File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
@@ -1533,14 +1533,14 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         super.init(world.getChunk((int) posList.get(0).data >> 4, (int) posList.get(2).data >> 4, true), nbt);
 
-        if (!this.namedTag.contains("foodLevel")) {
-            this.namedTag.putInt("foodLevel", 20);
+        if (!getNbt().contains("foodLevel")) {
+            getNbt().putInt("foodLevel", 20);
         }
-        int foodLevel = this.namedTag.getInt("foodLevel");
-        if (!this.namedTag.contains("foodSaturationLevel")) {
-            this.namedTag.putFloat("foodSaturationLevel", 20);
+        int foodLevel = getNbt().getInt("foodLevel");
+        if (!getNbt().contains("foodSaturationLevel")) {
+            getNbt().putFloat("foodSaturationLevel", 20);
         }
-        float foodSaturationLevel = this.namedTag.getFloat("foodSaturationLevel");
+        float foodSaturationLevel = getNbt().getFloat("foodSaturationLevel");
         this.foodData = new PlayerFood(this, foodLevel, foodSaturationLevel);
 
         if (this.isSpectator()) {
@@ -1550,10 +1550,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         this.forceMovement = this.teleportPosition = this.getPosition();
 
-        if (!this.namedTag.contains("TimeSinceRest")) {
-            this.namedTag.putInt("TimeSinceRest", 0);
+        if (!getNbt().contains("TimeSinceRest")) {
+            getNbt().putInt("TimeSinceRest", 0);
         }
-        this.timeSinceRest = this.namedTag.getInt("TimeSinceRest");
+        this.timeSinceRest = getNbt().getInt("TimeSinceRest");
 
         ResourcePacksInfoPacket infoPacket = new ResourcePacksInfoPacket();
         infoPacket.resourcePackEntries = this.server.getResourcePackManager().getResourceStack();
