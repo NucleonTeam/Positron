@@ -29,6 +29,7 @@ import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3f;
 import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.*;
@@ -49,136 +50,6 @@ public abstract class Entity implements Metadatable {
 
     public abstract int getNetworkId();
 
-    public static final int DATA_FLAGS = 0;
-    public static final int DATA_HEALTH = 1; //int (minecart/boat)
-    public static final int DATA_VARIANT = 2; //int
-    public static final int DATA_COLOR = 3, DATA_COLOUR = 3; //byte
-    public static final int DATA_NAMETAG = 4; //string
-    public static final int DATA_OWNER_EID = 5; //long
-    public static final int DATA_TARGET_EID = 6; //long
-    public static final int DATA_AIR = 7; //short
-    public static final int DATA_POTION_COLOR = 8; //int (ARGB!)
-    public static final int DATA_POTION_AMBIENT = 9; //byte
-    public static final int DATA_JUMP_DURATION = 10; //long
-    public static final int DATA_HURT_TIME = 11; //int (minecart/boat)
-    public static final int DATA_HURT_DIRECTION = 12; //int (minecart/boat)
-    public static final int DATA_PADDLE_TIME_LEFT = 13; //float
-    public static final int DATA_PADDLE_TIME_RIGHT = 14; //float
-    public static final int DATA_EXPERIENCE_VALUE = 15; //int (xp orb)
-    public static final int DATA_DISPLAY_ITEM = 16; //int (id | (data << 16))
-    public static final int DATA_DISPLAY_OFFSET = 17; //int
-    public static final int DATA_HAS_DISPLAY = 18; //byte (must be 1 for minecart to show block inside)
-    public static final int DATA_SWELL = 19;
-    public static final int DATA_OLD_SWELL = 20;
-    public static final int DATA_SWELL_DIR = 21;
-    public static final int DATA_CHARGE_AMOUNT = 22;
-    public static final int DATA_ENDERMAN_HELD_RUNTIME_ID = 23; //short
-    public static final int DATA_ENTITY_AGE = 24; //short
-    public static final int DATA_PLAYER_FLAGS = 26; //byte
-    public static final int DATA_PLAYER_INDEX = 27;
-    public static final int DATA_PLAYER_BED_POSITION = 28; //block coords
-    public static final int DATA_FIREBALL_POWER_X = 29; //float
-    public static final int DATA_FIREBALL_POWER_Y = 30;
-    public static final int DATA_FIREBALL_POWER_Z = 31;
-    public static final int DATA_AUX_POWER = 32;
-    public static final int DATA_FISH_X = 33;
-    public static final int DATA_FISH_Z = 34;
-    public static final int DATA_FISH_ANGLE = 35;
-    public static final int DATA_POTION_AUX_VALUE = 36; //short
-    public static final int DATA_LEAD_HOLDER_EID = 37; //long
-    public static final int DATA_SCALE = 38; //float
-    public static final int DATA_HAS_NPC_COMPONENT = 39; //byte
-    public static final int DATA_NPC_SKIN_ID = 40; //string
-    public static final int DATA_URL_TAG = 41; //string
-    public static final int DATA_MAX_AIR = 42; //short
-    public static final int DATA_MARK_VARIANT = 43; //int
-    public static final int DATA_CONTAINER_TYPE = 44; //byte
-    public static final int DATA_CONTAINER_BASE_SIZE = 45; //int
-    public static final int DATA_CONTAINER_EXTRA_SLOTS_PER_STRENGTH = 46; //int
-    public static final int DATA_BLOCK_TARGET = 47; //block coords (ender crystal)
-    public static final int DATA_WITHER_INVULNERABLE_TICKS = 48; //int
-    public static final int DATA_WITHER_TARGET_1 = 49; //long
-    public static final int DATA_WITHER_TARGET_2 = 50; //long
-    public static final int DATA_WITHER_TARGET_3 = 51; //long
-    public static final int DATA_AERIAL_ATTACK = 52;
-    public static final int DATA_BOUNDING_BOX_WIDTH = 53; //float
-    public static final int DATA_BOUNDING_BOX_HEIGHT = 54; //float
-    public static final int DATA_FUSE_LENGTH = 55; //int
-    public static final int DATA_RIDER_SEAT_POSITION = 56; //vector3f
-    public static final int DATA_RIDER_ROTATION_LOCKED = 57; //byte
-    public static final int DATA_RIDER_MAX_ROTATION = 58; //float
-    public static final int DATA_RIDER_MIN_ROTATION = 59; //float
-    public static final int DATA_RIDER_ROTATION_OFFSET = 60;
-    public static final int DATA_AREA_EFFECT_CLOUD_RADIUS = 61; //float
-    public static final int DATA_AREA_EFFECT_CLOUD_WAITING = 62; //int
-    public static final int DATA_AREA_EFFECT_CLOUD_PARTICLE_ID = 63; //int
-    public static final int DATA_SHULKER_PEEK_ID = 64; //int
-    public static final int DATA_SHULKER_ATTACH_FACE = 65; //byte
-    public static final int DATA_SHULKER_ATTACHED = 66; //short
-    public static final int DATA_SHULKER_ATTACH_POS = 67; //block coords
-    public static final int DATA_TRADING_PLAYER_EID = 68; //long
-    public static final int DATA_TRADING_CAREER = 69;
-    public static final int DATA_HAS_COMMAND_BLOCK = 70;
-    public static final int DATA_COMMAND_BLOCK_COMMAND = 71; //string
-    public static final int DATA_COMMAND_BLOCK_LAST_OUTPUT = 72; //string
-    public static final int DATA_COMMAND_BLOCK_TRACK_OUTPUT = 73; //byte
-    public static final int DATA_CONTROLLING_RIDER_SEAT_NUMBER = 74; //byte
-    public static final int DATA_STRENGTH = 75; //int
-    public static final int DATA_MAX_STRENGTH = 76; //int
-    public static final int DATA_SPELL_CASTING_COLOR = 77; //int
-    public static final int DATA_LIMITED_LIFE = 78;
-    public static final int DATA_ARMOR_STAND_POSE_INDEX = 79; // int
-    public static final int DATA_ENDER_CRYSTAL_TIME_OFFSET = 80; // int
-    public static final int DATA_ALWAYS_SHOW_NAMETAG = 81; // byte
-    public static final int DATA_COLOR_2 = 82; // byte
-    public static final int DATA_NAME_AUTHOR = 83;
-    public static final int DATA_SCORE_TAG = 84; // String
-    public static final int DATA_BALLOON_ATTACHED_ENTITY = 85; // long
-    public static final int DATA_PUFFERFISH_SIZE = 86;
-    public static final int DATA_BUBBLE_TIME = 87;
-    public static final int DATA_AGENT = 88;
-    public static final int DATA_SITTING_AMOUNT = 89;
-    public static final int DATA_SITTING_AMOUNT_PREVIOUS = 90;
-    public static final int DATA_EATING_COUNTER = 91;
-    public static final int DATA_FLAGS_EXTENDED = 92;
-    public static final int DATA_LAYING_AMOUNT = 93;
-    public static final int DATA_LAYING_AMOUNT_PREVIOUS = 94;
-    public static final int DATA_DURATION = 95;
-    public static final int DATA_SPAWN_TIME = 96;
-    public static final int DATA_CHANGE_RATE = 97;
-    public static final int DATA_CHANGE_ON_PICKUP = 98;
-    public static final int DATA_PICKUP_COUNT = 99;
-    public static final int DATA_INTERACTIVE_TAG = 100; //string (button text)
-    public static final int DATA_TRADE_TIER = 101;
-    public static final int DATA_MAX_TRADE_TIER = 102;
-    public static final int DATA_TRADE_EXPERIENCE = 103;
-    public static final int DATA_SKIN_ID = 104; // int ???
-    public static final int DATA_SPAWNING_FRAMES = 105;
-    public static final int DATA_COMMAND_BLOCK_TICK_DELAY = 106;
-    public static final int DATA_COMMAND_BLOCK_EXECUTE_ON_FIRST_TICK = 107;
-    public static final int DATA_AMBIENT_SOUND_INTERVAL = 108;
-    public static final int DATA_AMBIENT_SOUND_INTERVAL_RANGE = 109;
-    public static final int DATA_AMBIENT_SOUND_EVENT_NAME = 110;
-    public static final int DATA_FALL_DAMAGE_MULTIPLIER = 111;
-    public static final int DATA_NAME_RAW_TEXT = 112;
-    public static final int DATA_CAN_RIDE_TARGET = 113;
-    public static final int DATA_LOW_TIER_CURED_DISCOUNT = 114;
-    public static final int DATA_HIGH_TIER_CURED_DISCOUNT = 115;
-    public static final int DATA_NEARBY_CURED_DISCOUNT = 116;
-    public static final int DATA_NEARBY_CURED_DISCOUNT_TIMESTAMP = 117;
-    public static final int DATA_HITBOX = 118;
-    public static final int DATA_IS_BUOYANT = 119;
-    public static final int DATA_FREEZING_EFFECT_STRENGTH = 120;
-    public static final int DATA_BUOYANCY_DATA = 121;
-    public static final int DATA_GOAT_HORN_COUNT = 122;
-    public static final int DATA_BASE_RUNTIME_ID = 123;
-    public static final int DATA_MOVEMENT_SOUND_DISTANCE_OFFSET = 124;
-    public static final int DATA_HEARTBEAT_INTERVAL_TICKS = 125;
-    public static final int DATA_HEARTBEAT_SOUND_EVENT = 126;
-    public static final int DATA_PLAYER_LAST_DEATH_POS = 127;
-    public static final int DATA_PLAYER_LAST_DEATH_DIMENSION = 128;
-    public static final int DATA_PLAYER_HAS_DIED = 129;
-
     @Getter private final long id = Entities.getFreeEntityId();
 
     private static final Map<String, Class<? extends Entity>> knownEntities = new HashMap<>();
@@ -192,13 +63,13 @@ public abstract class Entity implements Metadatable {
     protected EntityDamageEvent lastDamageCause = null;
 
     protected final EntityMetadata dataProperties = new EntityMetadata()
-            .putLong(DATA_FLAGS, 0)
-            .putByte(DATA_COLOR, 0)
-            .putShort(DATA_AIR, 400)
-            .putShort(DATA_MAX_AIR, 400)
-            .putString(DATA_NAMETAG, "")
-            .putLong(DATA_LEAD_HOLDER_EID, -1)
-            .putFloat(DATA_SCALE, 1f);
+            .putLong(EntityDataKeys.FLAGS, 0)
+            .putByte(EntityDataKeys.COLOR, 0)
+            .putShort(EntityDataKeys.AIR, 400)
+            .putShort(EntityDataKeys.MAX_AIR, 400)
+            .putString(EntityDataKeys.NAMETAG, "")
+            .putLong(EntityDataKeys.LEAD_HOLDER_EID, -1)
+            .putFloat(EntityDataKeys.SCALE, 1f);
 
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlocks = new ArrayList<>();
@@ -327,10 +198,10 @@ public abstract class Entity implements Metadatable {
             }
         }
 
-        this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, true);
-        this.dataProperties.putFloat(DATA_BOUNDING_BOX_HEIGHT, this.getHeight());
-        this.dataProperties.putFloat(DATA_BOUNDING_BOX_WIDTH, this.getWidth());
-        this.dataProperties.putInt(DATA_HEALTH, (int) this.getHealth());
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.HAS_COLLISION, true);
+        this.dataProperties.putFloat(EntityDataKeys.BOUNDING_BOX_HEIGHT, this.getHeight());
+        this.dataProperties.putFloat(EntityDataKeys.BOUNDING_BOX_WIDTH, this.getWidth());
+        this.dataProperties.putInt(EntityDataKeys.HEALTH, (int) this.getHealth());
 
         this.scheduleUpdate();
     }
@@ -386,7 +257,7 @@ public abstract class Entity implements Metadatable {
         if (!this.nbt.contains("Air")) {
             this.nbt.putShort("Air", 300);
         }
-        this.setDataProperty(new ShortEntityData(DATA_AIR, this.nbt.getShort("Air")), false);
+        this.setDataProperty(new ShortEntityData(EntityDataKeys.AIR, this.nbt.getShort("Air")), false);
 
         if (!this.nbt.contains("OnGround")) {
             this.nbt.putBoolean("OnGround", false);
@@ -402,7 +273,7 @@ public abstract class Entity implements Metadatable {
             this.nbt.putFloat("Scale", 1);
         }
         this.scale = this.nbt.getFloat("Scale");
-        this.setDataProperty(new FloatEntityData(DATA_SCALE, scale), false);
+        this.setDataProperty(new FloatEntityData(EntityDataKeys.SCALE, scale), false);
 
         this.chunk.addEntity(this);
         this.world.addEntity(this);
@@ -420,19 +291,19 @@ public abstract class Entity implements Metadatable {
     }
 
     public String getNameTag() {
-        return this.getDataProperties().getString(DATA_NAMETAG);
+        return this.getDataProperties().getString(EntityDataKeys.NAMETAG);
     }
 
     public boolean isNameTagVisible() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.CAN_SHOW_NAMETAG);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.CAN_SHOW_NAMETAG);
     }
 
     public boolean isNameTagAlwaysVisible() {
-        return this.getDataProperties().getByte(DATA_ALWAYS_SHOW_NAMETAG) == 1;
+        return this.getDataProperties().getByte(EntityDataKeys.ALWAYS_SHOW_NAMETAG) == 1;
     }
 
     public void setNameTag(String name) {
-        this.setDataProperty(new StringEntityData(DATA_NAMETAG, name));
+        this.setDataProperty(new StringEntityData(EntityDataKeys.NAMETAG, name));
     }
 
     public void setNameTagVisible() {
@@ -440,7 +311,7 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setNameTagVisible(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.CAN_SHOW_NAMETAG, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.CAN_SHOW_NAMETAG, value);
     }
 
     public void setNameTagAlwaysVisible() {
@@ -448,19 +319,19 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setNameTagAlwaysVisible(boolean value) {
-        this.setDataProperty(new ByteEntityData(DATA_ALWAYS_SHOW_NAMETAG, value ? 1 : 0));
+        this.setDataProperty(new ByteEntityData(EntityDataKeys.ALWAYS_SHOW_NAMETAG, value ? 1 : 0));
     }
 
     public void setScoreTag(String score) {
-        this.setDataProperty(new StringEntityData(DATA_SCORE_TAG, score));
+        this.setDataProperty(new StringEntityData(EntityDataKeys.SCORE_TAG, score));
     }
 
     public String getScoreTag() {
-        return this.getDataProperties().getString(DATA_SCORE_TAG);
+        return this.getDataProperties().getString(EntityDataKeys.SCORE_TAG);
     }
 
     public boolean isSneaking() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.SNEAKING);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.SNEAKING);
     }
 
     public void setSneaking() {
@@ -468,11 +339,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setSneaking(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.SNEAKING, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.SNEAKING, value);
     }
 
     public boolean isSwimming() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.SWIMMING);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.SWIMMING);
     }
 
     public void setSwimming() {
@@ -480,11 +351,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setSwimming(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.SWIMMING, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.SWIMMING, value);
     }
 
     public boolean isSprinting() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.SPRINTING);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.SPRINTING);
     }
 
     public void setSprinting() {
@@ -492,11 +363,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setSprinting(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.SPRINTING, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.SPRINTING, value);
     }
 
     public boolean isGliding() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.GLIDING);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.GLIDING);
     }
 
     public void setGliding() {
@@ -504,11 +375,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setGliding(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.GLIDING, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GLIDING, value);
     }
 
     public boolean isImmobile() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.IMMOBILE);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.IMMOBILE);
     }
 
     public void setImmobile() {
@@ -516,11 +387,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setImmobile(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.IMMOBILE, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.IMMOBILE, value);
     }
 
     public boolean canClimb() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.CAN_CLIMB);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.CAN_CLIMB);
     }
 
     public void setCanClimb() {
@@ -528,11 +399,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setCanClimb(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.CAN_CLIMB, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.CAN_CLIMB, value);
     }
 
     public boolean canClimbWalls() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.WALLCLIMBING);
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.WALLCLIMBING);
     }
 
     public void setCanClimbWalls() {
@@ -540,12 +411,12 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setCanClimbWalls(boolean value) {
-        this.setDataFlag(DATA_FLAGS, EntityFlags.WALLCLIMBING, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.WALLCLIMBING, value);
     }
 
     public void setScale(float scale) {
         this.scale = scale;
-        this.setDataProperty(new FloatEntityData(DATA_SCALE, this.scale));
+        this.setDataProperty(new FloatEntityData(EntityDataKeys.SCALE, this.scale));
         this.recalculateBoundingBox();
     }
 
@@ -631,8 +502,8 @@ public abstract class Entity implements Metadatable {
         double radius = (this.getWidth() * this.scale) / 2d;
         this.boundingBox.setBounds(position.sub(radius, radius, radius), position.add(radius, height, radius));
 
-        FloatEntityData bbH = new FloatEntityData(DATA_BOUNDING_BOX_HEIGHT, this.getHeight());
-        FloatEntityData bbW = new FloatEntityData(DATA_BOUNDING_BOX_WIDTH, this.getWidth());
+        FloatEntityData bbH = new FloatEntityData(EntityDataKeys.BOUNDING_BOX_HEIGHT, this.getHeight());
+        FloatEntityData bbW = new FloatEntityData(EntityDataKeys.BOUNDING_BOX_WIDTH, this.getWidth());
         this.dataProperties.put(bbH);
         this.dataProperties.put(bbW);
         if (send) {
@@ -662,11 +533,11 @@ public abstract class Entity implements Metadatable {
             int g = (color[1] / count) & 0xff;
             int b = (color[2] / count) & 0xff;
 
-            this.setDataProperty(new IntEntityData(Entity.DATA_POTION_COLOR, (r << 16) + (g << 8) + b));
-            this.setDataProperty(new ByteEntityData(Entity.DATA_POTION_AMBIENT, ambient ? 1 : 0));
+            this.setDataProperty(new IntEntityData(EntityDataKeys.POTION_COLOR, (r << 16) + (g << 8) + b));
+            this.setDataProperty(new ByteEntityData(EntityDataKeys.POTION_AMBIENT, ambient ? 1 : 0));
         } else {
-            this.setDataProperty(new IntEntityData(Entity.DATA_POTION_COLOR, 0));
-            this.setDataProperty(new ByteEntityData(Entity.DATA_POTION_AMBIENT, 0));
+            this.setDataProperty(new IntEntityData(EntityDataKeys.POTION_COLOR, 0));
+            this.setDataProperty(new ByteEntityData(EntityDataKeys.POTION_AMBIENT, 0));
         }
     }
 
@@ -789,7 +660,7 @@ public abstract class Entity implements Metadatable {
 
         this.nbt.putFloat("FallDistance", this.fallDistance);
         this.nbt.putShort("Fire", this.fireTicks);
-        this.nbt.putShort("Air", this.getDataProperties().getShort(DATA_AIR));
+        this.nbt.putShort("Air", this.getDataProperties().getShort(EntityDataKeys.AIR));
         this.nbt.putBoolean("OnGround", this.onGround);
         this.nbt.putBoolean("Invulnerable", this.invulnerable);
         this.nbt.putFloat("Scale", this.scale);
@@ -986,7 +857,7 @@ public abstract class Entity implements Metadatable {
             this.health = this.getMaxHealth();
         }
 
-        setDataProperty(new IntEntityData(DATA_HEALTH, (int) this.health));
+        setDataProperty(new IntEntityData(EntityDataKeys.HEALTH, (int) this.health));
     }
 
     public void setLastDamageCause(EntityDamageEvent type) {
@@ -1158,7 +1029,7 @@ public abstract class Entity implements Metadatable {
             if (this.fireTicks <= 0) {
                 this.extinguish();
             } else if (!this.fireProof && (!(this instanceof Player) || !((Player) this).isSpectator())) {
-                this.setDataFlag(DATA_FLAGS, EntityFlags.ONFIRE, true);
+                this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ONFIRE, true);
                 hasUpdate = true;
             }
         }
@@ -1283,7 +1154,7 @@ public abstract class Entity implements Metadatable {
 
         // Add variables to entity
         entity.riding = this;
-        entity.setDataFlag(DATA_FLAGS, EntityFlags.RIDING, true);
+        entity.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.RIDING, true);
         passengers.add(entity);
 
         entity.setSeatPosition(getMountedOffset(entity));
@@ -1315,7 +1186,7 @@ public abstract class Entity implements Metadatable {
 
         // Refurbish the entity
         entity.riding = null;
-        entity.setDataFlag(DATA_FLAGS, EntityFlags.RIDING, false);
+        entity.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.RIDING, false);
         passengers.remove(entity);
 
         entity.setSeatPosition(Vector3f.ZERO);
@@ -1353,11 +1224,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void setSeatPosition(Vector3f pos) {
-        this.setDataProperty(new Vector3fEntityData(DATA_RIDER_SEAT_POSITION, pos));
+        this.setDataProperty(new Vector3fEntityData(EntityDataKeys.RIDER_SEAT_POSITION, pos));
     }
 
     public Vector3f getSeatPosition() {
-        return getDataProperties().getFloatPosition(DATA_RIDER_SEAT_POSITION);
+        return getDataProperties().getFloatPosition(EntityDataKeys.RIDER_SEAT_POSITION);
     }
 
     public Vector3f getMountedOffset(Entity entity) {
@@ -1411,7 +1282,7 @@ public abstract class Entity implements Metadatable {
 
     public void extinguish() {
         this.fireTicks = 0;
-        this.setDataFlag(DATA_FLAGS, EntityFlags.ONFIRE, false);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ONFIRE, false);
     }
 
     public boolean canTriggerWalking() {
@@ -1911,8 +1782,8 @@ public abstract class Entity implements Metadatable {
         if (send) {
             EntityMetadata metadata = new EntityMetadata();
             metadata.put(this.dataProperties.get(data.getId()));
-            if (data.getId() == DATA_FLAGS_EXTENDED) {
-                metadata.put(this.dataProperties.get(DATA_FLAGS));
+            if (data.getId() == EntityDataKeys.FLAGS_EXTENDED) {
+                metadata.put(this.dataProperties.get(EntityDataKeys.FLAGS));
             }
             this.sendData(this.hasSpawned.values().toArray(new Player[0]), metadata);
         }

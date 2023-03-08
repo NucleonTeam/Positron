@@ -1,10 +1,9 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.Player;
-import cn.nukkit.entity.Entity;
 import cn.nukkit.network.protocol.*;
-import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3f;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.attribute.Attribute;
 import ru.mc_positron.entity.attribute.Attributes;
 import ru.mc_positron.entity.data.EntityMetadata;
@@ -113,12 +112,12 @@ public class DummyBossBar {
         pk.speed = Vector3f.ZERO;
         pk.metadata = new EntityMetadata()
                 // Default Metadata tags
-                .putLong(Entity.DATA_FLAGS, 0)
-                .putShort(Entity.DATA_AIR, 400)
-                .putShort(Entity.DATA_MAX_AIR, 400)
-                .putLong(Entity.DATA_LEAD_HOLDER_EID, -1)
-                .putString(Entity.DATA_NAMETAG, text) // Set the entity name
-                .putFloat(Entity.DATA_SCALE, 0); // And make it invisible
+                .putLong(EntityDataKeys.FLAGS, 0)
+                .putShort(EntityDataKeys.AIR, 400)
+                .putShort(EntityDataKeys.MAX_AIR, 400)
+                .putLong(EntityDataKeys.LEAD_HOLDER_EID, -1)
+                .putString(EntityDataKeys.NAMETAG, text) // Set the entity name
+                .putFloat(EntityDataKeys.SCALE, 0); // And make it invisible
 
         player.dataPacket(pk);
     }
@@ -192,7 +191,7 @@ public class DummyBossBar {
     private void updateBossEntityNameTag() {
         var pk = new SetEntityDataPacket();
         pk.eid = this.bossBarId;
-        pk.metadata = new EntityMetadata().putString(Entity.DATA_NAMETAG, this.text);
+        pk.metadata = new EntityMetadata().putString(EntityDataKeys.NAMETAG, this.text);
         player.dataPacket(pk);
     }
 

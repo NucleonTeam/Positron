@@ -15,6 +15,7 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.math.FastMath;
 
@@ -102,7 +103,7 @@ public class EntityItem extends Entity {
         }
 
         this.item = NBTIO.getItemHelper(getNbt().getCompound("Item"));
-        this.setDataFlag(DATA_FLAGS, EntityFlags.GRAVITY, true);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GRAVITY, true);
 
         int id = this.item.getId();
 

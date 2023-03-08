@@ -20,6 +20,7 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.BlockIterator;
 import org.spongepowered.math.vector.Vector3d;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.ShortEntityData;
 
@@ -193,7 +194,7 @@ public abstract class EntityLiving extends Entity {
             }
         }
         
-        this.setDataFlag(DATA_FLAGS, EntityFlags.BREATHING, isBreathing);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.BREATHING, isBreathing);
 
         boolean hasUpdate = super.entityBaseTick(tickDiff);
 
@@ -336,10 +337,10 @@ public abstract class EntityLiving extends Entity {
     }
 
     public int getAirTicks() {
-        return this.getDataProperties().getShort(DATA_AIR);
+        return this.getDataProperties().getShort(EntityDataKeys.AIR);
     }
 
     public void setAirTicks(int ticks) {
-        this.setDataProperty(new ShortEntityData(DATA_AIR, ticks));
+        this.setDataProperty(new ShortEntityData(EntityDataKeys.AIR, ticks));
     }
 }

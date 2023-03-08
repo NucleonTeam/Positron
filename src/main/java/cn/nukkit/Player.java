@@ -67,6 +67,7 @@ import lombok.extern.log4j.Log4j2;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.blockentity.SpawnableBlockEntityType;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.attribute.Attribute;
 import ru.mc_positron.entity.attribute.Attributes;
@@ -469,12 +470,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public boolean isUsingItem() {
-        return this.getDataFlag(DATA_FLAGS, EntityFlags.ACTION) && this.startAction > -1;
+        return this.getDataFlag(EntityDataKeys.FLAGS, EntityFlags.ACTION) && this.startAction > -1;
     }
 
     public void setUsingItem(boolean value) {
         this.startAction = value ? this.server.getTick() : -1;
-        this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, value);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ACTION, value);
     }
 
     public String getButtonText() {
@@ -486,7 +487,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             return;
         }
         this.buttonText = text;
-        this.setDataProperty(new StringEntityData(Entity.DATA_INTERACTIVE_TAG, this.buttonText));
+        this.setDataProperty(new StringEntityData(EntityDataKeys.INTERACTIVE_TAG, this.buttonText));
     }
 
     public void unloadChunk(int x, int z) {
@@ -957,11 +958,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         if (this.isSpectator()) {
             this.teleport(getPoint());
-            this.setDataFlag(DATA_FLAGS, EntityFlags.SILENT, true);
-            this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, false);
+            this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.SILENT, true);
+            this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.HAS_COLLISION, false);
         } else {
-            this.setDataFlag(DATA_FLAGS, EntityFlags.SILENT, false);
-            this.setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, true);
+            this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.SILENT, false);
+            this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.HAS_COLLISION, true);
         }
 
         this.resetFallDistance();
@@ -1603,8 +1604,8 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         sendPotionEffects(this);
 
         if (isSpectator()) {
-            setDataFlag(DATA_FLAGS, EntityFlags.SILENT, true);
-            setDataFlag(DATA_FLAGS, EntityFlags.HAS_COLLISION, false);
+            setDataFlag(EntityDataKeys.FLAGS, EntityFlags.SILENT, true);
+            setDataFlag(EntityDataKeys.FLAGS, EntityFlags.HAS_COLLISION, false);
         }
         sendData(this);
 
@@ -1698,7 +1699,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 this.displayName = this.username;
                 this.iusername = this.username.toLowerCase();
 
-                this.setDataProperty(new StringEntityData(DATA_NAMETAG, this.username), false);
+                this.setDataProperty(new StringEntityData(EntityDataKeys.NAMETAG, this.username), false);
 
                 this.loginChainData = ClientChainData.read(loginPacket);
 
@@ -2144,7 +2145,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     ((PlayerInventory) inv).equipItem(mobEquipmentPacket.hotbarSlot);
                 }
 
-                this.setDataFlag(Player.DATA_FLAGS, EntityFlags.ACTION, false);
+                this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ACTION, false);
 
                 break;
             case ProtocolInfo.PLAYER_ACTION_PACKET:
@@ -2648,7 +2649,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                     return;
                                 }
 
-                                this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, false);
+                                this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ACTION, false);
 
                                 if (this.canInteract(blockVector.toDouble().add(0.5, 0.5, 0.5), isCreative()? 13 : 7)) {
                                     if (this.isCreative()) {
@@ -3601,7 +3602,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         setSprinting(false);
         setSneaking(false);
 
-        setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
+        setDataProperty(new ShortEntityData(EntityDataKeys.AIR, 400), false);
         deadTicks = 0;
         noDamageTicks = 60;
 
@@ -3820,7 +3821,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         world.dropItem(new Vector3(position.add(0, 1.3, 0)), item, new Vector3(motion), 40);
 
-        this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, false);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ACTION, false);
         return true;
     }
 
@@ -3842,7 +3843,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         Vector3d motion = this.getDirectionVector().mul(0.4);
 
-        this.setDataFlag(DATA_FLAGS, EntityFlags.ACTION, false);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.ACTION, false);
 
         return world.dropAndGetItem(new Vector3(position.add(0, 1.3, 0)), item, new Vector3(motion), 40);
     }

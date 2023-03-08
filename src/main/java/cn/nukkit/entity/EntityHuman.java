@@ -13,6 +13,7 @@ import cn.nukkit.utils.*;
 import lombok.Getter;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.Vector3iEntityData;
 
@@ -21,17 +22,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EntityHuman extends EntityHumanType {
 
     public static final int DATA_PLAYER_FLAG_SLEEP = 1;
     public static final int DATA_PLAYER_FLAG_DEAD = 2;
-
     public static final int DATA_PLAYER_FLAGS = 26;
-
     public static final int DATA_PLAYER_BED_POSITION = 28;
     public static final int DATA_PLAYER_BUTTON_TEXT = 40;
 
@@ -94,7 +89,7 @@ public class EntityHuman extends EntityHumanType {
     @Override
     protected void initEntity() {
         this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
-        this.setDataFlag(DATA_FLAGS, EntityFlags.GRAVITY);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GRAVITY);
 
         this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO), false);
 

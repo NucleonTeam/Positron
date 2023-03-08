@@ -7,6 +7,7 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityRegainHealthEvent;
 import cn.nukkit.network.protocol.MobEffectPacket;
 import cn.nukkit.utils.ServerException;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 
 /**
@@ -276,7 +277,7 @@ public class Effect implements Cloneable {
         }
 
         if (this.id == Effect.INVISIBILITY) {
-            entity.setDataFlag(Entity.DATA_FLAGS, EntityFlags.INVISIBLE, true);
+            entity.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.INVISIBLE, true);
             entity.setNameTagVisible(false);
         }
 
@@ -304,7 +305,7 @@ public class Effect implements Cloneable {
         }
 
         if (this.id == Effect.INVISIBILITY) {
-            entity.setDataFlag(Entity.DATA_FLAGS, EntityFlags.INVISIBLE, false);
+            entity.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.INVISIBLE, false);
             entity.setNameTagVisible(true);
         }
 

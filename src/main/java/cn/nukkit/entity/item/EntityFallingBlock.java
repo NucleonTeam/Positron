@@ -7,8 +7,8 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
+import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.IntEntityData;
 
@@ -81,9 +81,9 @@ public class EntityFallingBlock extends Entity {
         }
 
         this.fireProof = true;
-        this.setDataFlag(DATA_FLAGS, EntityFlags.FIRE_IMMUNE, true);
+        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.FIRE_IMMUNE, true);
 
-        setDataProperty(new IntEntityData(DATA_VARIANT, GlobalBlockPalette.getOrCreateRuntimeId(this.getBlock(), this.getDamage())));
+        setDataProperty(new IntEntityData(EntityDataKeys.VARIANT, GlobalBlockPalette.getOrCreateRuntimeId(this.getBlock(), this.getDamage())));
     }
 
     public boolean canCollideWith(Entity entity) {
