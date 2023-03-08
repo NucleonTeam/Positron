@@ -48,32 +48,10 @@ public abstract class Entity implements Metadatable {
 
     public static final int NETWORK_ID = -1;
 
-    public abstract int getNetworkId();
-
-    @Getter private final long id = Entities.getFreeEntityId();
-
     private static final Map<String, Class<? extends Entity>> knownEntities = new HashMap<>();
     private static final Map<String, String> shortNames = new HashMap<>();
 
-    protected final Map<Integer, Player> hasSpawned = new HashMap<>();
-    protected final Map<Integer, Effect> effects = new ConcurrentHashMap<>();
-    public final List<Entity> passengers = new ArrayList<>();
-    public Entity riding = null;
-    public FullChunk chunk;
-    protected EntityDamageEvent lastDamageCause = null;
-
-    protected final EntityMetadata dataProperties = new EntityMetadata()
-            .putLong(EntityDataKeys.FLAGS, 0)
-            .putByte(EntityDataKeys.COLOR, 0)
-            .putShort(EntityDataKeys.AIR, 400)
-            .putShort(EntityDataKeys.MAX_AIR, 400)
-            .putString(EntityDataKeys.NAMETAG, "")
-            .putLong(EntityDataKeys.LEAD_HOLDER_EID, -1)
-            .putFloat(EntityDataKeys.SCALE, 1f);
-
-    public List<Block> blocksAround = new ArrayList<>();
-    public List<Block> collisionBlocks = new ArrayList<>();
-
+    @Getter private final long id = Entities.getFreeEntityId();
     @Getter protected Level world;
     @Getter protected Vector3d position = Vector3d.ZERO;
     protected Vector3d lastPosition = Vector3d.ZERO;
@@ -89,45 +67,48 @@ public abstract class Entity implements Metadatable {
     @Getter protected CompoundTag nbt = new CompoundTag();
     @Getter protected boolean removed = false;
 
-
     public double entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
     public AxisAlignedBB boundingBox;
     public boolean onGround;
-
     public int deadTicks = 0;
     protected int age = 0;
-
     protected float health = 20;
     private int maxHealth = 20;
-
     protected float absorption = 0;
-
     protected float ySize = 0;
     public boolean keepMovement = false;
-
     public float fallDistance = 0;
     public int ticksLived = 0;
     public int lastUpdate;
     public int fireTicks = 0;
-
     public float scale = 1;
-
     public boolean isCollided = false;
     public boolean isCollidedHorizontally = false;
     public boolean isCollidedVertically = false;
-
     public int noDamageTicks;
     public boolean justCreated;
     public boolean fireProof;
     public boolean invulnerable;
-
     protected Server server;
-
     public double highestPosition;
-
     protected boolean isPlayer = this instanceof Player;
-
     private volatile boolean initialized;
+    public List<Block> blocksAround = new ArrayList<>();
+    public List<Block> collisionBlocks = new ArrayList<>();
+    protected final Map<Integer, Player> hasSpawned = new HashMap<>();
+    protected final Map<Integer, Effect> effects = new ConcurrentHashMap<>();
+    public final List<Entity> passengers = new ArrayList<>();
+    public Entity riding = null;
+    public FullChunk chunk;
+    protected EntityDamageEvent lastDamageCause = null;
+    protected final EntityMetadata dataProperties = new EntityMetadata()
+            .putLong(EntityDataKeys.FLAGS, 0)
+            .putByte(EntityDataKeys.COLOR, 0)
+            .putShort(EntityDataKeys.AIR, 400)
+            .putShort(EntityDataKeys.MAX_AIR, 400)
+            .putString(EntityDataKeys.NAMETAG, "")
+            .putLong(EntityDataKeys.LEAD_HOLDER_EID, -1)
+            .putFloat(EntityDataKeys.SCALE, 1f);
 
     public float getHeight() {
         return 0;
@@ -1384,10 +1365,6 @@ public abstract class Entity implements Metadatable {
     }
 
     public boolean onInteract(Player player, Item item, Vector3d clickedPos) {
-        return onInteract(player, item);
-    }
-
-    public boolean onInteract(Player player, Item item) {
         return false;
     }
 
@@ -1848,6 +1825,8 @@ public abstract class Entity implements Metadatable {
     public final int getChunkZ() {
         return position.floorZ() >> 4;
     }
+
+    public abstract int getNetworkId();
 
     @Override
     public boolean equals(Object obj) {
