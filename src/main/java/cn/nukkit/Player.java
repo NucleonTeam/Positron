@@ -125,7 +125,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     protected final SourceInterface interfaz;
     protected final NetworkPlayerSession networkSession;
 
-    public boolean playedBefore;
     public boolean spawned = false;
     public boolean loggedIn = false;
     public boolean locallyInitialized = false;
@@ -158,7 +157,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     protected EnchantTransaction enchantTransaction;
     protected RepairItemTransaction repairItemTransaction;
 
-    public long creationTime = 0;
+    public long creationTime;
 
     protected long randomClientId;
 
@@ -177,9 +176,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     protected int startAction = -1;
 
     protected Vector3d sleeping = null;
-    protected Long clientID = null;
+    protected Long clientID;
 
-    private int loaderId;
+    private final int loaderId;
 
     public final Map<Long, Boolean> usedChunks = new Long2ObjectOpenHashMap<>();
 
@@ -196,14 +195,12 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     protected final int chunksPerTick;
     protected final int spawnThreshold;
 
-    protected Point spawnPoint = null;
+    protected Point spawnPoint;
 
     protected int inAirTicks = 0;
     protected int startAirTicks = 5;
 
     protected AdventureSettings adventureSettings;
-
-    protected boolean checkMovement = true;
 
     private int exp = 0;
     private int expLevel = 0;
@@ -1130,28 +1127,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         diffVec = diffVec.add(0, ySize * (1 - 0.4D), 0);
         fastMove(diffVec);
 
-        Vector3d corr = position.sub(clientPos);
-
-        double yS = this.getStepHeight() + this.ySize;
-        if (corr.y() >= -yS || corr.y() <= yS) {
-            corr = new Vector3d(corr.x(), 0, corr.z());
-        }
-
-        if (this.checkMovement && (Math.abs(corr.x()) > 0.5 || Math.abs(corr.y()) > 0.5 || Math.abs(corr.z()) > 0.5) &&
-                this.riding == null && !this.hasEffect(Effect.LEVITATION) && !this.hasEffect(Effect.SLOW_FALLING)) {
-
-            if (!invalidMotion) {
-                position = clientPos;
-                double radius = this.getWidth() / 2;
-                boundingBox.setBounds(position.sub(radius, radius, radius), position.add(radius, getHeight(), radius));
-            }
-        }
-
-        if (invalidMotion) {
-            revertClientMotion(getPoint());
-            return;
-        }
-
         var source = Point.of(lastPosition, lastYaw, lastPitch, lastHeadYaw);
         var target = getPoint();
         var pos = target.getPosition();
@@ -1353,25 +1328,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     this.inAirTicks = 0;
                     this.highestPosition = position.y();
                 } else {
-                    if (this.checkMovement && !this.isGliding() && !server.getAllowFlight() && !this.getAdventureSettings().get(Type.ALLOW_FLIGHT) && this.inAirTicks > 20 && !this.isSleeping() && !this.isImmobile() && !this.isSwimming() && this.riding == null && !this.hasEffect(Effect.LEVITATION) && !this.hasEffect(Effect.SLOW_FALLING)) {
-                        double expectedVelocity = (-this.getGravity()) / ((double) this.getDrag()) - ((-this.getGravity()) / ((double) this.getDrag())) * Math.exp(-((double) this.getDrag()) * ((double) (this.inAirTicks - this.startAirTicks)));
-                        double diff = (this.speed.y() - expectedVelocity) * (this.speed.y() - expectedVelocity);
-
-                        int block = world.getBlockIdAt(position.floorX(), position.floorY(), position.floorZ());
-                        boolean ignore = false;
-
-                        if (!this.hasEffect(Effect.JUMP) && diff > 0.6 && expectedVelocity < this.speed.y() && !ignore) {
-                            if (this.inAirTicks < 150) {
-                                this.setMotion(new Vector3d(0, expectedVelocity, 0));
-                            } else if (this.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server")) {
-                                return false;
-                            }
-                        }
-                        if (ignore) {
-                            this.resetFallDistance();
-                        }
-                    }
-
                     if (position.y() > highestPosition) {
                         this.highestPosition = position.y();
                     }
@@ -1837,7 +1793,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
                     this.sendPosition(this.forceMovement, movePlayerPacket.yaw, movePlayerPacket.pitch, MovePlayerPacket.MODE_RESET);
                 } else {
-
                     movePlayerPacket.yaw %= 360;
                     movePlayerPacket.pitch %= 360;
 
@@ -3008,8 +2963,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             message = TextFormat.clean(message, true);
         }
 
-        for (String msg : message.split("\n")) {
+        for (String msg: message.split("\n")) {
             if (!msg.trim().isEmpty() && msg.length() <= 512 && this.messageCounter-- > 0) {
+                for (var p: server.getPlayerManager().getPlayers()) {
+                    p.sendMessage("<" + getName() + "> " + msg);
+                }
                 PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg);
                 this.server.getPluginManager().callEvent(chatEvent);
                 if (!chatEvent.isCancelled()) {
@@ -4251,14 +4209,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
 
         return false;
-    }
-
-    public void setCheckMovement(boolean checkMovement) {
-        this.checkMovement = checkMovement;
-    }
-
-    public boolean isCheckingMovement() {
-        return this.checkMovement;
     }
 
     public synchronized void setLocale(Locale locale) {
