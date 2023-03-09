@@ -40,6 +40,7 @@ public abstract class ProjectileItem extends Item {
 
         this.correctNBT(nbt);
 
+        /* TODO: Переделать эту хуйню
         Entity projectile = Entity.createEntity(this.getProjectileEntityType(), player.getWorld().getChunk(player.getChunkX(), player.getChunkZ()), nbt, player);
         if (projectile != null) {
 
@@ -62,6 +63,7 @@ public abstract class ProjectileItem extends Item {
         } else {
             return false;
         }
+         */
         return true;
     }
 

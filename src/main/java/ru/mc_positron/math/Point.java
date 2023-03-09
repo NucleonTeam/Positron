@@ -50,4 +50,8 @@ public final class Point {
     public static @NonNull Point of(@NonNull Vector3d position, double yaw, double pitch, double headYaw) {
         return new Point(position, yaw, pitch, headYaw);
     }
+
+    public static @NonNull Point of(@NonNull Vector3d position) {
+        return new Point(position, 0, 0, 0);
+    }
 }

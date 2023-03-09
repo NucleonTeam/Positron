@@ -21,10 +21,10 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.potion.Effect;
-import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.MainLogger;
 import com.google.common.collect.Iterables;
 import lombok.Getter;
+import lombok.NonNull;
 import org.spongepowered.math.vector.Vector2d;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3f;
@@ -66,10 +66,12 @@ public abstract class Entity implements Metadatable {
     protected boolean firstMove = true;
     @Getter protected CompoundTag nbt = new CompoundTag();
     @Getter protected boolean removed = false;
+    private final Object initializerLocker = new Object();
+    private boolean initialized = false;
 
     public double entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
     public AxisAlignedBB boundingBox;
-    public boolean onGround;
+    public boolean onGround = false;
     public int deadTicks = 0;
     protected int age = 0;
     protected float health = 20;
@@ -88,11 +90,10 @@ public abstract class Entity implements Metadatable {
     public int noDamageTicks;
     public boolean justCreated;
     public boolean fireProof;
-    public boolean invulnerable;
-    protected Server server;
+    public boolean invulnerable = false;
+    protected final Server server = Server.getInstance();
     public double highestPosition;
     protected boolean isPlayer = this instanceof Player;
-    private volatile boolean initialized;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlocks = new ArrayList<>();
     protected final Map<Integer, Player> hasSpawned = new HashMap<>();
@@ -109,6 +110,144 @@ public abstract class Entity implements Metadatable {
             .putString(EntityDataKeys.NAMETAG, "")
             .putLong(EntityDataKeys.LEAD_HOLDER_EID, -1)
             .putFloat(EntityDataKeys.SCALE, 1f);
+
+    public Entity() {
+
+    }
+
+    public boolean spawn(@NonNull Level world, @NonNull Point point, @NonNull CompoundTag nbt) {
+        var result = spawn(world, point);
+        init(nbt);
+        spawnToAll();
+        return result;
+    }
+
+    public boolean spawn(@NonNull Level world, @NonNull Point point) {
+        synchronized (initializerLocker) {
+            if (initialized) return false;
+            initialized = true;
+        }
+
+        this.world = world;
+        position = point.getPosition();
+        chunk = world.getChunk(getChunkX(), getChunkZ());
+        justCreated = true;
+        boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
+        highestPosition = position.y();
+
+        setPosition(point.getPosition());
+        setRotation(point.getYaw(), point.getPitch(), point.getHeadYaw());
+        setMotion(Vector3d.ZERO);
+
+        setDataProperty(new ShortEntityData(EntityDataKeys.AIR, 300), false);
+        setDataProperty(new FloatEntityData(EntityDataKeys.SCALE, scale), false);
+        setDataFlag(EntityDataKeys.FLAGS, EntityFlags.HAS_COLLISION, true);
+
+        dataProperties.putFloat(EntityDataKeys.BOUNDING_BOX_HEIGHT, getHeight());
+        dataProperties.putFloat(EntityDataKeys.BOUNDING_BOX_WIDTH, getWidth());
+        dataProperties.putInt(EntityDataKeys.HEALTH, (int) getHealth());
+
+        chunk.addEntity(this);
+        world.addEntity(this);
+        lastUpdate = this.server.getTick();
+        server.getPluginManager().callEvent(new EntitySpawnEvent(this));
+
+        scheduleUpdate();
+        return true;
+    }
+
+    public void init(@NonNull CompoundTag nbt) {
+        this.nbt = nbt;
+
+        if (nbt.contains("ActiveEffects")) {
+            var effects = nbt.getList("ActiveEffects", CompoundTag.class);
+            for (var e: effects.getAll()) {
+                var effect = Effect.getEffect(e.getByte("Id"));
+
+                if (effect == null) {
+                    continue;
+                }
+
+                effect.setAmplifier(e.getByte("Amplifier"))
+                        .setDuration(e.getInt("Duration"))
+                        .setVisible(e.getBoolean("ShowParticles"));
+
+                this.addEffect(effect);
+            }
+        }
+
+        if (nbt.contains("CustomName")) {
+            setNameTag(nbt.getString("CustomName"));
+            if (nbt.contains("CustomNameVisible")) {
+                setNameTagVisible(nbt.getBoolean("CustomNameVisible"));
+            }
+            if(nbt.contains("CustomNameAlwaysVisible")){
+                setNameTagAlwaysVisible(nbt.getBoolean("CustomNameAlwaysVisible"));
+            }
+        }
+
+        scheduleUpdate();
+    }
+
+    public @NonNull CompoundTag getSaveData() {
+        saveNBT();
+
+        nbt.putList(new ListTag<DoubleTag>("Pos")
+                .add(new DoubleTag("0", position.x()))
+                .add(new DoubleTag("1", position.y()))
+                .add(new DoubleTag("2", position.z()))
+        );
+        nbt.putList(new ListTag<DoubleTag>("Motion")
+                .add(new DoubleTag("0", motion.x()))
+                .add(new DoubleTag("1", motion.y()))
+                .add(new DoubleTag("2", motion.z()))
+        );
+        nbt.putList(new ListTag<FloatTag>("Rotation")
+                .add(new FloatTag("0", (float) yaw))
+                .add(new FloatTag("1", (float) pitch))
+                .add(new FloatTag("2", (float) headYaw))
+        );
+        nbt.putFloat("FallDistance", fallDistance);
+        nbt.putShort("Fire", fireTicks);
+        nbt.putShort("Air", getDataProperties().getShort(EntityDataKeys.AIR));
+        nbt.putBoolean("OnGround", onGround);
+        nbt.putBoolean("Invulnerable", invulnerable);
+        nbt.putFloat("Scale", scale);
+
+        if (!effects.isEmpty()) {
+            var list = new ListTag<CompoundTag>("ActiveEffects");
+            for (var effect: effects.values()) {
+                list.add(new CompoundTag(String.valueOf(effect.getId()))
+                        .putByte("Id", effect.getId())
+                        .putByte("Amplifier", effect.getAmplifier())
+                        .putInt("Duration", effect.getDuration())
+                        .putBoolean("Ambient", false)
+                        .putBoolean("ShowParticles", effect.isVisible())
+                );
+            }
+
+            nbt.putList(list);
+        } else nbt.remove("ActiveEffects");
+
+        return nbt;
+    }
+
+    private void saveNBT() {
+        //TODO: решить что делать с этим
+        if (!(this instanceof Player)) {
+            this.nbt.putString("id", this.getSaveId());
+            if (!this.getNameTag().equals("")) {
+                this.nbt.putString("CustomName", this.getNameTag());
+                this.nbt.putBoolean("CustomNameVisible", this.isNameTagVisible());
+                this.nbt.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
+            } else {
+                this.nbt.remove("CustomName");
+                this.nbt.remove("CustomNameVisible");
+                this.nbt.remove("CustomNameAlwaysVisible");
+            }
+        }
+
+    }
 
     public float getHeight() {
         return 0;
@@ -144,127 +283,6 @@ public abstract class Entity implements Metadatable {
 
     protected float getBaseOffset() {
         return 0;
-    }
-
-    public Entity(FullChunk chunk, CompoundTag nbt) {
-        if (this instanceof Player) {
-            return;
-        }
-
-        this.init(chunk, nbt);
-    }
-
-    protected void initEntity() {
-        if (this.nbt.contains("ActiveEffects")) {
-            ListTag<CompoundTag> effects = this.nbt.getList("ActiveEffects", CompoundTag.class);
-            for (CompoundTag e : effects.getAll()) {
-                Effect effect = Effect.getEffect(e.getByte("Id"));
-                if (effect == null) {
-                    continue;
-                }
-
-                effect.setAmplifier(e.getByte("Amplifier")).setDuration(e.getInt("Duration")).setVisible(e.getBoolean("ShowParticles"));
-
-                this.addEffect(effect);
-            }
-        }
-
-        if (this.nbt.contains("CustomName")) {
-            this.setNameTag(this.nbt.getString("CustomName"));
-            if (this.nbt.contains("CustomNameVisible")) {
-                this.setNameTagVisible(this.nbt.getBoolean("CustomNameVisible"));
-            }
-            if(this.nbt.contains("CustomNameAlwaysVisible")){
-                this.setNameTagAlwaysVisible(this.nbt.getBoolean("CustomNameAlwaysVisible"));
-            }
-        }
-
-        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.HAS_COLLISION, true);
-        this.dataProperties.putFloat(EntityDataKeys.BOUNDING_BOX_HEIGHT, this.getHeight());
-        this.dataProperties.putFloat(EntityDataKeys.BOUNDING_BOX_WIDTH, this.getWidth());
-        this.dataProperties.putInt(EntityDataKeys.HEALTH, (int) this.getHealth());
-
-        this.scheduleUpdate();
-    }
-
-    protected final void init(FullChunk chunk, CompoundTag nbt) {
-        if ((chunk == null || chunk.getProvider() == null)) {
-            throw new ChunkException("Invalid garbage Chunk given to Entity");
-        }
-
-        if (this.initialized) {
-            // We've already initialized this entity
-            return;
-        }
-        this.initialized = true;
-        this.justCreated = true;
-        this.nbt = nbt;
-        this.chunk = chunk;
-        this.world = chunk.getProvider().getLevel();
-        this.server = chunk.getProvider().getLevel().getServer();
-
-        this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
-
-        ListTag<DoubleTag> posList = this.nbt.getList("Pos", DoubleTag.class);
-        ListTag<FloatTag> rotationList = this.nbt.getList("Rotation", FloatTag.class);
-        ListTag<DoubleTag> motionList = this.nbt.getList("Motion", DoubleTag.class);
-        this.setPositionAndRotation(
-                new Vector3d(
-                        posList.get(0).data,
-                        posList.get(1).data,
-                        posList.get(2).data
-                ),
-                rotationList.get(0).data,
-                rotationList.get(1).data
-        );
-
-        this.setMotion(new Vector3d(
-                motionList.get(0).data,
-                motionList.get(1).data,
-                motionList.get(2).data)
-        );
-
-        if (!this.nbt.contains("FallDistance")) {
-            this.nbt.putFloat("FallDistance", 0);
-        }
-        this.fallDistance = this.nbt.getFloat("FallDistance");
-        this.highestPosition = this.position.y() + this.nbt.getFloat("FallDistance");
-
-        if (!this.nbt.contains("Fire") || this.nbt.getShort("Fire") > 32767) {
-            this.nbt.putShort("Fire", 0);
-        }
-        this.fireTicks = this.nbt.getShort("Fire");
-
-        if (!this.nbt.contains("Air")) {
-            this.nbt.putShort("Air", 300);
-        }
-        this.setDataProperty(new ShortEntityData(EntityDataKeys.AIR, this.nbt.getShort("Air")), false);
-
-        if (!this.nbt.contains("OnGround")) {
-            this.nbt.putBoolean("OnGround", false);
-        }
-        this.onGround = this.nbt.getBoolean("OnGround");
-
-        if (!this.nbt.contains("Invulnerable")) {
-            this.nbt.putBoolean("Invulnerable", false);
-        }
-        this.invulnerable = this.nbt.getBoolean("Invulnerable");
-
-        if (!this.nbt.contains("Scale")) {
-            this.nbt.putFloat("Scale", 1);
-        }
-        this.scale = this.nbt.getFloat("Scale");
-        this.setDataProperty(new FloatEntityData(EntityDataKeys.SCALE, scale), false);
-
-        this.chunk.addEntity(this);
-        this.world.addEntity(this);
-
-        this.initEntity();
-
-        this.lastUpdate = this.server.getTick();
-        this.server.getPluginManager().callEvent(new EntitySpawnEvent(this));
-
-        this.scheduleUpdate();
     }
 
     public boolean hasCustomName() {
@@ -522,7 +540,7 @@ public abstract class Entity implements Metadatable {
         }
     }
 
-    public static Entity createEntity(String name, FullChunk chunk, CompoundTag nbt, Object... args) {
+    public static Entity createEntity(String name, FullChunk chunk, CompoundTag nbt) {
         Entity entity = null;
 
         if (knownEntities.containsKey(name)) {
@@ -537,22 +555,12 @@ public abstract class Entity implements Metadatable {
                     break;
                 }
 
-                if (constructor.getParameterCount() != (args == null ? 2 : args.length + 2)) {
-                    continue;
-                }
-
                 try {
-                    if (args == null || args.length == 0) {
-                        entity = (Entity) constructor.newInstance(chunk, nbt);
-                    } else {
-                        Object[] objects = new Object[args.length + 2];
+                    entity = (Entity) constructor.newInstance();
 
-                        objects[0] = chunk;
-                        objects[1] = nbt;
-                        System.arraycopy(args, 0, objects, 2, args.length);
-                        entity = (Entity) constructor.newInstance(objects);
-
-                    }
+                    var level = chunk.getProvider().getLevel();
+                    var posList = nbt.getList("Pos", DoubleTag.class);
+                    entity.spawn(level, Point.of(new Vector3d(posList.get(0).data, posList.get(1).data, posList.get(2).data)), nbt);
                 } catch (Exception e) {
                     MainLogger.getLogger().logException(e);
                 }
@@ -606,62 +614,6 @@ public abstract class Entity implements Metadatable {
                 .putList(new ListTag<FloatTag>("Rotation")
                         .add(new FloatTag("", yaw))
                         .add(new FloatTag("", pitch)));
-    }
-
-    public void saveNBT() {
-        if (!(this instanceof Player)) {
-            this.nbt.putString("id", this.getSaveId());
-            if (!this.getNameTag().equals("")) {
-                this.nbt.putString("CustomName", this.getNameTag());
-                this.nbt.putBoolean("CustomNameVisible", this.isNameTagVisible());
-                this.nbt.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
-            } else {
-                this.nbt.remove("CustomName");
-                this.nbt.remove("CustomNameVisible");
-                this.nbt.remove("CustomNameAlwaysVisible");
-            }
-        }
-
-        this.nbt.putList(new ListTag<DoubleTag>("Pos")
-                .add(new DoubleTag("0", position.x()))
-                .add(new DoubleTag("1", position.y()))
-                .add(new DoubleTag("2", position.z()))
-        );
-
-        this.nbt.putList(new ListTag<DoubleTag>("Motion")
-                .add(new DoubleTag("0", motion.x()))
-                .add(new DoubleTag("1", motion.y()))
-                .add(new DoubleTag("2", motion.z()))
-        );
-
-        this.nbt.putList(new ListTag<FloatTag>("Rotation")
-                .add(new FloatTag("0", (float) this.yaw))
-                .add(new FloatTag("1", (float) this.pitch))
-        );
-
-        this.nbt.putFloat("FallDistance", this.fallDistance);
-        this.nbt.putShort("Fire", this.fireTicks);
-        this.nbt.putShort("Air", this.getDataProperties().getShort(EntityDataKeys.AIR));
-        this.nbt.putBoolean("OnGround", this.onGround);
-        this.nbt.putBoolean("Invulnerable", this.invulnerable);
-        this.nbt.putFloat("Scale", this.scale);
-
-        if (!this.effects.isEmpty()) {
-            ListTag<CompoundTag> list = new ListTag<>("ActiveEffects");
-            for (Effect effect : this.effects.values()) {
-                list.add(new CompoundTag(String.valueOf(effect.getId()))
-                        .putByte("Id", effect.getId())
-                        .putByte("Amplifier", effect.getAmplifier())
-                        .putInt("Duration", effect.getDuration())
-                        .putBoolean("Ambient", false)
-                        .putBoolean("ShowParticles", effect.isVisible())
-                );
-            }
-
-            this.nbt.putList(list);
-        } else {
-            this.nbt.remove("ActiveEffects");
-        }
     }
 
     public String getName() {
@@ -1651,7 +1603,6 @@ public abstract class Entity implements Metadatable {
         position = newPosition;
         recalculateBoundingBox(false);
         checkChunks();
-
         return true;
     }
 

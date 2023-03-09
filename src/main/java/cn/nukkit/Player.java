@@ -63,6 +63,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
@@ -386,12 +387,10 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     public Player(SourceInterface interfaz, Long clientID, InetSocketAddress socketAddress) {
-        super(null, new CompoundTag());
         this.interfaz = interfaz;
         this.socketAddress = socketAddress;
         this.clientID = clientID;
         networkSession = interfaz.getSession(socketAddress);
-        server = Server.getInstance();
         lastBreak = -1;
         loaderId = Level.generateChunkLoaderId(this);
         chunksPerTick = server.getConfig("chunk-sending.per-tick", 4);
@@ -412,10 +411,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
+    public boolean spawn(@NonNull Level world, @NonNull Point point) {
+        if (!super.spawn(world, point)) return false;
 
         addDefaultWindows();
+        return true;
     }
 
     public boolean isPlayer() {
@@ -1443,8 +1443,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         }
         CompoundTag nbt;
         if (oldPlayer != null) {
-            oldPlayer.saveNBT();
-            nbt = oldPlayer.getNbt();
+            nbt = oldPlayer.getSaveData();
             oldPlayer.remove("", "disconnectionScreen.loggedinOtherLocation");
         } else {
             File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
@@ -1531,7 +1530,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         ListTag<DoubleTag> posList = nbt.getList("Pos", DoubleTag.class);
 
-        super.init(world.getChunk((int) posList.get(0).data >> 4, (int) posList.get(2).data >> 4, true), nbt);
+        var pos = new Vector3d(posList.get(0).data, posList.get(1).data, posList.get(2).data);
+        spawn(world, Point.of(pos));
+        init(nbt);
 
         if (!getNbt().contains("foodLevel")) {
             getNbt().putInt("foodLevel", 20);
@@ -3343,9 +3344,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             PlayerQuitEvent ev = null;
             if (this.getName() != null && this.getName().length() > 0) {
                 this.server.getPluginManager().callEvent(ev = new PlayerQuitEvent(this, message, true, reason));
-                if (this.loggedIn && ev.getAutoSave()) {
-                    this.save();
-                }
             }
 
             for (var player: server.getPlayerManager().getPlayers()) {
@@ -3403,18 +3401,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.chunk = null;
 
         this.server.getPlayerManager().removePlayerConnection(this);
-    }
-
-    public void save() {
-        this.save(false);
-    }
-
-    public void save(boolean async) {
-        if (removed) {
-            throw new IllegalStateException("Tried to save closed player");
-        }
-
-        super.saveNBT();
     }
 
     public String getName() {

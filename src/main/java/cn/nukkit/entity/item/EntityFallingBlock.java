@@ -6,15 +6,47 @@ import cn.nukkit.event.entity.EntityBlockChangeEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.GlobalBlockPalette;
+import cn.nukkit.level.Level;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
+import lombok.NonNull;
 import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.entity.data.IntEntityData;
+import ru.mc_positron.math.Point;
 
 public class EntityFallingBlock extends Entity {
 
     public static final int NETWORK_ID = 66;
+
+    protected int blockId;
+    protected int damage;
+
+    @Override
+    public void init(@NonNull CompoundTag nbt) {
+        if (nbt.contains("TileID")) {
+            blockId = nbt.getInt("TileID");
+        } else if (getNbt().contains("Tile")) {
+            blockId = nbt.getInt("Tile");
+            nbt.putInt("TileID", blockId);
+        }
+
+        if (nbt.contains("Data")) {
+            damage = nbt.getByte("Data");
+        }
+
+        if (blockId == 0) {
+            remove();
+            return;
+        }
+
+        fireProof = true;
+        setDataFlag(EntityDataKeys.FLAGS, EntityFlags.FIRE_IMMUNE, true);
+
+        setDataProperty(new IntEntityData(EntityDataKeys.VARIANT, GlobalBlockPalette.getOrCreateRuntimeId(getBlock(), getDamage())));
+
+        super.init(nbt);
+    }
 
     @Override
     public float getWidth() {
@@ -49,41 +81,6 @@ public class EntityFallingBlock extends Entity {
     @Override
     public boolean canCollide() {
         return false;
-    }
-
-    protected int blockId;
-    protected int damage;
-
-    public EntityFallingBlock(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
-    }
-
-    @Override
-    protected void initEntity() {
-        super.initEntity();
-
-        if (getNbt() != null) {
-            if (getNbt().contains("TileID")) {
-                blockId = getNbt().getInt("TileID");
-            } else if (getNbt().contains("Tile")) {
-                blockId = getNbt().getInt("Tile");
-                getNbt().putInt("TileID", blockId);
-            }
-
-            if (getNbt().contains("Data")) {
-                damage = getNbt().getByte("Data");
-            }
-        }
-
-        if (blockId == 0) {
-            remove();
-            return;
-        }
-
-        this.fireProof = true;
-        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.FIRE_IMMUNE, true);
-
-        setDataProperty(new IntEntityData(EntityDataKeys.VARIANT, GlobalBlockPalette.getOrCreateRuntimeId(this.getBlock(), this.getDamage())));
     }
 
     public boolean canCollideWith(Entity entity) {
@@ -145,9 +142,10 @@ public class EntityFallingBlock extends Entity {
     }
 
     @Override
-    public void saveNBT() {
+    public @NonNull CompoundTag getSaveData() {
         getNbt().putInt("TileID", blockId);
         getNbt().putByte("Data", damage);
+        return super.getSaveData();
     }
 
     @Override

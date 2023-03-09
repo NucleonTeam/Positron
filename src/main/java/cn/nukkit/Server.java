@@ -803,9 +803,7 @@ public class Server {
     public void doAutoSave() {
         if (this.getAutoSave()) {
             for (var player: playerManager.getConnectedPlayers()) {
-                if (player.isOnline()) {
-                    player.save(true);
-                } else if (!player.isConnected()) {
+                if (!player.isConnected()) {
                     playerManager.removePlayerConnection(player);
                 }
             }

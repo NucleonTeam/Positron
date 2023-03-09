@@ -14,11 +14,14 @@ import cn.nukkit.inventory.PlayerOffhandInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.level.Level;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
+import lombok.NonNull;
 import ru.mc_positron.math.FastMath;
+import ru.mc_positron.math.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +33,10 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
     protected PlayerEnderChestInventory enderChestInventory;
     protected PlayerOffhandInventory offhandInventory;
 
-    public EntityHumanType(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
+    public EntityHumanType() {
+        this.inventory = new PlayerInventory(this);
+        this.offhandInventory = new PlayerOffhandInventory(this);
+        this.enderChestInventory = new PlayerEnderChestInventory(this);
     }
 
     @Override
@@ -48,12 +53,9 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
     }
 
     @Override
-    protected void initEntity() {
-        this.inventory = new PlayerInventory(this);
-        this.offhandInventory = new PlayerOffhandInventory(this);
-
-        if (getNbt().contains("Inventory") && getNbt().get("Inventory") instanceof ListTag) {
-            ListTag<CompoundTag> inventoryList = getNbt().getList("Inventory", CompoundTag.class);
+    public void init(@NonNull CompoundTag nbt) {
+        if (nbt.contains("Inventory") && nbt.get("Inventory") instanceof ListTag) {
+            ListTag<CompoundTag> inventoryList = nbt.getList("Inventory", CompoundTag.class);
             for (CompoundTag item : inventoryList.getAll()) {
                 int slot = item.getByte("Slot");
                 if (slot >= 0 && slot < 9) { //hotbar
@@ -69,22 +71,18 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
             }
         }
 
-        this.enderChestInventory = new PlayerEnderChestInventory(this);
-
-        if (getNbt().contains("EnderItems") && getNbt().get("EnderItems") instanceof ListTag) {
-            ListTag<CompoundTag> inventoryList = getNbt().getList("EnderItems", CompoundTag.class);
+        if (nbt.contains("EnderItems") && nbt.get("EnderItems") instanceof ListTag) {
+            ListTag<CompoundTag> inventoryList = nbt.getList("EnderItems", CompoundTag.class);
             for (CompoundTag item : inventoryList.getAll()) {
                 this.enderChestInventory.setItem(item.getByte("Slot"), NBTIO.getItemHelper(item));
             }
         }
 
-        super.initEntity();
+        super.init(nbt);
     }
 
     @Override
-    public void saveNBT() {
-        super.saveNBT();
-
+    public @NonNull CompoundTag getSaveData() {
         ListTag<CompoundTag> inventoryTag = null;
         if (this.inventory != null) {
             inventoryTag = new ListTag<>("Inventory");
@@ -134,6 +132,8 @@ public abstract class EntityHumanType extends EntityCreature implements Inventor
                 }
             }
         }
+
+        return super.getSaveData();
     }
 
     @Override

@@ -285,8 +285,7 @@ public class Chunk extends BaseChunk {
         ArrayList<CompoundTag> entities = new ArrayList<>();
         for (Entity entity : this.getEntities().values()) {
             if (!(entity instanceof Player) && !entity.isRemoved()) {
-                entity.saveNBT();
-                entities.add(entity.getNbt());
+                entities.add(entity.getSaveData());
             }
         }
         ListTag<CompoundTag> entityListTag = new ListTag<>("Entities");
@@ -377,8 +376,7 @@ public class Chunk extends BaseChunk {
         ArrayList<CompoundTag> entities = new ArrayList<>();
         for (Entity entity : this.getEntities().values()) {
             if (!(entity instanceof Player) && !entity.isRemoved()) {
-                entity.saveNBT();
-                entities.add(entity.getNbt());
+                entities.add(entity.getSaveData());
             }
         }
         ListTag<CompoundTag> entityListTag = new ListTag<>("Entities");

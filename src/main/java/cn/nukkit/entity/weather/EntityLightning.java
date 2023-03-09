@@ -4,11 +4,14 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.level.GameRule;
+import cn.nukkit.level.Level;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import lombok.NonNull;
+import ru.mc_positron.math.Point;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -21,25 +24,17 @@ public class EntityLightning extends Entity implements EntityLightningStrike {
     public int state;
     public int liveTime;
 
-
-    @Override
-    public int getNetworkId() {
-        return NETWORK_ID;
-    }
-
-    public EntityLightning(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
-    }
-
-    @Override
-    protected void initEntity() {
-        super.initEntity();
-
+    public EntityLightning() {
         this.setHealth(4);
         this.setMaxHealth(4);
 
         this.state = 2;
         this.liveTime = ThreadLocalRandom.current().nextInt(3) + 1;
+    }
+
+    @Override
+    public int getNetworkId() {
+        return NETWORK_ID;
     }
 
     public boolean isEffect() {

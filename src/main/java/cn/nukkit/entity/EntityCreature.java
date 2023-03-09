@@ -7,9 +7,6 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import org.spongepowered.math.vector.Vector3d;
 
 public abstract class EntityCreature extends EntityLiving {
-    public EntityCreature(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
-    }
 
     @Override
     public boolean onInteract(Player player, Item item, Vector3d clickedPos) {

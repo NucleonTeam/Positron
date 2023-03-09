@@ -11,6 +11,7 @@ import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityLinkPacket;
 import cn.nukkit.utils.*;
 import lombok.Getter;
+import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 import ru.mc_positron.entity.EntityDataKeys;
@@ -34,72 +35,23 @@ public class EntityHuman extends EntityHumanType {
     protected UUID playerUuid;
     protected byte[] rawUUID;
 
-    @Override
-    public float getWidth() {
-        return 0.6f;
+    public EntityHuman() {
+        super();
+
+        setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
+        setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GRAVITY);
+        setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO), false);
     }
 
     @Override
-    public float getLength() {
-        return 0.6f;
-    }
-
-    @Override
-    public float getHeight() {
-        return 1.8f;
-    }
-
-    @Override
-    public float getEyeHeight() {
-        return 1.62f;
-    }
-
-    @Override
-    protected float getBaseOffset() {
-        return this.getEyeHeight();
-    }
-
-    protected Skin skin;
-
-    @Override
-    public int getNetworkId() {
-        return -1;
-    }
-
-    public EntityHuman(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
-    }
-
-    public Skin getSkin() {
-        return skin;
-    }
-
-    public UUID getUniqueId() {
-        return playerUuid;
-    }
-
-    public byte[] getRawUniqueId() {
-        return rawUUID;
-    }
-
-    public void setSkin(Skin skin) {
-        this.skin = skin;
-    }
-
-    @Override
-    protected void initEntity() {
-        this.setDataFlag(DATA_PLAYER_FLAGS, DATA_PLAYER_FLAG_SLEEP, false);
-        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GRAVITY);
-
-        this.setDataProperty(new Vector3iEntityData(DATA_PLAYER_BED_POSITION, Vector3i.ZERO), false);
-
+    public void init(@NonNull CompoundTag nbt) {
         if (!(this instanceof Player)) {
-            if (getNbt().contains("NameTag")) {
-                this.setNameTag(getNbt().getString("NameTag"));
+            if (nbt.contains("NameTag")) {
+                setNameTag(nbt.getString("NameTag"));
             }
 
-            if (getNbt().contains("Skin") && getNbt().get("Skin") instanceof CompoundTag) {
-                CompoundTag skinTag = getNbt().getCompound("Skin");
+            if (nbt.contains("Skin") && nbt.get("Skin") instanceof CompoundTag) {
+                CompoundTag skinTag = nbt.getCompound("Skin");
                 if (!skinTag.contains("Transparent")) {
                     skinTag.putBoolean("Transparent", false);
                 }
@@ -199,14 +151,62 @@ public class EntityHuman extends EntityHumanType {
                 if (skinTag.contains("IsTrustedSkin")) {
                     newSkin.setTrusted(skinTag.getBoolean("IsTrustedSkin"));
                 }
-                this.setSkin(newSkin);
+                setSkin(newSkin);
             }
 
-            this.playerUuid = Utils.dataToUUID(String.valueOf(this.getId()).getBytes(StandardCharsets.UTF_8), this.getSkin()
-                    .getSkinData().data, this.getNameTag().getBytes(StandardCharsets.UTF_8));
+            playerUuid = Utils.dataToUUID(String.valueOf(getId()).getBytes(StandardCharsets.UTF_8), getSkin()
+                    .getSkinData().data, getNameTag().getBytes(StandardCharsets.UTF_8));
         }
 
-        super.initEntity();
+        super.init(nbt);
+    }
+
+    @Override
+    public float getWidth() {
+        return 0.6f;
+    }
+
+    @Override
+    public float getLength() {
+        return 0.6f;
+    }
+
+    @Override
+    public float getHeight() {
+        return 1.8f;
+    }
+
+    @Override
+    public float getEyeHeight() {
+        return 1.62f;
+    }
+
+    @Override
+    protected float getBaseOffset() {
+        return this.getEyeHeight();
+    }
+
+    protected Skin skin;
+
+    @Override
+    public int getNetworkId() {
+        return -1;
+    }
+
+    public Skin getSkin() {
+        return skin;
+    }
+
+    public UUID getUniqueId() {
+        return playerUuid;
+    }
+
+    public byte[] getRawUniqueId() {
+        return rawUUID;
+    }
+
+    public void setSkin(Skin skin) {
+        this.skin = skin;
     }
 
     @Override
@@ -215,9 +215,7 @@ public class EntityHuman extends EntityHumanType {
     }
 
     @Override
-    public void saveNBT() {
-        super.saveNBT();
-
+    public @NonNull CompoundTag getSaveData() {
         if (skin != null) {
             CompoundTag skinTag = new CompoundTag()
                     .putByteArray("Data", this.getSkin().getSkinData().data)
@@ -283,6 +281,8 @@ public class EntityHuman extends EntityHumanType {
 
             getNbt().putCompound("Skin", skinTag);
         }
+
+        return super.getSaveData();
     }
 
     @Override

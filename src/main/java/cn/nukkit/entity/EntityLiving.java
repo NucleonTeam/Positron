@@ -19,6 +19,7 @@ import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.BlockIterator;
+import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
@@ -31,8 +32,24 @@ import java.util.Map;
 
 public abstract class EntityLiving extends Entity {
 
-    public EntityLiving(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
+    protected int attackTime = 0;
+    protected float movementSpeed = 0.1f;
+    protected int turtleTicks = 0;
+
+    @Override
+    public void init(@NonNull CompoundTag nbt) {
+        if (nbt.contains("HealF")) {
+            nbt.putFloat("Health", nbt.getShort("HealF"));
+            nbt.remove("HealF");
+        }
+
+        if (!nbt.contains("Health") || !(nbt.get("Health") instanceof FloatTag)) {
+            nbt.putFloat("Health", this.getMaxHealth());
+        }
+
+        this.health = nbt.getFloat("Health");
+
+        super.init(nbt);
     }
 
     @Override
@@ -43,30 +60,6 @@ public abstract class EntityLiving extends Entity {
     @Override
     protected float getDrag() {
         return 0.02f;
-    }
-
-    protected int attackTime = 0;
-
-    protected boolean invisible = false;
-
-    protected float movementSpeed = 0.1f;
-
-    protected int turtleTicks = 0;
-
-    @Override
-    protected void initEntity() {
-        super.initEntity();
-
-        if (getNbt().contains("HealF")) {
-            getNbt().putFloat("Health", getNbt().getShort("HealF"));
-            getNbt().remove("HealF");
-        }
-
-        if (!getNbt().contains("Health") || !(getNbt().get("Health") instanceof FloatTag)) {
-            getNbt().putFloat("Health", this.getMaxHealth());
-        }
-
-        this.health = getNbt().getFloat("Health");
     }
 
     @Override
@@ -82,9 +75,10 @@ public abstract class EntityLiving extends Entity {
     }
 
     @Override
-    public void saveNBT() {
-        super.saveNBT();
-        getNbt().putFloat("Health", this.getHealth());
+    public @NonNull CompoundTag getSaveData() {
+        nbt.putFloat("Health", this.getHealth());
+
+        return super.getSaveData();
     }
 
     public boolean hasLineOfSight(Entity entity) {

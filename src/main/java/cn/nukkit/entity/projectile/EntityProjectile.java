@@ -8,6 +8,7 @@ import cn.nukkit.level.MovingObjectPosition;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.nbt.tag.CompoundTag;
+import lombok.NonNull;
 import org.spongepowered.math.vector.Vector3d;
 import ru.mc_positron.entity.data.LongEntityData;
 import ru.mc_positron.math.FastMath;
@@ -16,36 +17,38 @@ public abstract class EntityProjectile extends Entity {
 
     public static final int DATA_SHOOTER_ID = 17;
 
-    public Entity shootingEntity;
-
-    protected double getDamage() {
-        return getNbt().contains("damage") ? getNbt().getDouble("damage") : getBaseDamage();
-    }
-
-    protected double getBaseDamage() {
-        return 0;
-    }
-
-    public boolean hadCollision = false;
-
-    public boolean closeOnCollide = true;
-
-    protected double damage = 0;
-
     public static final int PICKUP_NONE = 0;
     public static final int PICKUP_ANY = 1;
     public static final int PICKUP_CREATIVE = 2;
 
-    public EntityProjectile(FullChunk chunk, CompoundTag nbt) {
-        this(chunk, nbt, null);
+    public Entity shootingEntity;
+    protected double getBaseDamage() {
+        return 0;
     }
+    public boolean hadCollision = false;
+    public boolean closeOnCollide = true;
+    protected double damage = 0;
 
-    public EntityProjectile(FullChunk chunk, CompoundTag nbt, Entity shootingEntity) {
-        super(chunk, nbt);
+    public EntityProjectile(Entity shootingEntity) {
         this.shootingEntity = shootingEntity;
         if (shootingEntity != null) {
             this.setDataProperty(new LongEntityData(DATA_SHOOTER_ID, shootingEntity.getId()));
         }
+    }
+
+    @Override
+    public void init(@NonNull CompoundTag nbt) {
+        setMaxHealth(1);
+        setHealth(1);
+        if (nbt.contains("Age")) {
+            age = nbt.getShort("Age");
+        }
+
+        super.init(nbt);
+    }
+
+    protected double getDamage() {
+        return getNbt().contains("damage") ? getNbt().getDouble("damage") : getBaseDamage();
     }
 
     public int getResultDamage() {
@@ -83,25 +86,14 @@ public abstract class EntityProjectile extends Entity {
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
-
-        this.setMaxHealth(1);
-        this.setHealth(1);
-        if (getNbt().contains("Age")) {
-            this.age = getNbt().getShort("Age");
-        }
-    }
-
-    @Override
     public boolean canCollideWith(Entity entity) {
         return (entity instanceof EntityLiving) && !this.onGround;
     }
 
     @Override
-    public void saveNBT() {
-        super.saveNBT();
-        getNbt().putShort("Age", this.age);
+    public @NonNull CompoundTag getSaveData() {
+        nbt.putShort("Age", this.age);
+        return super.getSaveData();
     }
 
     @Override

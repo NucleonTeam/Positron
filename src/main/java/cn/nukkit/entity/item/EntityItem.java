@@ -15,6 +15,7 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
+import lombok.NonNull;
 import ru.mc_positron.entity.EntityDataKeys;
 import ru.mc_positron.entity.EntityFlags;
 import ru.mc_positron.math.FastMath;
@@ -23,21 +24,15 @@ public class EntityItem extends Entity {
 
     public static final int NETWORK_ID = 64;
 
-    public EntityItem(FullChunk chunk, CompoundTag nbt) {
-        super(chunk, nbt);
-    }
+    protected String owner;
+    protected String thrower;
+    protected Item item;
+    protected int pickupDelay;
 
     @Override
     public int getNetworkId() {
         return NETWORK_ID;
     }
-
-    protected String owner;
-    protected String thrower;
-
-    protected Item item;
-
-    protected int pickupDelay;
 
     @Override
     public float getWidth() {
@@ -75,39 +70,37 @@ public class EntityItem extends Entity {
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
+    public void init(@NonNull CompoundTag nbt) {
+        setMaxHealth(5);
+        setHealth(nbt.getShort("Health"));
 
-        this.setMaxHealth(5);
-        this.setHealth(getNbt().getShort("Health"));
-
-        if (getNbt().contains("Age")) {
-            this.age = getNbt().getShort("Age");
+        if (nbt.contains("Age")) {
+            age = nbt.getShort("Age");
         }
 
-        if (getNbt().contains("PickupDelay")) {
-            this.pickupDelay = getNbt().getShort("PickupDelay");
+        if (nbt.contains("PickupDelay")) {
+            pickupDelay = nbt.getShort("PickupDelay");
         }
 
-        if (getNbt().contains("Owner")) {
-            this.owner = getNbt().getString("Owner");
+        if (nbt.contains("Owner")) {
+            owner = nbt.getString("Owner");
         }
 
-        if (getNbt().contains("Thrower")) {
-            this.thrower = getNbt().getString("Thrower");
+        if (nbt.contains("Thrower")) {
+            thrower = nbt.getString("Thrower");
         }
 
-        if (!getNbt().contains("Item")) {
-            this.remove();
+        if (!nbt.contains("Item")) {
+            remove();
             return;
         }
 
-        this.item = NBTIO.getItemHelper(getNbt().getCompound("Item"));
-        this.setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GRAVITY, true);
+        item = NBTIO.getItemHelper(nbt.getCompound("Item"));
+        setDataFlag(EntityDataKeys.FLAGS, EntityFlags.GRAVITY, true);
 
-        int id = this.item.getId();
+        server.getPluginManager().callEvent(new ItemSpawnEvent(this));
 
-        this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
+        super.init(nbt);
     }
 
     @Override
@@ -235,8 +228,7 @@ public class EntityItem extends Entity {
     }
 
     @Override
-    public void saveNBT() {
-        super.saveNBT();
+    public @NonNull CompoundTag getSaveData() {
         if (item != null) { // Yes, a item can be null... I don't know what causes this, but it can happen.
             getNbt().putCompound("Item", NBTIO.putItemHelper(item, -1));
             getNbt().putShort("Health", (int) getHealth());
@@ -246,6 +238,8 @@ public class EntityItem extends Entity {
             if (owner != null) getNbt().putString("Owner", owner);
             if (thrower != null) getNbt().putString("Thrower", thrower);
         }
+
+        return super.getSaveData();
     }
 
     @Override
