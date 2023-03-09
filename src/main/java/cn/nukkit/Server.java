@@ -11,7 +11,6 @@ import cn.nukkit.event.HandlerList;
 import cn.nukkit.event.level.LevelInitEvent;
 import cn.nukkit.event.level.LevelLoadEvent;
 import cn.nukkit.event.server.BatchPacketsEvent;
-import cn.nukkit.event.server.PlayerDataSerializeEvent;
 import cn.nukkit.event.server.QueryRegenerateEvent;
 import cn.nukkit.event.server.ServerStopEvent;
 import cn.nukkit.inventory.CraftingManager;
@@ -30,11 +29,6 @@ import cn.nukkit.level.generator.Generator;
 import cn.nukkit.metadata.EntityMetadataStore;
 import cn.nukkit.metadata.LevelMetadataStore;
 import cn.nukkit.metadata.PlayerMetadataStore;
-import cn.nukkit.nbt.NBTIO;
-import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.nbt.tag.DoubleTag;
-import cn.nukkit.nbt.tag.FloatTag;
-import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.CompressBatchedTask;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.RakNetInterface;
@@ -54,7 +48,6 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.potion.Potion;
 import cn.nukkit.resourcepacks.ResourcePackManager;
 import cn.nukkit.scheduler.ServerScheduler;
-import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -64,10 +57,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.iq80.leveldb.CompressionType;
-import org.iq80.leveldb.DB;
-import org.iq80.leveldb.Options;
-import org.iq80.leveldb.impl.Iq80DBFactory;
 import ru.mc_positron.math.FastMath;
 import ru.mc_positron.player.PlayerManager;
 import ru.mc_positron.player.PositronPlayerManager;
@@ -76,14 +65,9 @@ import ru.mc_positron.registry.Registry;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 @Log4j2
 public class Server {
@@ -154,21 +138,18 @@ public class Server {
     private Level defaultLevel = null;
     private final Thread currentThread;
     private Watchdog watchdog;
-    private final DB nameLookup;
-    private final PlayerDataSerializer playerDataSerializer;
     private final Set<String> ignoredPackets = new HashSet<>();
 
     @Getter private final PlayerManager playerManager = new PositronPlayerManager(this);
 
     public static Server init() {
-        var path = System.getProperty("user.dir") + "/";
         var dataPath = System.getProperty("user.dir") + "/";
         var pluginPath = dataPath + "plugins";
 
-        return new Server(path, dataPath, pluginPath, null);
+        return new Server(dataPath, pluginPath, null);
     }
 
-    private Server(final String filePath, String dataPath, String pluginPath, String predefinedLanguage) {
+    private Server(String dataPath, String pluginPath, String predefinedLanguage) {
         var completeInitialization = Registry.init();
 
         Preconditions.checkState(instance == null, "Already initialized!");
@@ -177,10 +158,6 @@ public class Server {
 
         if (!new File(dataPath + "worlds/").exists()) {
             new File(dataPath + "worlds/").mkdirs();
-        }
-
-        if (!new File(dataPath + "players/").exists()) {
-            new File(dataPath + "players/").mkdirs();
         }
 
         if (!new File(pluginPath).exists()) {
@@ -193,8 +170,6 @@ public class Server {
         this.console = new NukkitConsole(this);
         this.consoleThread = new ConsoleThread();
         this.consoleThread.start();
-
-        this.playerDataSerializer = new DefaultPlayerDataSerializer(this);
 
         //todo: VersionString 现在不必要
 
@@ -361,17 +336,6 @@ public class Server {
         Effect.init();
         Potion.init();
         GlobalBlockPalette.getOrCreateRuntimeId(0, 0); //Force it to load
-
-        // Convert legacy data before plugins get the chance to mess with it.
-        try {
-            nameLookup = Iq80DBFactory.factory.open(new File(dataPath, "players"), new Options()
-                    .createIfMissing(true)
-                    .compressionType(CompressionType.ZLIB_RAW));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        convertLegacyPlayerData();
 
         this.craftingManager = new CraftingManager();
         this.resourcePackManager = new ResourcePackManager(new File(this.dataPath, "resource_packs"));
@@ -604,10 +568,6 @@ public class Server {
             for (SourceInterface interfaz : this.network.getInterfaces()) {
                 interfaz.shutdown();
                 this.network.unregisterInterface(interfaz);
-            }
-
-            if (nameLookup != null) {
-                nameLookup.close();
             }
 
             this.getLogger().debug("Disabling timings");
@@ -1138,203 +1098,6 @@ public class Server {
 
     public int getTick() {
         return tickCounter;
-    }
-
-    public Optional<UUID> lookupName(String name) {
-        byte[] nameBytes = name.toLowerCase().getBytes(StandardCharsets.UTF_8);
-        byte[] uuidBytes = nameLookup.get(nameBytes);
-        if (uuidBytes == null) {
-            return Optional.empty();
-        }
-
-        if (uuidBytes.length != 16) {
-            log.warn("Invalid uuid in name lookup database detected! Removing");
-            nameLookup.delete(nameBytes);
-            return Optional.empty();
-        }
-
-        ByteBuffer buffer = ByteBuffer.wrap(uuidBytes);
-        return Optional.of(new UUID(buffer.getLong(), buffer.getLong()));
-    }
-
-    void updateName(UUID uuid, String name) {
-        byte[] nameBytes = name.toLowerCase().getBytes(StandardCharsets.UTF_8);
-
-        ByteBuffer buffer = ByteBuffer.allocate(16);
-        buffer.putLong(uuid.getMostSignificantBits());
-        buffer.putLong(uuid.getLeastSignificantBits());
-
-        nameLookup.put(nameBytes, buffer.array());
-    }
-
-    public CompoundTag getOfflinePlayerData(UUID uuid, boolean create) {
-        return getOfflinePlayerDataInternal(uuid.toString(), true, create);
-    }
-
-    @Deprecated
-    public CompoundTag getOfflinePlayerData(String name) {
-        return getOfflinePlayerData(name, false);
-    }
-
-    @Deprecated
-    public CompoundTag getOfflinePlayerData(String name, boolean create) {
-        Optional<UUID> uuid = lookupName(name);
-        return getOfflinePlayerDataInternal(uuid.map(UUID::toString).orElse(name), true, create);
-    }
-
-    private CompoundTag getOfflinePlayerDataInternal(String name, boolean runEvent, boolean create) {
-        Preconditions.checkNotNull(name, "name");
-
-        PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(name, playerDataSerializer);
-        if (runEvent) {
-            pluginManager.callEvent(event);
-        }
-
-        Optional<InputStream> dataStream = Optional.empty();
-        try {
-            dataStream = event.getSerializer().read(name, event.getUuid().orElse(null));
-            if (dataStream.isPresent()) {
-                return NBTIO.readCompressed(dataStream.get());
-            }
-        } catch (IOException e) {
-            log.warn(this.getLanguage().translateString("nukkit.data.playerCorrupted", name));
-            log.throwing(e);
-        } finally {
-            if (dataStream.isPresent()) {
-                try {
-                    dataStream.get().close();
-                } catch (IOException e) {
-                    log.throwing(e);
-                }
-            }
-        }
-        CompoundTag nbt = null;
-        if (create) {
-            if (this.shouldSavePlayerData()) {
-                log.info(this.getLanguage().translateString("nukkit.data.playerNotFound", name));
-            }
-            var spawn = this.getDefaultLevel().getSpawnPoint();
-            nbt = new CompoundTag()
-                    .putLong("firstPlayed", System.currentTimeMillis() / 1000)
-                    .putLong("lastPlayed", System.currentTimeMillis() / 1000)
-                    .putList(new ListTag<DoubleTag>("Pos")
-                            .add(new DoubleTag("0", spawn.getPosition().x()))
-                            .add(new DoubleTag("1", spawn.getPosition().y()))
-                            .add(new DoubleTag("2", spawn.getPosition().z())))
-                    .putString("Level", this.getDefaultLevel().getName())
-                    .putList(new ListTag<>("Inventory"))
-                    .putCompound("Achievements", new CompoundTag())
-                    .putInt("playerGameType", this.getGamemode())
-                    .putList(new ListTag<DoubleTag>("Motion")
-                            .add(new DoubleTag("0", 0))
-                            .add(new DoubleTag("1", 0))
-                            .add(new DoubleTag("2", 0)))
-                    .putList(new ListTag<FloatTag>("Rotation")
-                            .add(new FloatTag("0", 0))
-                            .add(new FloatTag("1", 0)))
-                    .putFloat("FallDistance", 0)
-                    .putShort("Fire", 0)
-                    .putShort("Air", 300)
-                    .putBoolean("OnGround", true)
-                    .putBoolean("Invulnerable", false);
-
-            this.saveOfflinePlayerData(name, nbt, true, runEvent);
-        }
-        return nbt;
-    }
-
-    public void saveOfflinePlayerData(UUID uuid, CompoundTag tag, boolean async) {
-        this.saveOfflinePlayerData(uuid.toString(), tag, async);
-    }
-
-    public void saveOfflinePlayerData(String name, CompoundTag tag, boolean async) {
-        Optional<UUID> uuid = lookupName(name);
-        saveOfflinePlayerData(uuid.map(UUID::toString).orElse(name), tag, async, true);
-    }
-
-    private void saveOfflinePlayerData(String name, CompoundTag tag, boolean async, boolean runEvent) {
-        String nameLower = name.toLowerCase();
-        if (this.shouldSavePlayerData()) {
-            PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(nameLower, playerDataSerializer);
-            if (runEvent) {
-                pluginManager.callEvent(event);
-            }
-
-            this.getScheduler().scheduleTask(new Task() {
-                boolean hasRun = false;
-
-                @Override
-                public void onRun(int currentTick) {
-                    this.onCancel();
-                }
-
-                //doing it like this ensures that the playerdata will be saved in a server shutdown
-                @Override
-                public void onCancel() {
-                    if (!this.hasRun)    {
-                        this.hasRun = true;
-                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null));
-                    }
-                }
-            }, async);
-        }
-    }
-
-    private void saveOfflinePlayerDataInternal(PlayerDataSerializer serializer, CompoundTag tag, String name, UUID uuid) {
-        try (OutputStream dataStream = serializer.write(name, uuid)) {
-            NBTIO.writeGZIPCompressed(tag, dataStream, ByteOrder.BIG_ENDIAN);
-        } catch (Exception e) {
-            log.error(this.getLanguage().translateString("nukkit.data.saveError", name, e));
-        }
-    }
-
-    private void convertLegacyPlayerData() {
-        File dataDirectory = new File(getDataPath(), "players/");
-        Pattern uuidPattern = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}.dat$");
-
-        File[] files = dataDirectory.listFiles(file -> {
-            String name = file.getName();
-            return !uuidPattern.matcher(name).matches() && name.endsWith(".dat");
-        });
-
-        if (files == null) {
-            return;
-        }
-
-        for (File legacyData : files) {
-            String name = legacyData.getName();
-            // Remove file extension
-            name = name.substring(0, name.length() - 4);
-
-            log.debug("Attempting legacy player data conversion for {}", name);
-
-            CompoundTag tag = getOfflinePlayerDataInternal(name, false, false);
-
-            if (tag == null || !tag.contains("UUIDLeast") || !tag.contains("UUIDMost")) {
-                // No UUID so we cannot convert. Wait until player logs in.
-                continue;
-            }
-
-            UUID uuid = new UUID(tag.getLong("UUIDMost"), tag.getLong("UUIDLeast"));
-            if (!tag.contains("NameTag")) {
-                tag.putString("NameTag", name);
-            }
-
-            if (new File(getDataPath() + "players/" + uuid.toString() + ".dat").exists()) {
-                // We don't want to overwrite existing data.
-                continue;
-            }
-
-            saveOfflinePlayerData(uuid.toString(), tag, false, false);
-
-            // Add name to lookup table
-            updateName(uuid, name);
-
-            // Delete legacy data
-            if (!legacyData.delete()) {
-                log.warn("Unable to delete legacy data for {}", name);
-            }
-        }
     }
 
     public Map<Integer, Level> getLevels() {

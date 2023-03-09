@@ -242,8 +242,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     protected double lastRightClickTime = 0.0;
     protected Vector3 lastRightClickPos = null;
 
-    private int timeSinceRest;
-
     public int getStartActionTick() {
         return startAction;
     }
@@ -849,8 +847,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
         world.sleepTicks = 60;
 
-        this.timeSinceRest = 0;
-
         return true;
     }
 
@@ -1388,10 +1384,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                     if (this.getFoodData() != null) this.getFoodData().update(tickDiff);
                 }
             }
-
-            if (!this.isSleeping()) {
-                this.timeSinceRest++;
-            }
         }
 
         this.checkTeleportPosition();
@@ -1446,44 +1438,13 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             nbt = oldPlayer.getSaveData();
             oldPlayer.remove("", "disconnectionScreen.loggedinOtherLocation");
         } else {
-            File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
-            File dataFile = new File(server.getDataPath() + "players/" + this.playerUuid.toString() + ".dat");
-            if (legacyDataFile.exists() && !dataFile.exists()) {
-                nbt = this.server.getOfflinePlayerData(this.username, false);
-
-                if (!legacyDataFile.delete()) {
-                    log.warn("Could not delete legacy player data for {}", this.username);
-                }
-            } else {
-                nbt = this.server.getOfflinePlayerData(this.playerUuid, true);
-            }
+            nbt = new CompoundTag(); //TODO: Придумать че делать с загрузкой данных
         }
 
-        if (nbt == null) {
-            this.remove(this.getLeaveMessage(), "Invalid data");
-            return;
-        }
+        setExperience(exp, expLevel);
+        gamemode = server.getGamemode();
 
-        if (loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth") || !server.getPropertyBoolean("xbox-auth")) {
-            server.updateName(this.playerUuid, this.username);
-        }
-
-        this.playedBefore = (nbt.getLong("lastPlayed") - nbt.getLong("firstPlayed")) > 1;
-
-
-        nbt.putString("NameTag", this.username);
-
-        int exp = nbt.getInt("EXP");
-        int expLevel = nbt.getInt("expLevel");
-        this.setExperience(exp, expLevel);
-
-        this.gamemode = nbt.getInt("playerGameType") & 0x03;
-        if (this.server.getForceGamemode()) {
-            this.gamemode = this.server.getGamemode();
-            nbt.putInt("playerGameType", this.gamemode);
-        }
-
-        this.adventureSettings = new AdventureSettings(this)
+        adventureSettings = new AdventureSettings(this)
                 .set(Type.WORLD_IMMUTABLE, isAdventure() || isSpectator())
                 .set(Type.MINE, !isAdventure() && !isSpectator())
                 .set(Type.BUILD, !isAdventure() && !isSpectator())
@@ -1493,73 +1454,27 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 .set(Type.NO_CLIP, isSpectator())
                 .set(Type.FLYING, isSpectator());
 
-        Level level;
-        if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null) {
-            world = server.getDefaultLevel();
-            nbt.putString("Level", world.getName());
-            nbt.getList("Pos", DoubleTag.class)
-                    .add(new DoubleTag("0", world.getSpawnPoint().getPosition().x()))
-                    .add(new DoubleTag("1", world.getSpawnPoint().getPosition().y()))
-                    .add(new DoubleTag("2", world.getSpawnPoint().getPosition().z()));
-        } else {
-            world = level;
-        }
+        world = server.getDefaultLevel();
 
-        for (Tag achievement : nbt.getCompound("Achievements").getAllTags()) {
-            if (!(achievement instanceof ByteTag)) {
-                continue;
-            }
+        sendPlayStatus(PlayStatusPacket.LOGIN_SUCCESS);
+        server.onPlayerLogin(this);
 
-            if (((ByteTag) achievement).getData() > 0) {
-                this.achievements.add(achievement.getName());
-            }
-        }
-
-        nbt.putLong("lastPlayed", System.currentTimeMillis() / 1000);
-
-        UUID uuid = getUniqueId();
-        nbt.putLong("UUIDLeast", uuid.getLeastSignificantBits());
-        nbt.putLong("UUIDMost", uuid.getMostSignificantBits());
-
-        if (this.server.getAutoSave()) {
-            this.server.saveOfflinePlayerData(this.playerUuid, nbt, true);
-        }
-
-        this.sendPlayStatus(PlayStatusPacket.LOGIN_SUCCESS);
-        this.server.onPlayerLogin(this);
-
-        ListTag<DoubleTag> posList = nbt.getList("Pos", DoubleTag.class);
-
-        var pos = new Vector3d(posList.get(0).data, posList.get(1).data, posList.get(2).data);
-        spawn(world, Point.of(pos));
+        spawn(world, getSpawn());
         init(nbt);
 
-        if (!getNbt().contains("foodLevel")) {
-            getNbt().putInt("foodLevel", 20);
-        }
-        int foodLevel = getNbt().getInt("foodLevel");
-        if (!getNbt().contains("foodSaturationLevel")) {
-            getNbt().putFloat("foodSaturationLevel", 20);
-        }
-        float foodSaturationLevel = getNbt().getFloat("foodSaturationLevel");
-        this.foodData = new PlayerFood(this, foodLevel, foodSaturationLevel);
+        foodData = new PlayerFood(this, 20, 20);
 
         if (this.isSpectator()) {
             this.keepMovement = true;
             this.onGround = false;
         }
 
-        this.forceMovement = this.teleportPosition = this.getPosition();
-
-        if (!getNbt().contains("TimeSinceRest")) {
-            getNbt().putInt("TimeSinceRest", 0);
-        }
-        this.timeSinceRest = getNbt().getInt("TimeSinceRest");
+        forceMovement = teleportPosition = getPosition();
 
         ResourcePacksInfoPacket infoPacket = new ResourcePacksInfoPacket();
-        infoPacket.resourcePackEntries = this.server.getResourcePackManager().getResourceStack();
-        infoPacket.mustAccept = this.server.getForceResources();
-        this.dataPacket(infoPacket);
+        infoPacket.resourcePackEntries = server.getResourcePackManager().getResourceStack();
+        infoPacket.mustAccept = server.getForceResources();
+        dataPacket(infoPacket);
     }
 
     protected void completeLoginSequence() {
@@ -3561,8 +3476,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 }
                 this.setExperience(0, 0);
             }
-
-            this.timeSinceRest = 0;
 
             RespawnPacket pk = new RespawnPacket();
             var point = this.getSpawn();
