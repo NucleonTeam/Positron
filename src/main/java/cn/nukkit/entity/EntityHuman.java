@@ -2,7 +2,6 @@ package cn.nukkit.entity;
 
 import cn.nukkit.Player;
 import cn.nukkit.entity.data.Skin;
-import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.StringTag;
@@ -292,8 +291,8 @@ public class EntityHuman extends EntityHumanType {
 
     @Override
     public void spawnTo(Player player) {
-        if (this != player && !this.hasSpawned.containsKey(player.getLoaderId())) {
-            this.hasSpawned.put(player.getLoaderId(), player);
+        if (this != player && !this.viewers.containsKey(player.getLoaderId())) {
+            this.viewers.put(player.getLoaderId(), player);
 
             if (!this.skin.isValid()) {
                 throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
@@ -338,12 +337,12 @@ public class EntityHuman extends EntityHumanType {
 
     @Override
     public void despawnFrom(Player player) {
-        if (this.hasSpawned.containsKey(player.getLoaderId())) {
+        if (this.viewers.containsKey(player.getLoaderId())) {
 
             RemoveEntityPacket pk = new RemoveEntityPacket();
             pk.eid = this.getId();
             player.dataPacket(pk);
-            this.hasSpawned.remove(player.getLoaderId());
+            this.viewers.remove(player.getLoaderId());
         }
     }
 

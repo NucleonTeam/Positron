@@ -80,7 +80,6 @@ import ru.mc_positron.math.FastMath;
 import ru.mc_positron.math.Point;
 import ru.mc_positron.network.packet.BlockEntityDataPacket;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteOrder;
@@ -150,8 +149,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     public Vector3d speed = null;
 
     private final Queue<Vector3d> clientMovements = PlatformDependent.newMpscQueue(4);
-
-    public final HashSet<String> achievements = new HashSet<>();
 
     public int craftingType = CRAFTING_SMALL;
 
@@ -325,6 +322,11 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         if (spawned && player.spawned && isAlive() && player.world == world && player.canSee(this) && !isSpectator()) {
             super.spawnTo(player);
         }
+    }
+
+    @Override
+    public final boolean canBeSaved() {
+        return false;
     }
 
     @Override
@@ -964,7 +966,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         this.resetFallDistance();
 
         this.inventory.sendContents(this);
-        this.inventory.sendHeldItem(this.hasSpawned.values());
+        this.inventory.sendHeldItem(this.viewers.values());
         this.offhandInventory.sendContents(this);
         this.offhandInventory.sendContents(this.getViewers().values());
 
@@ -3303,7 +3305,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
             this.windows.clear();
             this.usedChunks.clear();
             this.loadQueue.clear();
-            this.hasSpawned.clear();
+            this.viewers.clear();
             this.spawnPoint = null;
 
             this.riding = null;
@@ -3797,7 +3799,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                 newChunk.remove(this.getLoaderId());
 
                 //List<Player> reload = new ArrayList<>();
-                for (Player player : new ArrayList<>(this.hasSpawned.values())) {
+                for (Player player : new ArrayList<>(this.viewers.values())) {
                     if (!newChunk.containsKey(player.getLoaderId())) {
                         this.despawnFrom(player);
                     } else {

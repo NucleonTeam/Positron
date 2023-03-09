@@ -171,8 +171,6 @@ public class Server {
         this.consoleThread = new ConsoleThread();
         this.consoleThread.start();
 
-        //todo: VersionString 现在不必要
-
         if (!new File(this.dataPath + "nukkit.yml").exists()) {
             this.getLogger().info(TextFormat.GREEN + "Welcome! Please choose a language first!");
             try {

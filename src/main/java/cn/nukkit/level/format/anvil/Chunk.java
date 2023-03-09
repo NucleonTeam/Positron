@@ -1,6 +1,5 @@
 package cn.nukkit.level.format.anvil;
 
-import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
@@ -284,7 +283,7 @@ public class Chunk extends BaseChunk {
 
         ArrayList<CompoundTag> entities = new ArrayList<>();
         for (Entity entity : this.getEntities().values()) {
-            if (!(entity instanceof Player) && !entity.isRemoved()) {
+            if (entity.canBeSaved() && !entity.isRemoved()) {
                 entities.add(entity.getSaveData());
             }
         }
@@ -375,7 +374,7 @@ public class Chunk extends BaseChunk {
 
         ArrayList<CompoundTag> entities = new ArrayList<>();
         for (Entity entity : this.getEntities().values()) {
-            if (!(entity instanceof Player) && !entity.isRemoved()) {
+            if (entity.canBeSaved() && !entity.isRemoved()) {
                 entities.add(entity.getSaveData());
             }
         }

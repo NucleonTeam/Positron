@@ -1266,7 +1266,7 @@ public class Level implements ChunkManager, Metadatable {
         if (entities || solidEntities) {
             for (Entity ent : this.getCollidingEntities(bb.grow(0.25f, 0.25f, 0.25f), entity)) {
                 if (solidEntities && !ent.canPassThrough()) {
-                    collides.add(ent.boundingBox.clone());
+                    collides.add(ent.getBoundingBox().clone());
                 }
             }
         }
@@ -2031,7 +2031,7 @@ public class Level implements ChunkManager, Metadatable {
                 for (int z = minZ; z <= maxZ; ++z) {
                     for (Entity ent : this.getChunkEntities(x, z, false).values()) {
                         if ((entity == null || (ent != entity && entity.canCollideWith(ent)))
-                                && ent.boundingBox.intersectsWith(bb)) {
+                                && ent.getBoundingBox().intersectsWith(bb)) {
                             nearby.add(ent);
                         }
                     }
@@ -2066,7 +2066,7 @@ public class Level implements ChunkManager, Metadatable {
         for (int x = minX; x <= maxX; ++x) {
             for (int z = minZ; z <= maxZ; ++z) {
                 for (Entity ent : this.getChunkEntities(x, z, loadChunks).values()) {
-                    if (ent != entity && ent.boundingBox.intersectsWith(bb)) {
+                    if (ent != entity && ent.getBoundingBox().intersectsWith(bb)) {
                         if (index < ENTITY_BUFFER.length) {
                             ENTITY_BUFFER[index] = ent;
                         } else {
@@ -2976,7 +2976,7 @@ public class Level implements ChunkManager, Metadatable {
         pk.yaw = (float) yaw;
         pk.headYaw = (float) headYaw;
         pk.pitch = (float) pitch;
-        pk.onGround = entity.onGround;
+        pk.onGround = entity.isOnGround();
 
         Server.broadcastPacket(entity.getViewers().values(), pk);
     }

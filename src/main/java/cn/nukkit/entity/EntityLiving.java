@@ -10,7 +10,6 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityDeathEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.GameRule;
-import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.FloatTag;
@@ -70,7 +69,7 @@ public abstract class EntityLiving extends Entity {
             EntityEventPacket pk = new EntityEventPacket();
             pk.eid = this.getId();
             pk.event = EntityEventPacket.RESPAWN;
-            Server.broadcastPacket(this.hasSpawned.values(), pk);
+            Server.broadcastPacket(this.viewers.values(), pk);
         }
     }
 
@@ -132,7 +131,7 @@ public abstract class EntityLiving extends Entity {
             EntityEventPacket pk = new EntityEventPacket();
             pk.eid = this.getId();
             pk.event = this.getHealth() <= 0 ? EntityEventPacket.DEATH_ANIMATION : EntityEventPacket.HURT_ANIMATION;
-            Server.broadcastPacket(this.hasSpawned.values(), pk);
+            Server.broadcastPacket(this.viewers.values(), pk);
 
             this.attackTime = source.getAttackCooldown();
 

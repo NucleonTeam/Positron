@@ -68,10 +68,12 @@ public abstract class Entity implements Metadatable {
     @Getter protected boolean removed = false;
     private final Object initializerLocker = new Object();
     private boolean initialized = false;
+    protected double entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
+    @Getter protected AxisAlignedBB boundingBox;
+    @Getter protected boolean onGround = false;
+    @Getter protected EntityDamageEvent lastDamageCause = null;
+    @Getter private float scale = 1;
 
-    public double entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
-    public AxisAlignedBB boundingBox;
-    public boolean onGround = false;
     public int deadTicks = 0;
     protected int age = 0;
     protected float health = 20;
@@ -83,7 +85,6 @@ public abstract class Entity implements Metadatable {
     public int ticksLived = 0;
     public int lastUpdate;
     public int fireTicks = 0;
-    public float scale = 1;
     public boolean isCollided = false;
     public boolean isCollidedHorizontally = false;
     public boolean isCollidedVertically = false;
@@ -96,12 +97,11 @@ public abstract class Entity implements Metadatable {
     protected boolean isPlayer = this instanceof Player;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlocks = new ArrayList<>();
-    protected final Map<Integer, Player> hasSpawned = new HashMap<>();
+    protected final Map<Integer, Player> viewers = new HashMap<>();
     protected final Map<Integer, Effect> effects = new ConcurrentHashMap<>();
     public final List<Entity> passengers = new ArrayList<>();
     public Entity riding = null;
     public FullChunk chunk;
-    protected EntityDamageEvent lastDamageCause = null;
     protected final EntityMetadata dataProperties = new EntityMetadata()
             .putLong(EntityDataKeys.FLAGS, 0)
             .putByte(EntityDataKeys.COLOR, 0)
@@ -187,6 +187,12 @@ public abstract class Entity implements Metadatable {
         }
 
         scheduleUpdate();
+
+        if (nbt.contains("Scale")) {
+            setDataProperty(new FloatEntityData(EntityDataKeys.SCALE, nbt.getFloat("Scale")));
+        }
+
+        recalculateBoundingBox();
     }
 
     public @NonNull CompoundTag getSaveData() {
@@ -234,7 +240,7 @@ public abstract class Entity implements Metadatable {
 
     private void saveNBT() {
         //TODO: решить что делать с этим
-        if (!(this instanceof Player)) {
+        if (canBeSaved()) {
             this.nbt.putString("id", this.getSaveId());
             if (!this.getNameTag().equals("")) {
                 this.nbt.putString("CustomName", this.getNameTag());
@@ -246,7 +252,10 @@ public abstract class Entity implements Metadatable {
                 this.nbt.remove("CustomNameAlwaysVisible");
             }
         }
+    }
 
+    public boolean canBeSaved() {
+        return true;
     }
 
     public float getHeight() {
@@ -419,10 +428,6 @@ public abstract class Entity implements Metadatable {
         this.recalculateBoundingBox();
     }
 
-    public float getScale() {
-        return this.scale;
-    }
-
     public List<Entity> getPassengers() {
         return passengers;
     }
@@ -506,7 +511,7 @@ public abstract class Entity implements Metadatable {
         this.dataProperties.put(bbH);
         this.dataProperties.put(bbW);
         if (send) {
-            sendData(this.hasSpawned.values().toArray(new Player[0]), new EntityMetadata().put(bbH).put(bbW));
+            sendData(this.viewers.values().toArray(new Player[0]), new EntityMetadata().put(bbH).put(bbW));
         }
     }
 
@@ -593,14 +598,6 @@ public abstract class Entity implements Metadatable {
         return true;
     }
 
-    public static CompoundTag getDefaultNBT(Vector3d pos) {
-        return getDefaultNBT(pos, null);
-    }
-
-    public static CompoundTag getDefaultNBT(Vector3d pos, Vector3d motion) {
-        return getDefaultNBT(pos, motion, 0, 0);
-    }
-
     public static CompoundTag getDefaultNBT(Vector3d pos, Vector3d motion, float yaw, float pitch) {
         return new CompoundTag()
                 .putList(new ListTag<DoubleTag>("Pos")
@@ -629,8 +626,8 @@ public abstract class Entity implements Metadatable {
     }
 
     public void spawnTo(Player player) {
-        if (!this.hasSpawned.containsKey(player.getLoaderId()) && this.chunk != null && player.usedChunks.containsKey(Level.chunkHash(this.chunk.getX(), this.chunk.getZ()))) {
-            this.hasSpawned.put(player.getLoaderId(), player);
+        if (!this.viewers.containsKey(player.getLoaderId()) && this.chunk != null && player.usedChunks.containsKey(Level.chunkHash(this.chunk.getX(), this.chunk.getZ()))) {
+            this.viewers.put(player.getLoaderId(), player);
             player.dataPacket(createAddEntityPacket());
         }
 
@@ -669,7 +666,7 @@ public abstract class Entity implements Metadatable {
     }
 
     public Map<Integer, Player> getViewers() {
-        return hasSpawned;
+        return viewers;
     }
 
     public void sendPotionEffects(Player player) {
@@ -711,11 +708,11 @@ public abstract class Entity implements Metadatable {
     }
 
     public void despawnFrom(Player player) {
-        if (this.hasSpawned.containsKey(player.getLoaderId())) {
+        if (this.viewers.containsKey(player.getLoaderId())) {
             RemoveEntityPacket pk = new RemoveEntityPacket();
             pk.eid = this.getId();
             player.dataPacket(pk);
-            this.hasSpawned.remove(player.getLoaderId());
+            this.viewers.remove(player.getLoaderId());
         }
     }
 
@@ -795,10 +792,6 @@ public abstract class Entity implements Metadatable {
 
     public void setLastDamageCause(EntityDamageEvent type) {
         this.lastDamageCause = type;
-    }
-
-    public EntityDamageEvent getLastDamageCause() {
-        return lastDamageCause;
     }
 
     public int getMaxHealth() {
@@ -1011,7 +1004,7 @@ public abstract class Entity implements Metadatable {
         pk.eid = this.id;
         pk.motion = motion.toFloat();
 
-        Server.broadcastPacket(hasSpawned.values(), pk);
+        Server.broadcastPacket(viewers.values(), pk);
     }
 
     public Vector3d getDirectionVector() {
@@ -1134,7 +1127,7 @@ public abstract class Entity implements Metadatable {
         pk.riderUniqueId = rider.getId(); // From who?
         pk.type = type;
 
-        Server.broadcastPacket(this.hasSpawned.values(), pk);
+        Server.broadcastPacket(this.viewers.values(), pk);
     }
 
     public void updatePassengers() {
@@ -1236,10 +1229,6 @@ public abstract class Entity implements Metadatable {
                 resetFallDistance();
             }
         }
-    }
-
-    public AxisAlignedBB getBoundingBox() {
-        return this.boundingBox;
     }
 
     public void fall(float fallDistance) {
@@ -1580,7 +1569,7 @@ public abstract class Entity implements Metadatable {
 
             if (!justCreated) {
                 var newChunk = world.getChunkPlayers(position.floorX() >> 4, position.floorZ() >> 4);
-                for (Player player: new ArrayList<>(hasSpawned.values())) {
+                for (Player player: new ArrayList<>(viewers.values())) {
                     if (!newChunk.containsKey(player.getLoaderId())) {
                         despawnFrom(player);
                     } else {
@@ -1620,10 +1609,6 @@ public abstract class Entity implements Metadatable {
         return true;
     }
 
-    public boolean isOnGround() {
-        return onGround;
-    }
-
     public void kill() {
         this.health = 0;
         this.scheduleUpdate();
@@ -1655,8 +1640,8 @@ public abstract class Entity implements Metadatable {
     }
 
     public void respawnToAll() {
-        Collection<Player> players = new ArrayList<>(this.hasSpawned.values());
-        this.hasSpawned.clear();
+        Collection<Player> players = new ArrayList<>(this.viewers.values());
+        this.viewers.clear();
 
         for (Player player : players) {
             this.spawnTo(player);
@@ -1676,7 +1661,7 @@ public abstract class Entity implements Metadatable {
     }
 
     public void despawnFromAll() {
-        for (Player player : new ArrayList<>(this.hasSpawned.values())) {
+        for (Player player : new ArrayList<>(this.viewers.values())) {
             this.despawnFrom(player);
         }
     }
@@ -1713,7 +1698,7 @@ public abstract class Entity implements Metadatable {
             if (data.getId() == EntityDataKeys.FLAGS_EXTENDED) {
                 metadata.put(this.dataProperties.get(EntityDataKeys.FLAGS));
             }
-            this.sendData(this.hasSpawned.values().toArray(new Player[0]), metadata);
+            this.sendData(this.viewers.values().toArray(new Player[0]), metadata);
         }
         return true;
     }
