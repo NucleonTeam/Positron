@@ -43,7 +43,6 @@ public class Item implements Cloneable, BlockID, ItemID {
     private byte[] tags = new byte[0];
     private CompoundTag cachedNBT = null;
     public int count;
-    protected int durability = 0;
     protected String name;
 
     public Item(int id) {
@@ -67,10 +66,6 @@ public class Item implements Cloneable, BlockID, ItemID {
         }
         this.count = count;
         this.name = name;
-        /*f (this.block != null && this.id <= 0xff && Block.list[id] != null) { //probably useless
-            this.block = Block.get(this.id, this.meta);
-            this.name = this.block.getName();
-        }*/
     }
 
     public boolean hasMeta() {
@@ -98,7 +93,7 @@ public class Item implements Cloneable, BlockID, ItemID {
     private static final ArrayList<Item> creative = new ArrayList<>();
 
     private static void initCreativeItems() {
-        clearCreativeItems();
+        Item.creative.clear();
 
         JsonArray itemsArray;
         try (InputStream stream = Server.class.getClassLoader().getResourceAsStream("creative_items.json")) {
@@ -116,36 +111,12 @@ public class Item implements Cloneable, BlockID, ItemID {
         }
     }
 
-    public static void clearCreativeItems() {
-        Item.creative.clear();
-    }
-
     public static ArrayList<Item> getCreativeItems() {
         return new ArrayList<>(Item.creative);
     }
 
     public static void addCreativeItem(Item item) {
         Item.creative.add(item.clone());
-    }
-
-    public static void removeCreativeItem(Item item) {
-        int index = getCreativeItemIndex(item);
-        if (index != -1) {
-            Item.creative.remove(index);
-        }
-    }
-
-    public static boolean isCreativeItem(Item item) {
-        for (Item aCreative : Item.creative) {
-            if (item.equals(aCreative, !item.isTool())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static Item getCreativeItem(int index) {
-        return (index >= 0 && index < Item.creative.size()) ? Item.creative.get(index) : null;
     }
 
     public static int getCreativeItemIndex(Item item) {
@@ -240,15 +211,6 @@ public class Item implements Cloneable, BlockID, ItemID {
         if (ignoreUnsupported && id < 0) return null;
 
         return get(id, Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), nbtBytes);
-    }
-
-    public static Item[] fromStringMultiple(String str) {
-        String[] b = str.split(",");
-        Item[] items = new Item[b.length - 1];
-        for (int i = 0; i < b.length; i++) {
-            items[i] = fromString(b[i]);
-        }
-        return items;
     }
 
     public Item setCompoundTag(CompoundTag tag) {
@@ -836,21 +798,6 @@ public class Item implements Cloneable, BlockID, ItemID {
      */
     public final boolean equalsExact(Item other) {
         return this.equals(other, true, true) && this.count == other.count;
-    }
-
-    @Deprecated
-    public final boolean deepEquals(Item item) {
-        return equals(item, true);
-    }
-
-    @Deprecated
-    public final boolean deepEquals(Item item, boolean checkDamage) {
-        return equals(item, checkDamage, true);
-    }
-
-    @Deprecated
-    public final boolean deepEquals(Item item, boolean checkDamage, boolean checkCompound) {
-        return equals(item, checkDamage, checkCompound);
     }
 
     @Override
