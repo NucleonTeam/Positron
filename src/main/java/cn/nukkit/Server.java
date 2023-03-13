@@ -52,11 +52,14 @@ import cn.nukkit.utils.*;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import ru.mc_positron.boot.configuration.FileConfiguration;
+import ru.mc_positron.boot.configuration.PositronConfiguration;
 import ru.mc_positron.math.FastMath;
 import ru.mc_positron.player.PlayerManager;
 import ru.mc_positron.player.PositronPlayerManager;
@@ -70,7 +73,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
-public class Server {
+public final class Server {
 
     private static final long START_TIME = System.currentTimeMillis();
     public static int DEBUG_LEVEL = 1;
@@ -103,7 +106,7 @@ public class Server {
     private final boolean alwaysTickPlayers;
     private final int baseTickRate;
     private Boolean getAllowFlight = null;
-    private int difficulty = Integer.MAX_VALUE;
+    private int difficulty = 1;
     private int defaultGamemode = Integer.MAX_VALUE;
     private int autoSaveTicker = 0;
     private int autoSaveTicks = 6000;
@@ -112,7 +115,6 @@ public class Server {
     private final String dataPath;
     private QueryHandler queryHandler;
     private QueryRegenerateEvent queryRegenerateEvent;
-    private final Config properties;
     private final Config config;
     private final Map<Integer, Level> levels = new HashMap<>() {
         public Level put(Integer key, Level value) {
@@ -141,16 +143,20 @@ public class Server {
     private final Set<String> ignoredPackets = new HashSet<>();
 
     @Getter private final PlayerManager playerManager = new PositronPlayerManager(this);
+    @Getter private final PositronConfiguration configuration;
 
-    public static Server init() {
-        var dataPath = System.getProperty("user.dir") + "/";
-        var pluginPath = dataPath + "plugins";
-
-        return new Server(dataPath, pluginPath, null);
+    public static Server init(@NonNull PositronConfiguration configuration) {
+        return new Server(configuration);
     }
 
-    private Server(String dataPath, String pluginPath, String predefinedLanguage) {
+    private Server(@NonNull PositronConfiguration configuration) {
+        this.configuration = configuration;
+
         var completeInitialization = Registry.init();
+
+        var dataPath = System.getProperty("user.dir") + "/";
+        var pluginPath = dataPath + "plugins";
+        String predefinedLanguage = null;
 
         Preconditions.checkState(instance == null, "Already initialized!");
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
@@ -224,8 +230,7 @@ public class Server {
         log.info("Loading {} ...", TextFormat.GREEN + "nukkit.yml" + TextFormat.WHITE);
         this.config = new Config(this.dataPath + "nukkit.yml", Config.YAML);
 
-        DEBUG_LEVEL = FastMath.clamp(this.getConfig("debug.level", 1), 1, 3);
-
+        DEBUG_LEVEL = configuration.getLogLevel();
         int logLevel = (DEBUG_LEVEL + 3) * 100;
         var currentLevel = Server.getLogLevel();
         for (var level: org.apache.logging.log4j.Level.values()) {
@@ -237,41 +242,6 @@ public class Server {
 
         ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
         ignoredPackets.add("BatchPacket");
-
-        log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
-        this.properties = new Config(this.dataPath + "server.properties", Config.PROPERTIES, new ConfigSection() {
-            {
-                put("motd", "A Nukkit Powered Server");
-                put("sub-motd", "https://nukkitx.com");
-                put("server-port", 19132);
-                put("server-ip", "0.0.0.0");
-                put("view-distance", 10);
-                put("white-list", false);
-                put("achievements", true);
-                put("announce-player-achievements", true);
-                put("spawn-protection", 16);
-                put("max-players", 20);
-                put("allow-flight", false);
-                put("spawn-animals", true);
-                put("spawn-mobs", true);
-                put("gamemode", 0);
-                put("force-gamemode", false);
-                put("hardcore", false);
-                put("pvp", true);
-                put("difficulty", 1);
-                put("generator-settings", "");
-                put("level-name", "world");
-                put("level-seed", "");
-                put("level-type", "DEFAULT");
-                put("allow-nether", true);
-                put("enable-query", true);
-                put("enable-rcon", false);
-                put("rcon.password", Base64.getEncoder().encodeToString(UUID.randomUUID().toString().replace("-", "").getBytes()).substring(3, 13));
-                put("auto-save", true);
-                put("force-resources", false);
-                put("xbox-auth", true);
-            }
-        });
 
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.baseLang = new BaseLang(this.getConfig("settings.language", BaseLang.FALLBACK_LANGUAGE));
@@ -306,18 +276,13 @@ public class Server {
         this.playerMetadata = new PlayerMetadataStore();
         this.levelMetadata = new LevelMetadataStore();
 
-        this.maxPlayers = this.getPropertyInt("max-players", 20);
-        this.setAutoSave(this.getPropertyBoolean("auto-save", true));
-
-        if (this.getPropertyBoolean("hardcore", false) && this.getDifficulty() < 3) {
-            this.setPropertyInt("difficulty", 3);
-        }
+        this.maxPlayers = 100;
 
         log.info(this.getLanguage().translateString("nukkit.server.networkStart", new String[]{this.getIp().equals("") ? "*" : this.getIp(), String.valueOf(this.getPort())}));
 
         this.network = new Network(this);
-        this.network.setName(this.getMotd());
-        this.network.setSubName(this.getSubMotd());
+        this.network.setName(configuration.getMotd());
+        this.network.setSubName(configuration.getSubMotd());
 
         log.info(this.getLanguage().translateString("nukkit.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + this.getCodename() + TextFormat.WHITE, this.getApiVersion()));
         log.info(this.getLanguage().translateString("nukkit.server.license", this.getName()));
@@ -382,16 +347,11 @@ public class Server {
         }
 
         if (this.getDefaultLevel() == null) {
-            String defaultName = this.getPropertyString("level-name", "world");
-            if (defaultName == null || defaultName.trim().isEmpty()) {
-                this.getLogger().warning("level-name cannot be null, using default");
-                defaultName = "world";
-                this.setPropertyString("level-name", defaultName);
-            }
+            String defaultName = "default";
 
             if (!this.loadLevel(defaultName)) {
                 long seed;
-                String seedString = String.valueOf(this.getProperty("level-seed", System.currentTimeMillis()));
+                String seedString = String.valueOf(404);
                 try {
                     seed = Long.parseLong(seedString);
                 } catch (NumberFormatException e) {
@@ -402,8 +362,6 @@ public class Server {
 
             this.setDefaultLevel(this.getLevelByName(defaultName));
         }
-
-        this.properties.save(true);
 
         if (this.getDefaultLevel() == null) {
             this.getLogger().emergency(this.getLanguage().translateString("nukkit.level.defaultError"));
@@ -580,7 +538,7 @@ public class Server {
     }
 
     public void start() {
-        if (this.getPropertyBoolean("enable-query", true)) {
+        if (configuration.canEnableQuery()) {
             this.queryHandler = new QueryHandler();
         }
 
@@ -909,15 +867,11 @@ public class Server {
     }
 
     public int getPort() {
-        return this.getPropertyInt("server-port", 19132);
-    }
-
-    public int getViewDistance() {
-        return this.getPropertyInt("view-distance", 10);
+        return configuration.getHostAddress().getPort();
     }
 
     public String getIp() {
-        return this.getPropertyString("server-ip", "0.0.0.0");
+        return configuration.getHostAddress().getHostString();
     }
 
     public boolean getAutoSave() {
@@ -932,19 +886,11 @@ public class Server {
     }
 
     public String getLevelType() {
-        return this.getPropertyString("level-type", "DEFAULT");
+        return "DEFAULT";
     }
 
     public int getGamemode() {
-        try {
-            return this.getPropertyInt("gamemode", 0) & 0b11;
-        } catch (NumberFormatException exception) {
-            return getGamemodeFromString(this.getPropertyString("gamemode")) & 0b11;
-        }
-    }
-
-    public boolean getForceGamemode() {
-        return this.getPropertyBoolean("force-gamemode", false);
+        return configuration.getDefaultGameMode() & 0b11;
     }
 
     public static String getGamemodeString(int mode) {
@@ -1018,9 +964,6 @@ public class Server {
     }
 
     public int getDifficulty() {
-        if (this.difficulty == Integer.MAX_VALUE) {
-            this.difficulty = getDifficultyFromString(this.getPropertyString("difficulty", "1"));
-        }
         return this.difficulty;
     }
 
@@ -1029,12 +972,11 @@ public class Server {
         if (value < 0) value = 0;
         if (value > 3) value = 3;
         this.difficulty = value;
-        this.setPropertyInt("difficulty", value);
     }
 
     public boolean getAllowFlight() {
         if (getAllowFlight == null) {
-            getAllowFlight = this.getPropertyBoolean("allow-flight", false);
+            getAllowFlight = true;
         }
         return getAllowFlight;
     }
@@ -1046,20 +988,8 @@ public class Server {
         return this.defaultGamemode;
     }
 
-    public String getMotd() {
-        return this.getPropertyString("motd", "A Nukkit Powered Server");
-    }
-
-    public String getSubMotd() {
-        String subMotd = this.getPropertyString("sub-motd", "https://nukkitx.com");
-        if (subMotd.isEmpty()) {
-            subMotd = "https://nukkitx.com"; // The client doesn't allow empty sub-motd in 1.16.210
-        }
-        return subMotd;
-    }
-
     public boolean getForceResources() {
-        return this.getPropertyBoolean("force-resources", false);
+        return false;
     }
 
     public MainLogger getLogger() {
@@ -1214,10 +1144,6 @@ public class Server {
             return false;
         }
 
-        if (!options.containsKey("preset")) {
-            options.put("preset", this.getPropertyString("generator-settings", ""));
-        }
-
         if (generator == null) {
             generator = Generator.getGenerator(this.getLevelType());
         }
@@ -1299,59 +1225,6 @@ public class Server {
     public <T> T getConfig(String variable, T defaultValue) {
         Object value = this.config.get(variable);
         return value == null ? defaultValue : (T) value;
-    }
-
-    public Config getProperties() {
-        return this.properties;
-    }
-
-    public Object getProperty(String variable) {
-        return this.getProperty(variable, null);
-    }
-
-    public Object getProperty(String variable, Object defaultValue) {
-        return this.properties.exists(variable) ? this.properties.get(variable) : defaultValue;
-    }
-
-    public void setPropertyString(String variable, String value) {
-        this.properties.set(variable, value);
-        this.properties.save();
-    }
-
-    public String getPropertyString(String variable) {
-        return this.getPropertyString(variable, null);
-    }
-
-    public String getPropertyString(String key, String defaultValue) {
-        return this.properties.exists(key) ? this.properties.get(key).toString() : defaultValue;
-    }
-
-    public int getPropertyInt(String variable, Integer defaultValue) {
-        return this.properties.exists(variable) ? (!this.properties.get(variable).equals("") ? Integer.parseInt(String.valueOf(this.properties.get(variable))) : defaultValue) : defaultValue;
-    }
-
-    public void setPropertyInt(String variable, int value) {
-        this.properties.set(variable, value);
-        this.properties.save();
-    }
-
-    public boolean getPropertyBoolean(String variable) {
-        return this.getPropertyBoolean(variable, null);
-    }
-
-    public boolean getPropertyBoolean(String variable, Object defaultValue) {
-        Object value = this.properties.exists(variable) ? this.properties.get(variable) : defaultValue;
-        if (value instanceof Boolean) {
-            return (Boolean) value;
-        }
-        switch (String.valueOf(value)) {
-            case "on":
-            case "true":
-            case "1":
-            case "yes":
-                return true;
-        }
-        return false;
     }
 
     public ServiceManager getServiceManager() {

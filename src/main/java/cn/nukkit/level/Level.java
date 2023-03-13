@@ -260,7 +260,7 @@ public class Level implements ChunkManager, Metadatable {
         this.levelCurrentTick = this.provider.getCurrentTick();
         this.updateQueue = new BlockUpdateScheduler(this, levelCurrentTick);
 
-        this.chunkTickRadius = Math.min(this.server.getViewDistance(),
+        this.chunkTickRadius = Math.min(this.server.getConfiguration().getViewDistance(),
                 Math.max(1, this.server.getConfig("chunk-ticking.tick-radius", 4)));
         this.chunksPerTicks = this.server.getConfig("chunk-ticking.per-tick", 40);
         this.chunkGenerationQueueSize = this.server.getConfig("chunk-generation.queue-size", 8);

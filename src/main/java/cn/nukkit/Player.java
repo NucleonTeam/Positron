@@ -395,7 +395,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
         spawnPoint = null;
         gamemode = server.getGamemode();
         world = server.getDefaultLevel();
-        viewDistance = server.getViewDistance();
+        viewDistance = server.getConfiguration().getViewDistance();
         chunkRadius = viewDistance;
         //this.newPosition = new Vector3(0, 0, 0);
         boundingBox = new SimpleAxisAlignedBB(Vector3d.ZERO, Vector3d.ZERO);
@@ -1577,7 +1577,7 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
 
                 this.loginChainData = ClientChainData.read(loginPacket);
 
-                if (!loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth")) {
+                if (!loginChainData.isXboxAuthed() && server.getConfiguration().isOnlyForXboxAuthorizedPlayers()) {
                     this.remove("", "disconnectionScreen.notAuthenticated");
                     break;
                 }
@@ -2701,8 +2701,6 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
                                     break;
                                 } else if (target instanceof Player) {
                                     if ((((Player) target).getGamemode() & 0x01) > 0) {
-                                        break;
-                                    } else if (!this.server.getPropertyBoolean("pvp")) {
                                         break;
                                     }
                                 }

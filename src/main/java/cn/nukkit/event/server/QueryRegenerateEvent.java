@@ -51,7 +51,7 @@ public class QueryRegenerateEvent extends ServerEvent {
 
     public QueryRegenerateEvent(Server server, int timeout) {
         this.timeout = timeout;
-        this.serverName = server.getMotd();
+        this.serverName = server.getConfiguration().getMotd();
         this.listPlugins = server.getConfig("settings.query-plugins", true);
         this.plugins = server.getPluginManager().getPlugins().values().toArray(new Plugin[0]);
         this.players = server.getPlayerManager().getPlayers().toArray(new Player[0]);

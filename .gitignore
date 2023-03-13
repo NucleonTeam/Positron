@@ -50,7 +50,7 @@ rebel-remote.xml
 
 nukkit.yml
 server.log
-server.properties
+server.conf
 worlds/*
 plugins/*
 players/*
