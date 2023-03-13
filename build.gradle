@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" version "7.0.0"
+}
+
+group 'ru.mc_positron'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+
+    maven { url "https://repo.opencollab.dev/maven-releases/" }
+    maven { url "https://repo.opencollab.dev/maven-snapshots/" }
+}
+
+dependencies {
+    implementation 'com.nukkitx.network:raknet:1.6.28-SNAPSHOT'
+    implementation 'com.nukkitx:fastutil-lite:8.1.1'
+    implementation 'com.google.guava:guava:30.0-jre'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'org.yaml:snakeyaml:1.32'
+    implementation 'org.iq80.leveldb:leveldb:0.11-SNAPSHOT'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.13'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    implementation 'net.minecrell:terminalconsoleappender:1.1.1'
+    implementation 'org.jline:jline-terminal:3.9.0'
+    implementation 'org.jline:jline-terminal-jna:3.9.0'
+    implementation 'org.jline:jline-reader:3.9.0'
+    implementation 'org.spongepowered:math:2.0.1'
+
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor "org.projectlombok:lombok:1.18.26"
+}
+
+sourceCompatibility = sourceCompatibility = JavaVersion.VERSION_17
+
+tasks {
+    compileJava {
+        options.encoding = "UTF-8"
+    }
+
+    shadowJar {
+        archiveFileName.set("positron.jar")
+        manifest {
+            attributes (
+                    "Main-Class": "ru.mc_positron.Bootstrap",
+                    "Multi-Release": true
+            )
+        }
+        mergeServiceFiles()
+    }
+
+    assemble {
+        dependsOn("shadowJar")
+    }
+}

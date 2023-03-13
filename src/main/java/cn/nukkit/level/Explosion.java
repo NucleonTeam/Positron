@@ -44,17 +44,6 @@ public class Explosion {
 
     /**
      * @return bool
-     * @deprecated
-     */
-    public boolean explode() {
-        if (explodeA()) {
-            return explodeB();
-        }
-        return false;
-    }
-
-    /**
-     * @return bool
      */
     public boolean explodeA() {
         if (this.size < 0.1) {

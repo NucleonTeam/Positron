@@ -67,10 +67,6 @@ public enum BlockFace {
         return VALUES[rand.nextInt(VALUES.length)];
     }
 
-    public int getHorizontalIndex() {
-        return horizontalIndex;
-    }
-
     public @NonNull Vector3i getUnitVector() {
         return unitVector;
     }
