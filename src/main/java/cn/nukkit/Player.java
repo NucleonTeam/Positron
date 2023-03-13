@@ -4105,35 +4105,9 @@ public class Player extends EntityHuman implements InventoryHolder, ChunkLoader,
     }
 
     @Override
-    public void onChunkLoaded(FullChunk chunk) {
-
-    }
-
-    @Override
-    public void onChunkPopulated(FullChunk chunk) {
-
-    }
-
-    @Override
-    public void onChunkUnloaded(FullChunk chunk) {
-
-    }
-
-    @Override
-    public void onBlockChanged(Vector3i block) {
-
-    }
-
-    @Override
     public int getLoaderId() {
         return this.loaderId;
     }
-
-    @Override
-    public boolean isLoaderActive() {
-        return this.isConnected();
-    }
-
 
     public static BatchPacket getChunkCacheFromData(int chunkX, int chunkZ, int subChunkCount, byte[] payload) {
         LevelChunkPacket pk = new LevelChunkPacket();

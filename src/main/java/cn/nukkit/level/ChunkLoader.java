@@ -9,8 +9,6 @@ public interface ChunkLoader {
 
     int getLoaderId();
 
-    boolean isLoaderActive();
-
     Vector3d getPosition();
 
     Level getWorld();
@@ -20,12 +18,4 @@ public interface ChunkLoader {
     int getChunkZ();
 
     void onChunkChanged(FullChunk chunk);
-
-    void onChunkLoaded(FullChunk chunk);
-
-    void onChunkUnloaded(FullChunk chunk);
-
-    void onChunkPopulated(FullChunk chunk);
-
-    void onBlockChanged(Vector3i block);
 }

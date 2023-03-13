@@ -1578,9 +1578,6 @@ public class Level implements ChunkManager, Metadatable {
             addBlockChange(index, x, y, z);
         }
 
-        for (ChunkLoader loader : this.getChunkLoaders(cx, cz)) {
-            loader.onBlockChanged(block.getPosition());
-        }
         if (update) {
             if (blockPrevious.isTransparent() != block.isTransparent() || blockPrevious.getLightLevel() != block.getLightLevel()) {
                 addLightUpdate(x, y, z);
@@ -2153,9 +2150,6 @@ public class Level implements ChunkManager, Metadatable {
     public synchronized void setBlockIdAt(int x, int y, int z, int id) {
         this.getChunk(x >> 4, z >> 4, true).setBlockId(x & 0x0f, y & 0xff, z & 0x0f, id & 0xff);
         addBlockChange(x, y, z);
-        for (ChunkLoader loader : this.getChunkLoaders(x >> 4, z >> 4)) {
-            loader.onBlockChanged(new Vector3i(x, y, z));
-        }
     }
 
     public synchronized void setBlockAt(int x, int y, int z, int id, int data) {
@@ -2163,9 +2157,6 @@ public class Level implements ChunkManager, Metadatable {
         chunk.setBlockId(x & 0x0f, y & 0xff, z & 0x0f, id & 0xff);
         chunk.setBlockData(x & 0x0f, y & 0xff, z & 0x0f, data & 0xf);
         addBlockChange(x, y, z);
-        for (ChunkLoader loader : this.getChunkLoaders(x >> 4, z >> 4)) {
-            loader.onBlockChanged(new Vector3i(x, y, z));
-        }
     }
 
     public synchronized int getBlockExtraDataAt(int x, int y, int z) {
@@ -2187,10 +2178,6 @@ public class Level implements ChunkManager, Metadatable {
     public synchronized void setBlockDataAt(int x, int y, int z, int data) {
         this.getChunk(x >> 4, z >> 4, true).setBlockData(x & 0x0f, y & 0xff, z & 0x0f, data & 0x0f);
         addBlockChange(x, y, z);
-
-        for (ChunkLoader loader : this.getChunkLoaders(x >> 4, z >> 4)) {
-            loader.onBlockChanged(new Vector3i(x, y, z));
-        }
     }
 
     public synchronized int getBlockSkyLightAt(int x, int y, int z) {
@@ -2268,10 +2255,6 @@ public class Level implements ChunkManager, Metadatable {
             if (chunk != null && (oldChunk == null || !isPopulated) && chunk.isPopulated()
                     && chunk.getProvider() != null) {
                 this.server.getPluginManager().callEvent(new ChunkPopulateEvent(chunk));
-
-                for (ChunkLoader loader : this.getChunkLoaders(x, z)) {
-                    loader.onChunkPopulated(chunk);
-                }
             }
         } else if (this.chunkGenerationQueue.containsKey(index) || this.chunkPopulationLock.containsKey(index)) {
             this.chunkGenerationQueue.remove(index);
@@ -2392,7 +2375,10 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public Point getSpawnPoint() {
-        return provider.getSpawn();
+        Point point = provider.getSpawn();
+
+        if (point.getPosition().equals(Vector3d.ZERO)) point = Point.of(new Vector3d(0, getHighestBlockAt(0, 0) + 1, 0));
+        return point;
     }
 
     public void setSpawnLocation(Point pos) {
@@ -2569,9 +2555,6 @@ public class Level implements ChunkManager, Metadatable {
 
         if (this.isChunkInUse(index)) {
             this.unloadQueue.remove(index);
-            for (ChunkLoader loader : this.getChunkLoaders(x, z)) {
-                loader.onChunkLoaded(chunk);
-            }
         } else {
             this.unloadQueue.put(index, System.currentTimeMillis());
         }
@@ -2647,9 +2630,6 @@ public class Level implements ChunkManager, Metadatable {
                         this.provider.setChunk(x, z, chunk);
                         this.provider.saveChunk(x, z);
                     }
-                }
-                for (ChunkLoader loader : this.getChunkLoaders(x, z)) {
-                    loader.onChunkUnloaded(chunk);
                 }
             }
             this.provider.unloadChunk(x, z, safe);
